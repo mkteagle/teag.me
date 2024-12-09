@@ -1,42 +1,38 @@
-import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
-import { recordScan } from "@/lib/actions";
-import { headers } from "next/headers";
+"use client";
 
-async function getIpAddress() {
-  const headersList = headers();
-  return (await headersList).get("x-forwarded-for") || "unknown";
-}
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default async function RedirectPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default function RedirectPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
 
-  try {
-    const qrCode = await prisma.qRCode.findUnique({
-      where: { id },
-    });
+  useEffect(() => {
+    const trackAndRedirect = async () => {
+      try {
+        const response = await fetch(`/api/track/${params.id}`);
+        const data = await response.json();
 
-    if (!qrCode) {
-      console.error(`QR code not found: ${id}`);
-      redirect("/404");
-    }
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to track QR code");
+        }
 
-    const headersList = headers();
-    await recordScan(id, {
-      ip: await getIpAddress(),
-      userAgent: (await headersList).get("user-agent") || "unknown",
-      country: (await headersList).get("x-vercel-ip-country") || undefined,
-      city: (await headersList).get("x-vercel-ip-city") || undefined,
-      region: (await headersList).get("x-vercel-ip-region") || undefined,
-    });
+        // Redirect to the destination URL
+        window.location.href = data.redirectUrl;
+      } catch (error) {
+        console.error("Redirect error:", error);
+        router.push("/not-found");
+      }
+    };
 
-    return redirect(qrCode.redirectUrl);
-  } catch (error) {
-    console.error("Redirect error:", error);
-    redirect("/404");
-  }
+    trackAndRedirect();
+  }, [params.id, router]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center space-y-4">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+        <p className="text-foreground">Redirecting...</p>
+      </div>
+    </div>
+  );
 }
