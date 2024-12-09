@@ -1,15 +1,21 @@
+// app/r/[id]/page.tsx
 "use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function RedirectPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function RedirectPage({ params }: PageProps) {
   const router = useRouter();
+  const { id } = await params;
 
   useEffect(() => {
     const trackAndRedirect = async () => {
       try {
-        const response = await fetch(`/api/track/${params.id}`);
+        const response = await fetch(`/api/track/${id}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -25,7 +31,7 @@ export default function RedirectPage({ params }: { params: { id: string } }) {
     };
 
     trackAndRedirect();
-  }, [params.id, router]);
+  }, [id, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
