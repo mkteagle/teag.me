@@ -1,6 +1,7 @@
 "use client";
 import { QRCode } from "@prisma/client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -14,6 +15,7 @@ import Image from "next/image";
 export const QRCodesTable = () => {
   const [qrCodes, setQRCodes] = useState<QRCode[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchQRCodes = async () => {
@@ -33,6 +35,10 @@ export const QRCodesTable = () => {
 
     fetchQRCodes();
   }, []);
+
+  const handleRowClick = (id: string) => {
+    router.push(`/analytics/${id}`);
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this QR code?")) return;
@@ -75,6 +81,7 @@ export const QRCodesTable = () => {
           <TableRow
             key={qr.id}
             className="cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => handleRowClick(qr.id)}
           >
             <TableCell className="font-medium">{qr.id}</TableCell>
             <TableCell>{qr.redirectUrl}</TableCell>

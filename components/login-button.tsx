@@ -14,6 +14,8 @@ export default function LoginButton() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const isProduction = process.env.NEXT_PUBLIC_ENV === "production";
+  const hideAppleLogin =
+    JSON.stringify(process.env.HIDE_APPLE_LOGIN) === JSON.stringify(true);
 
   const handleLogin = async (provider: "google" | "apple") => {
     try {
@@ -75,7 +77,7 @@ export default function LoginButton() {
         Continue with Google
       </Button>
 
-      {isProduction && (
+      {isProduction && !hideAppleLogin && (
         <Button
           onClick={() => handleLogin("apple")}
           className="w-full flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white"
