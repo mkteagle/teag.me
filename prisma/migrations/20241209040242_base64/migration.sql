@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "QRCode" ALTER COLUMN "base64" DROP DEFAULT;
