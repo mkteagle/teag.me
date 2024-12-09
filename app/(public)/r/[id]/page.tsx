@@ -11,9 +11,9 @@ async function getIpAddress() {
 export default async function RedirectPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const qrCode = await prisma.qRCode.findUnique({
