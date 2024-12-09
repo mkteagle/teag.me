@@ -13,18 +13,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate QR code
-    const qrDataUrl = await QRCode.toDataURL(redirectUrl);
-
-    
-
-    // Save to database with user ID
-    const qrCode = await prisma.qRCode.create({
+    // Create QR code entry to get an ID
+    const qrCodeEntry = await prisma.qRCode.create({
       data: {
         redirectUrl,
-        base64: qrDataUrl,
         userId,
+        base64: "",
       },
+    });
+
+    // Generate routing URL using the ID
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const routingUrl = `${baseUrl}/r/${qrCodeEntry.id}`;
+
+    // Generate QR code with routing URL
+    const qrDataUrl = await QRCode.toDataURL(routingUrl);
+
+    // Update with generated QR code
+    const qrCode = await prisma.qRCode.update({
+      where: { id: qrCodeEntry.id },
+      data: { base64: qrDataUrl },
     });
 
     return NextResponse.json({
@@ -33,6 +41,7 @@ export async function POST(request: NextRequest) {
         id: qrCode.id,
         base64: qrCode.base64,
         redirectUrl: qrCode.redirectUrl,
+        routingUrl,
       },
     });
   } catch (error) {
