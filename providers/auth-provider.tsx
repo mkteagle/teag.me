@@ -11,7 +11,7 @@ const AuthContext = createContext<AuthContextProps>({
   userId: null,
 });
 
-const PUBLIC_PATHS = ["/auth/login"];
+const PUBLIC_PATHS = ["/auth/login", "/r"]; // Added /r to public paths
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
@@ -21,7 +21,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const storedUserId = window.localStorage.getItem("userId");
-    console.log("Initial localStorage userId:", storedUserId);
     setUserId(storedUserId);
     setIsInitialized(true);
   }, []);
@@ -29,19 +28,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!isInitialized) return;
 
-    const isPublicPath = PUBLIC_PATHS.includes(pathname);
+    // Check if current path starts with any public path
+    const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 
-    console.log("Auth state:", {
-      userId,
-      pathname,
-      isPublicPath,
-    });
-
-    if (userId && isPublicPath) {
-      // If user is logged in and on a public path (like login), redirect to home
+    if (userId && pathname === "/auth/login") {
       router.push("/");
     } else if (!userId && !isPublicPath) {
-      // If user is not logged in and trying to access a protected path
       router.push("/auth/login");
     }
   }, [userId, pathname, router, isInitialized]);

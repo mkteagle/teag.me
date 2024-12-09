@@ -1,4 +1,3 @@
-// app/(public)/r/[id]/page.tsx
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { recordScan } from "@/lib/actions";
@@ -12,21 +11,20 @@ async function getIpAddress() {
 export default async function RedirectPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = await params;
+  const { id } = params;
 
   try {
-    // Get QR code data
     const qrCode = await prisma.qRCode.findUnique({
       where: { id },
     });
 
     if (!qrCode) {
+      console.error(`QR code not found: ${id}`);
       redirect("/404");
     }
 
-    // Record the scan
     const headersList = headers();
     await recordScan(id, {
       ip: await getIpAddress(),
@@ -36,8 +34,7 @@ export default async function RedirectPage({
       region: (await headersList).get("x-vercel-ip-region") || undefined,
     });
 
-    // Redirect to the target URL
-    redirect(qrCode.redirectUrl);
+    return redirect(qrCode.redirectUrl);
   } catch (error) {
     console.error("Redirect error:", error);
     redirect("/404");

@@ -8,11 +8,12 @@ datasource db {
 }
 
 model QRCode {
-  id           String @id @default(cuid())
+  id           String   @id @default(cuid())
   createdAt    DateTime @default(now())
   scans        Scan[]
   userId       String
   redirectUrl  String
+  routingUrl   String   @default("")
   base64       String
 }
 
