@@ -21,8 +21,8 @@ export function Header() {
       <div className="flex items-center">
         <SidebarTrigger />
       </div>
-      <div className="flex items-center space-x-4">
-        {/* <Button variant="ghost" size="icon" className="relative hover-lift transition-all duration-300">
+      {/* <div className="flex items-center space-x-4"> */}
+      {/* <Button variant="ghost" size="icon" className="relative hover-lift transition-all duration-300">
           <Bell className="h-5 w-5" />
           {notifications > 0 && (
             <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
@@ -30,7 +30,7 @@ export function Header() {
             </span>
           )}
         </Button> */}
-        {/* <DropdownMenu>
+      {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="hover-lift transition-all duration-300">
               <User className="h-5 w-5" />
@@ -44,7 +44,7 @@ export function Header() {
             <DropdownMenuItem>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu> */}
-      </div>
+      {/* </div> */}
     </header>
   );
 }
