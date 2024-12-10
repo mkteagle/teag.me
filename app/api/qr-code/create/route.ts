@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import * as QRCode from "qrcode";
+import { generateUniqueShortId } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,28 +14,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate a unique short ID
+    const shortId = await generateUniqueShortId(prisma);
+
+    // Create the short URL using teag.me domain
+    const shortUrl = `https://teag.me/${shortId}`;
+
     // Create initial QR code entry
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
     const qrCodeEntry = await prisma.qRCode.create({
       data: {
+        id: shortId, // Use the short ID as the primary key
         redirectUrl,
         userId,
         base64: "",
-        routingUrl: "", // Initialize with empty string
+        routingUrl: shortUrl,
       },
     });
 
-    // Generate the routing URL using the ID
-    const routingUrl = `${baseUrl}/r/${qrCodeEntry.id}`;
+    // Generate QR code with the short URL
+    const qrDataUrl = await QRCode.toDataURL(shortUrl);
 
-    // Generate QR code with the routing URL
-    const qrDataUrl = await QRCode.toDataURL(routingUrl);
-
-    // Update QR code with both the routingUrl and base64 data
+    // Update QR code with the base64 data
     const qrCode = await prisma.qRCode.update({
-      where: { id: qrCodeEntry.id },
+      where: { id: shortId },
       data: {
-        routingUrl,
         base64: qrDataUrl,
       },
     });

@@ -27,7 +27,18 @@ export const QRCodesTable = () => {
   useEffect(() => {
     const fetchQRCodes = async () => {
       try {
-        const response = await fetch("/api/qr-codes");
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          router.push("/auth/login");
+          return;
+        }
+
+        const response = await fetch("/api/qr-codes", {
+          headers: {
+            Authorization: `Bearer ${userId}`,
+          },
+        });
+
         if (!response.ok) {
           throw new Error("Failed to fetch QR codes");
         }
@@ -35,13 +46,18 @@ export const QRCodesTable = () => {
         setQRCodes(data);
       } catch (error) {
         console.error(error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch QR codes",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchQRCodes();
-  }, []);
+  }, [router, toast]);
 
   const handleRowClick = (id: string) => {
     router.push(`/analytics/${id}`);

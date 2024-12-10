@@ -8,7 +8,6 @@ import {
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createOrUpdateUser } from "@/lib/auth-utils";
 import { Button } from "@/components/ui/button";
 
 export default function LoginButton() {
@@ -29,12 +28,22 @@ export default function LoginButton() {
       const result = await signInWithPopup(auth, authProvider);
       const user = result.user;
 
-      // Create or update user in our database
-      await createOrUpdateUser({
-        id: user.uid,
-        email: user.email!,
-        name: user.displayName,
+      // Create or update user through API endpoint
+      const response = await fetch("/api/auth/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: user.uid,
+          email: user.email,
+          name: user.displayName,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user data");
+      }
 
       // Store the userId in localStorage
       window.localStorage.setItem("userId", user.uid);

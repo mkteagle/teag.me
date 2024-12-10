@@ -1,4 +1,5 @@
 // prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,36 +10,42 @@ datasource db {
 }
 
 model User {
-  id        String   @id
-  email     String   @unique
+  id        String    @id
+  email     String    @unique
   name      String?
-  role      Role     @default(USER)
+  image     String?
+  role      Role      @default(USER)
   qrCodes   QRCode[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model QRCode {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  scans       Scan[]
-  userId      String?  // Made nullable temporarily
-  user        User?     @relation(fields: [userId], references: [id])
+  id          String   @id @db.VarChar(10) // Changed to support shorter IDs
   redirectUrl String
-  routingUrl  String   @default("")
   base64      String
+  routingUrl  String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  scans       Scan[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Scan {
   id        String   @id
-  timestamp DateTime @default(now())
+  qrCode    QRCode   @relation(fields: [qrCodeId], references: [id])
+  qrCodeId  String
   ip        String
   userAgent String
   country   String?
   city      String?
   region    String?
-  qrCode    QRCode   @relation(fields: [qrCodeId], references: [id])
-  qrCodeId  String
+  timestamp DateTime @default(now())
+
+  @@index([qrCodeId])
 }
 
 enum Role {

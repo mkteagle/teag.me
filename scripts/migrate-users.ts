@@ -1,4 +1,4 @@
-// scripts/migrate-users.ts
+// @ts-ignore
 const { PrismaClient } = require("@prisma/client");
 const admin = require("firebase-admin");
 const path = require("path");
@@ -15,6 +15,7 @@ if (!admin.apps.length) {
   });
 }
 
+// @ts-ignore
 const prisma = new PrismaClient();
 
 async function migrateUsers() {

@@ -1,10 +1,26 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Assuming Prisma is set up for your project
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Get user ID from Authorization header
+    const authHeader = request.headers.get("Authorization");
+    const userId = authHeader?.split("Bearer ")[1];
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     const qrCodes = await prisma.qRCode.findMany({
-      orderBy: { createdAt: "desc" }, // Sort by most recent
+      where: {
+        userId: userId, // Filter by user ID
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
       select: {
         id: true,
         redirectUrl: true,
