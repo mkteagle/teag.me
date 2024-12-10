@@ -36,7 +36,6 @@ export default function GeneratePage() {
       }
 
       const data = await response.json();
-      console.info({ data });
       setQrCode(data.data.base64);
       toast({
         title: "QR Code Generated",
@@ -90,8 +89,6 @@ export default function GeneratePage() {
       });
     }
   };
-
-  console.info({ qrCode });
 
   return (
     <div className="container mx-auto p-8">

@@ -4,7 +4,6 @@ import { adminAuth } from "./firebase-admin";
 export async function validateSession(request: NextRequest) {
   try {
     const session = request.headers.get("x-session-token");
-    console.info({ session, headers: request.headers });
 
     if (!session) {
       throw new Error("No session token found");

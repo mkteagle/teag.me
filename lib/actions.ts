@@ -59,7 +59,6 @@ export async function loginWithIdToken(idToken: string) {
 export async function generateQRCode(redirectUrl: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-    console.info({ baseUrl });
     const response = await fetch(`${baseUrl}/api/qr-code/create`, {
       method: "POST",
       headers: {
@@ -69,11 +68,8 @@ export async function generateQRCode(redirectUrl: string) {
       body: JSON.stringify({ redirectUrl }),
     });
 
-    // console.info({ response });
-
     if (!response.ok) {
       const error = await response.json();
-      console.info({ error });
       throw new Error(error.error || "Failed to generate QR code");
     }
 

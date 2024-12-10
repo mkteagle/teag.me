@@ -5,7 +5,6 @@ export async function logout() {
   try {
     // Sign out from Firebase
     const response = await signOut(auth);
-    console.info({ response });
 
     // Clear local storage
     window.localStorage.removeItem("userId");
