@@ -14,8 +14,9 @@ export default function LoginButton() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const isProduction = process.env.NEXT_PUBLIC_ENV === "production";
-  const hideAppleLogin =
-    JSON.stringify(process.env.HIDE_APPLE_LOGIN) === JSON.stringify(true);
+  const hideAppleLogin = true;
+  // const hideAppleLogin =
+  //   JSON.stringify(process.env.HIDE_APPLE_LOGIN) === JSON.stringify(true);
 
   const handleLogin = async (provider: "google" | "apple") => {
     try {
