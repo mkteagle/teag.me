@@ -4,7 +4,7 @@ export default function TermsPage() {
       <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
       <div className="prose prose-invert max-w-none">
         <p className="text-lg text-muted-foreground mb-8">
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: {new Date("12-06-2024").toLocaleDateString()}
         </p>
 
         <section className="mb-8">

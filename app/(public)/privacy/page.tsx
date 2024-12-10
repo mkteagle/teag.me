@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
       <div className="prose prose-invert max-w-none">
         <p className="text-lg text-muted-foreground mb-8">
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: {new Date("12-06-2024").toLocaleDateString()}
         </p>
 
         <section className="mb-8">
@@ -50,9 +50,7 @@ export default function PrivacyPage() {
             If you have any questions about this Privacy Policy, please contact
             us at:
           </p>
-          <p className="mb-4">
-            Email: sayhello@mkteagle.com
-          </p>
+          <p className="mb-4">Email: sayhello@mkteagle.com</p>
         </section>
       </div>
     </div>
