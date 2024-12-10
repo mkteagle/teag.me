@@ -44,9 +44,6 @@ interface QRCode {
 export default function HomePage() {
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-4xl font-bold mb-8 text-center text-primary neon-border p-4 inline-block">
-        QR Code Tracker
-      </h1>
       <div className="grid gap-8 mb-8 md:grid-cols-2">
         <Card className="hover-lift glassmorphism">
           <CardHeader>
@@ -60,21 +57,6 @@ export default function HomePage() {
           <CardContent>
             <Button asChild className="w-full">
               <Link href="/generate">Create QR Code</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card className="hover-lift glassmorphism">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-primary">
-              View Analytics
-            </CardTitle>
-            <CardDescription>
-              Track usage and analyze engagement with your QR codes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="secondary" className="w-full">
-              <Link href="/analytics">View Analytics</Link>
             </Button>
           </CardContent>
         </Card>

@@ -11,7 +11,7 @@ const AuthContext = createContext<AuthContextProps>({
   userId: null,
 });
 
-const PUBLIC_PATHS = ["/auth/login", "/r", "/not-found"]; // Added /r to public paths
+const PUBLIC_PATHS = ["/auth/login", "/r", "/not-found", "/privacy", "/terms"]; // Added /r to public paths
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();

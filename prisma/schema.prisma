@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,14 +8,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  qrCodes   QRCode[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model QRCode {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  scans        Scan[]
-  userId       String
-  redirectUrl  String
-  routingUrl   String   @default("")
-  base64       String
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  scans       Scan[]
+  userId      String?  // Made nullable temporarily
+  user        User?     @relation(fields: [userId], references: [id])
+  redirectUrl String
+  routingUrl  String   @default("")
+  base64      String
 }
 
 model Scan {
@@ -27,4 +39,9 @@ model Scan {
   region    String?
   qrCode    QRCode   @relation(fields: [qrCodeId], references: [id])
   qrCodeId  String
+}
+
+enum Role {
+  USER
+  ADMIN
 }

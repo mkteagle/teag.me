@@ -8,6 +8,7 @@ import {
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createOrUpdateUser } from "@/lib/auth-utils";
 import { Button } from "@/components/ui/button";
 
 export default function LoginButton() {
@@ -26,23 +27,19 @@ export default function LoginButton() {
           : new OAuthProvider("apple.com");
 
       const result = await signInWithPopup(auth, authProvider);
-      const idToken = await result.user.getIdToken();
+      const user = result.user;
 
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ idToken }),
+      // Create or update user in our database
+      await createOrUpdateUser({
+        id: user.uid,
+        email: user.email!,
+        name: user.displayName,
       });
 
-      const data = await response.json();
+      // Store the userId in localStorage
+      window.localStorage.setItem("userId", user.uid);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to login");
-      }
-
-      window.localStorage.setItem("userId", data.userId);
+      // Redirect to home page
       window.location.href = "/";
     } catch (error) {
       console.error("Login failed:", error);

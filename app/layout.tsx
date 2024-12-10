@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/styles/globals.css";
 import { type Metadata } from "next/types";
+import { Footer } from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -59,7 +60,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="h-full">
       <body className={`${inter.className} min-h-screen bg-[#0a0b1e]`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {children}
+          <main className="flex-1">{children}</main>
+          <Footer />
           <Toaster />
         </ThemeProvider>
       </body>

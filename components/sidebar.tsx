@@ -16,8 +16,6 @@ import { logout } from "@/lib/auth";
 const menuItems = [
   { icon: Home, label: "Dashboard", href: "/" },
   { icon: QrCode, label: "Generate QR", href: "/generate" },
-  { icon: BarChart, label: "Analytics", href: "/analytics" },
-  { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
 export function Sidebar() {

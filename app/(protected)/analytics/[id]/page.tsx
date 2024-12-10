@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { ScanHistory } from "@/components/scan-history";
 
 interface Scan {
   id: string;
@@ -223,37 +224,7 @@ export default function AnalyticsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>IP Address</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Device Info</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {scans.map((scan) => (
-                <TableRow key={scan.id}>
-                  <TableCell>
-                    {format(new Date(scan.timestamp), "MMM d, yyyy HH:mm:ss")}
-                  </TableCell>
-                  <TableCell>{scan.ip}</TableCell>
-                  <TableCell>
-                    {[scan.country, scan.region, scan.city]
-                      .filter(Boolean)
-                      .join(", ") || "Unknown"}
-                  </TableCell>
-                  <TableCell
-                    className="max-w-xs truncate"
-                    title={scan.userAgent}
-                  >
-                    {scan.userAgent}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <ScanHistory scans={scans} />
         </CardContent>
       </Card>
     </div>
