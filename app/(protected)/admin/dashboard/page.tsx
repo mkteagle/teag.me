@@ -15,6 +15,7 @@ import { ExternalLink, Trash2, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/delete-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Scan {
   id: string;
@@ -116,14 +117,33 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="w-full grid place-items-center py-8">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="w-full overflow-auto">
+        {/* Mobile Skeleton */}
+        <div className="md:hidden space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="p-4 rounded-lg bg-card border border-border"
+            >
+              <div className="flex items-start justify-between">
+                <div className="space-y-3 flex-1">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-10 w-10 rounded-md" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-3 w-full max-w-[250px]" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       </div>
     );
   }

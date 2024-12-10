@@ -1,11 +1,12 @@
+// app/(protected)/layout.tsx
 "use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
-import { Header } from "@/components/header";
 import { BottomNav } from "@/components/bottom-nav";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Footer } from "@/components/footer";
 
 export default function ProtectedLayout({
   children,
@@ -23,17 +24,17 @@ export default function ProtectedLayout({
 
   return (
     <SidebarProvider>
-      <div className="relative flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full">
         {/* Hide sidebar on mobile */}
         <div className="hidden md:block">
           <Sidebar />
         </div>
 
-        <div className="flex flex-col flex-1 w-full">
-          <Header />
-          <main className="flex-1 w-full p-4 overflow-y-auto pb-20 md:pb-4">
+        <div className="flex flex-col flex-1">
+          <main className="flex-1 overflow-y-auto p-4 pb-20 md:pb-4">
             {children}
           </main>
+          <Footer />
           <BottomNav />
         </div>
       </div>

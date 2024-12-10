@@ -1,6 +1,7 @@
+// components/sidebar.tsx
 "use client";
 
-import { Home, QrCode, BarChart, Settings, LogOut, Shield } from "lucide-react";
+import { Home, QrCode, Shield, LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -55,7 +56,7 @@ export function Sidebar() {
       <SidebarHeader className="border-b border-slate-800">
         <div className="flex items-center justify-center h-16 px-4">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            QR Tracker
+            teag.me
           </h1>
         </div>
       </SidebarHeader>
