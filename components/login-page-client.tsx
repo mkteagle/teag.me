@@ -7,17 +7,38 @@ import { useDetectInAppBrowser } from "@/hooks/use-detect-in-app-browser";
 export default function LoginPageClient() {
   const isInAppBrowser = useDetectInAppBrowser();
 
+  const openInDefaultBrowser = () => {
+    const url = window.location.href; // Current page URL
+    const intentUrl = `intent://${url.replace(
+      /^https?:\/\//,
+      ""
+    )}#Intent;scheme=https;end`;
+
+    // For Android, try intent://
+    if (/android/i.test(navigator.userAgent)) {
+      window.location.href = intentUrl;
+    } else {
+      // For iOS or fallback, try opening in a new tab
+      window.open(url, "_blank");
+    }
+  };
+
   if (isInAppBrowser) {
     return (
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4 bg-black text-white">
-        <h1 className="text-2xl font-bold text-center">
-          Open in Default Browser
-        </h1>
-        <p className="text-center mt-4">
-          For security and a better experience, please open this page in your
-          default browser. Tap the menu or options icon and select "Open in
-          Browser."
-        </p>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Open in Default Browser</h1>
+          <p className="mb-6">
+            For security and a better experience, please open this page in your
+            default browser.
+          </p>
+          <button
+            onClick={openInDefaultBrowser}
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+          >
+            Open in Default Browser
+          </button>
+        </div>
       </div>
     );
   }
