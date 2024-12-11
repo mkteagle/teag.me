@@ -7,6 +7,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ExtendedQRCode } from "./types";
+import { toast } from "../ui/use-toast";
+import { useState } from "react";
 
 interface RowActionsProps {
   qrCode: ExtendedQRCode;
@@ -14,19 +16,44 @@ interface RowActionsProps {
 }
 
 export function RowActions({ qrCode, onDelete }: RowActionsProps) {
+  const [copied, setCopied] = useState(false);
   const handleDownload = () => {
-    const base64Data = qrCode.base64; // Assuming this is passed as a prop
-    const blob = new Blob([base64Data], { type: "image/png" });
+    if (!qrCode) return;
+
+    // Create a temporary anchor element
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${qrCode.id || "qr_code"}.png`;
+    link.href = qrCode.base64;
+    link.download = `qr-code-${Date.now()}.png`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "QR Code Downloaded",
+      description: "Your QR code has been saved to your device.",
+    });
   };
 
-  const handleView = () => {
-    const base64Data = qrCode.base64; // Assuming this is passed as a prop
-    const imageUrl = `data:image/png;base64,${base64Data}`;
-    window.open(imageUrl, "_blank");
+  const handleCopy = async () => {
+    if (!qrCode) return;
+
+    try {
+      await navigator.clipboard.writeText(qrCode.base64);
+      setCopied(true);
+      toast({
+        title: "Copied!",
+        description: "QR code URL copied to clipboard.",
+      });
+
+      // Reset copy status after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy QR code URL.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -57,7 +84,7 @@ export function RowActions({ qrCode, onDelete }: RowActionsProps) {
               size="icon"
               onClick={(e) => {
                 e.stopPropagation();
-                handleView();
+                handleCopy();
               }}
             >
               <BarChart2 className="h-4 w-4" />
