@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/styles/globals.css";
 import { Metadata } from "next/types";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -70,6 +71,7 @@ export default function RootLayout({
           <div className="flex min-h-screen">{children}</div>
           <Toaster />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
