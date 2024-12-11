@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const shortId = await generateUniqueShortId(prisma);
 
     // Create the short URL using teag.me domain
-    const shortUrl = `https://teag.me/r/${shortId}`;
+    const shortUrl = `https://teag.me/${shortId}`;
 
     // Create initial QR code entry
     const qrCodeEntry = await prisma.qRCode.create({

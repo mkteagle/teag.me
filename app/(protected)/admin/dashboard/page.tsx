@@ -1,21 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import { format } from "date-fns";
-import { ExternalLink, Trash2, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
+import QRCodesTable from "@/components/qr-codes/table";
 import { DeleteDialog } from "@/components/delete-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ExtendedQRCode } from "@/components/qr-codes/types";
 
 interface Scan {
   id: string;
@@ -31,15 +20,19 @@ interface QRCode {
   base64: string;
   createdAt: string;
   userId: string;
+  user: {
+    name: string;
+    email: string;
+  };
   scans: Scan[];
 }
 
 export default function AdminPage() {
-  const [qrCodes, setQRCodes] = useState<QRCode[]>([]);
+  const [qrCodes, setQRCodes] = useState<ExtendedQRCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [qrToDelete, setQrToDelete] = useState<QRCode | null>(null);
+  const [qrToDelete, setQrToDelete] = useState<ExtendedQRCode | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -81,7 +74,7 @@ export default function AdminPage() {
     fetchQRCodes();
   }, []);
 
-  const handleDeleteClick = (qr: QRCode) => {
+  const handleDeleteClick = (qr: ExtendedQRCode) => {
     setQrToDelete(qr);
     setDeleteDialogOpen(true);
   };
@@ -115,39 +108,6 @@ export default function AdminPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="w-full overflow-auto">
-        {/* Mobile Skeleton */}
-        <div className="md:hidden space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="p-4 rounded-lg bg-card border border-border"
-            >
-              <div className="flex items-start justify-between">
-                <div className="space-y-3 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-10 w-10 rounded-md" />
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-3 w-full max-w-[250px]" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-8 w-8 rounded-md" />
-                  <Skeleton className="h-8 w-8 rounded-md" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="container mx-auto p-8">
@@ -167,90 +127,13 @@ export default function AdminPage() {
           <CardTitle>Admin Dashboard - All QR Codes</CardTitle>
         </CardHeader>
         <CardContent>
-          {qrCodes.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No QR codes found in the system.
-            </div>
-          ) : (
-            <div className="w-full overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>QR Code</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Destination</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Scans</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {qrCodes.map((qr) => (
-                    <TableRow key={qr.id}>
-                      <TableCell>
-                        <Image
-                          src={qr.base64}
-                          height={50}
-                          width={40}
-                          alt={`QR Code for ${qr.redirectUrl}`}
-                          className="dark:invert"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          <span className="text-sm font-mono">{qr.userId}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium">
-                            {new URL(qr.redirectUrl).hostname}
-                          </p>
-                          <p className="text-sm text-muted-foreground truncate max-w-[300px]">
-                            {qr.redirectUrl}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p>{format(new Date(qr.createdAt), "MMM d, yyyy")}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(qr.createdAt), "h:mm a")}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-mono">{qr.scans.length}</span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" asChild>
-                            <a
-                              href={qr.redirectUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-2 hover:bg-muted rounded-md"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteClick(qr)}
-                            className="p-2 hover:bg-muted rounded-md text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <QRCodesTable
+            qrCodes={qrCodes}
+            isLoading={loading}
+            isAdmin={true}
+            onDelete={handleDeleteClick}
+            showUserInfo={true}
+          />
         </CardContent>
       </Card>
 

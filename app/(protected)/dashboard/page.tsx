@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,47 +10,91 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import QRCodesTable from "@/components/qr-codes-table";
+import QRCodesTable from "@/components/qr-codes/table";
+import { DeleteDialog } from "@/components/delete-dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { ExtendedQRCode } from "@/components/qr-codes/types";
 
-// This is mock data. In a real application, you'd fetch this from your API.
-const qrCodes = [
-  {
-    id: 1,
-    name: "Website QR",
-    url: "https://example.com",
-    scans: 1234,
-    created: "2023-05-01",
-  },
-  {
-    id: 2,
-    name: "Product QR",
-    url: "https://product.com",
-    scans: 5678,
-    created: "2023-05-02",
-  },
-  {
-    id: 3,
-    name: "Event QR",
-    url: "https://event.com",
-    scans: 9012,
-    created: "2023-05-03",
-  },
-];
+export default function DashboardPage() {
+  const [qrCodes, setQrCodes] = useState<ExtendedQRCode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [qrToDelete, setQrToDelete] = useState<ExtendedQRCode | null>(null);
+  const { toast } = useToast();
 
-interface QRCode {
-  id: string;
-  redirectUrl: string;
-  base64: string;
-  createdAt: string;
-}
+  useEffect(() => {
+    const fetchQRCodes = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          return;
+        }
 
-export default function HomePage() {
+        const response = await fetch("/api/qr-codes", {
+          headers: {
+            Authorization: `Bearer ${userId}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch QR codes");
+        }
+
+        const data = await response.json();
+        setQrCodes(data);
+      } catch (error) {
+        console.error(error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch QR codes",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQRCodes();
+  }, [toast]);
+
+  const handleDeleteClick = (qr: ExtendedQRCode) => {
+    setQrToDelete(qr);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!qrToDelete) return;
+
+    try {
+      const response = await fetch(`/api/qr-code/${qrToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete QR code");
+      }
+
+      setQrCodes((prev) => prev.filter((qr) => qr.id !== qrToDelete.id));
+      toast({
+        title: "QR Code deleted",
+        description: "The QR code has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to delete QR code. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-8">
       <div className="grid gap-8 mb-8 md:grid-cols-2">
         <Card className="hover-lift glassmorphism">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-primary">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Create QR Code
             </CardTitle>
             <CardDescription>
@@ -55,15 +102,16 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild className="w-full">
+            <Button asChild className="w-full hover-lift">
               <Link href="/generate">Create QR Code</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
+
       <Card className="hover-lift glassmorphism">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Your QR Codes
           </CardTitle>
           <CardDescription>
@@ -71,9 +119,20 @@ export default function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <QRCodesTable />
+          <QRCodesTable
+            qrCodes={qrCodes}
+            isLoading={loading}
+            onDelete={handleDeleteClick}
+          />
         </CardContent>
       </Card>
+
+      <DeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        itemName={qrToDelete ? new URL(qrToDelete.redirectUrl).hostname : ""}
+      />
     </div>
   );
 }
