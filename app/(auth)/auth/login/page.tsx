@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4">
+    <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
       <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 

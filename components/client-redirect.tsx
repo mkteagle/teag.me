@@ -28,7 +28,7 @@ export default function ClientRedirect({ id }: { id: string }) {
   }, [id, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="fixed inset-0 flex items-center justify-center bg-background">
       <div className="text-center space-y-4">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
         <p className="text-foreground">Redirecting...</p>
