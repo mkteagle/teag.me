@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import LoginButton from "@/components/login-button";
 import { Card } from "@/components/ui/card";
@@ -11,34 +10,78 @@ export function LoginPageClient() {
   const isInAppBrowser = useDetectInAppBrowser();
   const [isIOS, setIsIOS] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    userAgent: "",
+    isIOS: false,
+    isInAppBrowser: false,
+    platform: "",
+  });
 
   useEffect(() => {
-    // Detect iOS
-    const userAgent = navigator.userAgent || navigator.vendor;
-    setIsIOS(/iPhone|iPad|iPod/i.test(userAgent));
-  }, []);
+    // Enhanced detection
+    const userAgent = navigator.userAgent || navigator.vendor || "";
+    const platform = navigator.platform || "";
+
+    // More comprehensive iOS detection
+    const isIOSDevice =
+      /iPhone|iPad|iPod/.test(userAgent) ||
+      (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    // Enhanced in-app browser detection
+    const isInApp =
+      /FBAN|FBAV|Instagram|LinkedIn|Twitter|Line|KAKAOTALK|NAVER|selenium|WhatsApp|Electron|Teams-Windows|Teams-Mac|DingTalk|Electron|MicroMessenger|QQ|IEMobile/i.test(
+        userAgent
+      );
+
+    setIsIOS(isIOSDevice);
+    setDebugInfo({
+      userAgent,
+      isIOS: isIOSDevice,
+      isInAppBrowser: isInApp || isInAppBrowser,
+      platform,
+    });
+
+    // Automatically show dialog for iOS in-app browsers
+    if (isIOSDevice && isInApp) {
+      setIsDialogOpen(true);
+    }
+  }, [isInAppBrowser]);
 
   const openInDefaultBrowser = () => {
     const url = window.location.href;
-    const userAgent = navigator.userAgent || navigator.vendor;
 
-    if (/android/i.test(userAgent)) {
-      // Android: Use intent:// to open the default browser
+    if (isIOS) {
+      // Show dialog for iOS
+      setIsDialogOpen(true);
+    } else if (/android/i.test(debugInfo.userAgent)) {
+      // Android intent handling
       const intentUrl = `intent://${url.replace(
         /^https?:\/\//,
         ""
       )}#Intent;scheme=https;package=com.android.chrome;end`;
       window.location.href = intentUrl;
-    } else if (isIOS) {
-      // iOS: Open the dialog with instructions
-      setIsDialogOpen(true);
+    } else {
+      // Fallback
+      window.location.href = url;
     }
   };
 
+  // Debug display - remove in production
+  const DebugInfo = () => (
+    <div className="absolute top-0 left-0 bg-black/50 text-white p-4 text-xs whitespace-pre-wrap max-w-full overflow-auto">
+      <p>User Agent: {debugInfo.userAgent}</p>
+      <p>Platform: {debugInfo.platform}</p>
+      <p>Is iOS: {debugInfo.isIOS.toString()}</p>
+      <p>Is In-App Browser: {debugInfo.isInAppBrowser.toString()}</p>
+      <p>Dialog Open: {isDialogOpen.toString()}</p>
+    </div>
+  );
+
   // If in an in-app browser, show warning message
-  if (isInAppBrowser) {
+  if (debugInfo.isInAppBrowser) {
     return (
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
+        <DebugInfo />
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
         <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
@@ -49,9 +92,9 @@ export function LoginPageClient() {
                 Browser Not Supported
               </h1>
               <p className="text-gray-400">
-                Google blocks sign-in attempts from in-app browsers like
-                Facebook, Instagram, or LinkedIn for security reasons. Please
-                open this page in your default browser to continue.
+                Google blocks sign-in attempts from in-app browsers for security
+                reasons. Please open this page in your default browser to
+                continue.
               </p>
             </div>
 
@@ -60,12 +103,40 @@ export function LoginPageClient() {
             </Button>
           </div>
         </Card>
+
+        {/* Dialog for iOS - now rendered even in in-app browser view */}
+        {isIOS && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <div className="p-6 space-y-4 text-center">
+                <h2 className="text-xl font-bold">Open in Safari</h2>
+                <div className="space-y-2">
+                  <p>To continue signing in, please follow these steps:</p>
+                  <ol className="text-left space-y-2 text-sm">
+                    <li>
+                      1. Tap the <strong>Share</strong> icon {"\u2197"} in the
+                      bottom menu bar
+                    </li>
+                    <li>
+                      2. Scroll down and tap <strong>"Open in Safari"</strong>
+                    </li>
+                    <li>3. Complete the sign-in process in Safari</li>
+                  </ol>
+                </div>
+                <Button onClick={() => setIsDialogOpen(false)} className="mt-4">
+                  Got it
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     );
   }
 
   return (
     <>
+      <DebugInfo />
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
         <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
@@ -110,31 +181,6 @@ export function LoginPageClient() {
           </div>
         </Card>
       </div>
-
-      {/* iOS Instructions Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <div className="p-6 space-y-4 text-center">
-            <h2 className="text-xl font-bold">Open in Safari</h2>
-            <div className="space-y-2">
-              <p>To continue signing in, please follow these steps:</p>
-              <ol className="text-left space-y-2 text-sm">
-                <li>
-                  1. Tap the <strong>Share</strong> icon {"\u2197"} in the
-                  bottom menu bar
-                </li>
-                <li>
-                  2. Scroll down and tap <strong>"Open in Safari"</strong>
-                </li>
-                <li>3. Complete the sign-in process in Safari</li>
-              </ol>
-            </div>
-            <Button onClick={() => setIsDialogOpen(false)} className="mt-4">
-              Got it
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
