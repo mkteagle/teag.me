@@ -36,7 +36,7 @@ model QRCode {
 
 model Scan {
   id        String   @id
-  qrCode    QRCode   @relation(fields: [qrCodeId], references: [id])
+  qrCode    QRCode  @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
   qrCodeId  String
   ip        String
   userAgent String
