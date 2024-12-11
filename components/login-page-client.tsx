@@ -3,43 +3,80 @@
 import LoginButton from "@/components/login-button";
 import { Card } from "@/components/ui/card";
 import { useDetectInAppBrowser } from "@/hooks/use-detect-in-app-browser";
+import { Dialog } from "@/components/ui/dialog"; // Import Dialog component
+import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
 
 export default function LoginPageClient() {
   const isInAppBrowser = useDetectInAppBrowser();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (isInAppBrowser) {
+      setIsDialogOpen(true); // Automatically open the dialog if in an in-app browser
+    }
+  }, [isInAppBrowser]);
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+  };
 
   const openInDefaultBrowser = () => {
-    const url = window.location.href; // Current page URL
-    const intentUrl = `intent://${url.replace(
-      /^https?:\/\//,
-      ""
-    )}#Intent;scheme=https;end`;
+    const url = window.location.href;
+    const userAgent = navigator.userAgent || navigator.vendor;
 
-    // For Android, try intent://
-    if (/android/i.test(navigator.userAgent)) {
-      window.location.href = intentUrl;
-    } else {
-      // For iOS or fallback, try opening in a new tab
-      window.open(url, "_blank");
+    if (/android/i.test(userAgent)) {
+      const intentUrl = `intent://${url.replace(
+        /^https?:\/\//,
+        ""
+      )}#Intent;scheme=https;end`;
+      window.location.href = intentUrl; // Android intent
+    } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+      setIsDialogOpen(true); // Show instructions dialog for iOS
     }
   };
 
   if (isInAppBrowser) {
     return (
-      <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4 bg-black text-white">
-        <div className="text-center">
+      <>
+        <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
+          <div className="p-6 space-y-4 text-center">
+            <h1 className="text-xl font-bold text-gray-800">
+              Open in Default Browser
+            </h1>
+            <p className="text-gray-600">
+              For a better experience, please open this page in your default
+              browser.
+            </p>
+            <p className="text-gray-600">
+              <strong>iOS:</strong> Tap the <strong>share</strong> icon (a box
+              with an arrow pointing up) in the bottom navigation bar, then
+              select <strong>"Open in Safari"</strong>.
+            </p>
+            <p className="text-gray-600">
+              <strong>Android:</strong> Tap the <strong>menu</strong> icon
+              (three dots in the top-right corner) and select{" "}
+              <strong>"Open in Browser"</strong>.
+            </p>
+            <Button
+              onClick={closeDialog}
+              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            >
+              Got it!
+            </Button>
+          </div>
+        </Dialog>
+
+        <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4 bg-black text-white">
           <h1 className="text-2xl font-bold mb-4">Open in Default Browser</h1>
-          <p className="mb-6">
-            For security and a better experience, please open this page in your
-            default browser.
-          </p>
-          <button
+          <Button
             onClick={openInDefaultBrowser}
             className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
           >
             Open in Default Browser
-          </button>
+          </Button>
         </div>
-      </div>
+      </>
     );
   }
 
