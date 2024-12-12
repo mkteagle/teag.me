@@ -15,8 +15,6 @@ export default function LoginButton() {
   const [error, setError] = useState<string | null>(null);
   const isProduction = process.env.NEXT_PUBLIC_ENV === "production";
   const hideAppleLogin = true;
-  // const hideAppleLogin =
-  //   JSON.stringify(process.env.HIDE_APPLE_LOGIN) === JSON.stringify(true);
 
   const handleLogin = async (provider: "google" | "apple") => {
     try {
@@ -29,8 +27,11 @@ export default function LoginButton() {
       const result = await signInWithPopup(auth, authProvider);
       const user = result.user;
 
-      // Create or update user through API endpoint
-      const response = await fetch("/api/auth/user", {
+      // Set userId immediately
+      localStorage.setItem("userId", user.uid);
+
+      // Start user data update in background
+      fetch("/api/auth/user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,17 +41,13 @@ export default function LoginButton() {
           email: user.email,
           name: user.displayName,
         }),
+      }).catch((error) => {
+        console.error("Failed to update user data:", error);
+        // You could show a toast here if you want
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update user data");
-      }
-
-      // Store the userId in localStorage
-      window.localStorage.setItem("userId", user.uid);
-
-      // Redirect to home page
-      window.location.href = "/";
+      // Redirect immediately using router.replace
+      router.replace("/");
     } catch (error) {
       console.error("Login failed:", error);
       setError(error instanceof Error ? error.message : "Failed to login");

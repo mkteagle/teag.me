@@ -68,21 +68,21 @@ export function LoginPageClient() {
   };
 
   // Debug display - remove in production
-  const DebugInfo = () => (
-    <div className="absolute top-0 left-0 bg-black/50 text-white p-4 text-xs whitespace-pre-wrap max-w-full overflow-auto">
-      <p>User Agent: {debugInfo.userAgent}</p>
-      <p>Platform: {debugInfo.platform}</p>
-      <p>Is iOS: {debugInfo.isIOS.toString()}</p>
-      <p>Is In-App Browser: {debugInfo.isInAppBrowser.toString()}</p>
-      <p>Dialog Open: {isDialogOpen.toString()}</p>
-    </div>
-  );
+  // const DebugInfo = () => (
+  //   <div className="absolute top-0 left-0 bg-black/50 text-white p-4 text-xs whitespace-pre-wrap max-w-full overflow-auto">
+  //     <p>User Agent: {debugInfo.userAgent}</p>
+  //     <p>Platform: {debugInfo.platform}</p>
+  //     <p>Is iOS: {debugInfo.isIOS.toString()}</p>
+  //     <p>Is In-App Browser: {debugInfo.isInAppBrowser.toString()}</p>
+  //     <p>Dialog Open: {isDialogOpen.toString()}</p>
+  //   </div>
+  // );
 
   // If in an in-app browser, show warning message
   if (debugInfo.isInAppBrowser) {
     return (
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
-        <DebugInfo />
+        {/* <DebugInfo /> */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
         <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
@@ -137,7 +137,7 @@ export function LoginPageClient() {
 
   return (
     <>
-      <DebugInfo />
+      {/* <DebugInfo /> */}
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
         <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
