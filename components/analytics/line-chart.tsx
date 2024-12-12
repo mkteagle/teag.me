@@ -1,4 +1,3 @@
-// components/analytics/line-chart.tsx
 import { format } from "date-fns";
 import {
   LineChart as RechartsLineChart,

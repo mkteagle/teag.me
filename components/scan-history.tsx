@@ -41,6 +41,8 @@ export function ScanHistory({ scans }: { scans: Scan[] }) {
     }
   };
 
+  console.info({ scans });
+
   return (
     <Card className="hover-lift glassmorphism">
       <CardHeader>

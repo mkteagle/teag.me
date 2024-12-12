@@ -21,6 +21,8 @@ export async function GET(
             country: true,
             city: true,
             region: true,
+            userAgent: true,
+            ip: true,
           },
         },
       },
