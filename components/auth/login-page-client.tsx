@@ -41,28 +41,7 @@ export function LoginPageClient() {
       isInAppBrowser: isInApp || isInAppBrowser,
       platform,
     });
-
-    // Automatically show overlay for in-app browsers
-    if (isInApp || isInAppBrowser) {
-      setShowOverlay(true);
-    }
   }, [isInAppBrowser]);
-
-  const openInDefaultBrowser = () => {
-    const url = window.location.href;
-
-    if (/android/i.test(debugInfo.userAgent)) {
-      // Android intent handling
-      const intentUrl = `intent://${url.replace(
-        /^https?:\/\//,
-        ""
-      )}#Intent;scheme=https;package=com.android.chrome;end`;
-      window.location.href = intentUrl;
-    } else {
-      // Fallback for iOS and others
-      window.location.href = url;
-    }
-  };
 
   const getBrowserSpecificText = () => {
     const ua = debugInfo.userAgent;
@@ -71,7 +50,22 @@ export function LoginPageClient() {
     } else if (/FBAN|FBAV/i.test(ua)) {
       return "Open in External Browser";
     }
-    return "Open in Default Browser"; // Generic text for any device/browser
+    return "Open in Default Browser";
+  };
+
+  const handleBrowserAction = () => {
+    if (isIOS) {
+      // Show overlay for iOS users
+      setShowOverlay(true);
+    } else {
+      // Direct action for Android users
+      const url = window.location.href;
+      const intentUrl = `intent://${url.replace(
+        /^https?:\/\//,
+        ""
+      )}#Intent;scheme=https;package=com.android.chrome;end`;
+      window.location.href = intentUrl;
+    }
   };
 
   // If in an in-app browser, show warning message
@@ -82,8 +76,8 @@ export function LoginPageClient() {
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
         <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
-        {/* Overlay with arrow */}
-        {showOverlay && (
+        {/* iOS Overlay - only shown when button is clicked */}
+        {showOverlay && isIOS && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
             {/* Arrow pointing to menu */}
             <div className="absolute top-0 right-8 mt-2 z-50">
@@ -142,11 +136,35 @@ export function LoginPageClient() {
             </div>
           </div>
         )}
+
+        {/* Main card with explanation and button */}
+        <Card className="w-full max-w-md relative bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl">
+          <div className="p-6 md:p-8 space-y-8">
+            <div className="space-y-2 text-center">
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                Browser Not Supported
+              </h1>
+              <p className="text-gray-400">
+                For security reasons, Google blocks sign-in attempts from in-app
+                browsers like the one you're currently using. This helps protect
+                your account from potential security risks.
+              </p>
+              <p className="text-gray-400 mt-4">
+                Please open this page in your default browser to safely complete
+                the sign-in process.
+              </p>
+            </div>
+
+            <Button onClick={handleBrowserAction} className="w-full">
+              {getBrowserSpecificText()}
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
 
-  // Regular login view (unchanged)
+  // Regular login view for non-in-app browsers
   return (
     <>
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
