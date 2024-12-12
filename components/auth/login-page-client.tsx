@@ -1,16 +1,65 @@
 "use client";
 import React from "react";
-import LoginButton from "@/components/login-button";
+import LoginButton from "@/components/auth/login-button";
 import { Card } from "@/components/ui/card";
 import { useDetectInAppBrowser } from "@/hooks/use-detect-in-app-browser";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { ArrowUpRight } from "lucide-react";
+
+const BrowserGuideOverlay = ({
+  browserType,
+  onClose,
+}: {
+  browserType: string;
+  onClose: () => void;
+}) => {
+  const getInstructions = () => {
+    switch (browserType) {
+      case "linkedin":
+        return "Tap 'Open in browser' from the menu";
+      case "facebook":
+        return "Select 'Open in External Browser'";
+      default:
+        return "Open in your default browser";
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
+      <div className="absolute top-0 right-8 mt-2">
+        <div className="relative">
+          <ArrowUpRight
+            className="w-12 h-12 text-white animate-bounce"
+            style={{
+              transform: "rotate(-45deg)",
+              filter: "drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))",
+            }}
+          />
+          <div className="absolute -right-4 top-16 bg-white text-black rounded-lg p-4 shadow-xl max-w-[200px]">
+            <p className="text-sm font-medium">{getInstructions()}</p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        onClick={onClose}
+      >
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-6 py-2 text-white text-sm cursor-pointer hover:bg-white/20 transition-colors">
+          Got it
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export function LoginPageClient() {
   const isInAppBrowser = useDetectInAppBrowser();
   const [isIOS, setIsIOS] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const [debugInfo, setDebugInfo] = useState({
     userAgent: "",
     isIOS: false,
@@ -41,6 +90,11 @@ export function LoginPageClient() {
       isInAppBrowser: isInApp || isInAppBrowser,
       platform,
     });
+
+    // Show guide for LinkedIn and Facebook
+    if (/LinkedIn/i.test(userAgent) || /FBAN|FBAV/i.test(userAgent)) {
+      setShowGuide(true);
+    }
 
     // Automatically show dialog for iOS in-app browsers
     if (isIOSDevice && isInApp) {
@@ -82,7 +136,14 @@ export function LoginPageClient() {
   if (debugInfo.isInAppBrowser) {
     return (
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
-        {/* <DebugInfo /> */}
+        {showGuide && (
+          <BrowserGuideOverlay
+            browserType={
+              /LinkedIn/i.test(debugInfo.userAgent) ? "linkedin" : "facebook"
+            }
+            onClose={() => setShowGuide(false)}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
         <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
@@ -137,7 +198,6 @@ export function LoginPageClient() {
 
   return (
     <>
-      {/* <DebugInfo /> */}
       <div className="fixed inset-0 w-full min-h-screen flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 via-blue-900 to-purple-900 opacity-50" />
         <div className="absolute inset-0 bg-[url('/bg.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />

@@ -3,10 +3,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sidebar } from "@/components/sidebar";
-import { BottomNav } from "@/components/bottom-nav";
+import { Sidebar } from "@/components/layout/sidebar";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Footer } from "@/components/footer";
+import { Footer } from "@/components/layout/footer";
 
 export default function ProtectedLayout({
   children,

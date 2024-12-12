@@ -2,7 +2,7 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScanHistory } from "@/components/scan-history";
+import { ScanHistory } from "@/components/analytics/scan-history";
 import { processLocationData } from "@/lib/utils/location";
 import { LocationMap } from "@/components/analytics/location-map";
 import { LineChart } from "@/components/analytics/line-chart";
