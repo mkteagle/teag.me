@@ -64,6 +64,16 @@ export function LoginPageClient() {
     }
   };
 
+  const getBrowserSpecificText = () => {
+    const ua = debugInfo.userAgent;
+    if (/LinkedIn/i.test(ua)) {
+      return "Open in Browser";
+    } else if (/FBAN|FBAV/i.test(ua)) {
+      return "Open in External Browser";
+    }
+    return "Open in Default Browser"; // Generic text for any device/browser
+  };
+
   // If in an in-app browser, show warning message
   if (debugInfo.isInAppBrowser) {
     return (
@@ -92,7 +102,7 @@ export function LoginPageClient() {
                 <div className="space-y-6">
                   <div className="text-center space-y-2">
                     <h2 className="text-xl font-bold text-white">
-                      Open in {isIOS ? "Safari" : "Browser"}
+                      {getBrowserSpecificText()}
                     </h2>
                     <p className="text-gray-400">
                       To continue signing in, please follow these steps:
@@ -103,17 +113,14 @@ export function LoginPageClient() {
                     <li className="flex gap-3">
                       <span className="font-bold">1.</span>
                       <span>
-                        Tap the <strong>⋮</strong> menu icon in the top right
+                        Tap the <strong>⋯</strong> menu icon in the top right
                         corner
                       </span>
                     </li>
                     <li className="flex gap-3">
                       <span className="font-bold">2.</span>
                       <span>
-                        Select{" "}
-                        <strong>
-                          {isIOS ? '"Open in Safari"' : '"Open in Browser"'}
-                        </strong>
+                        Select <strong>"{getBrowserSpecificText()}"</strong>
                       </span>
                     </li>
                     <li className="flex gap-3">
@@ -135,26 +142,6 @@ export function LoginPageClient() {
             </div>
           </div>
         )}
-
-        {/* Base card (shown when overlay is dismissed) */}
-        <Card className="w-full max-w-md relative bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl">
-          <div className="p-6 md:p-8 space-y-8">
-            <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
-                Browser Not Supported
-              </h1>
-              <p className="text-gray-400">
-                Google blocks sign-in attempts from in-app browsers for security
-                reasons. Please open this page in your default browser to
-                continue.
-              </p>
-            </div>
-
-            <Button onClick={openInDefaultBrowser} className="w-full">
-              Open in Default Browser
-            </Button>
-          </div>
-        </Card>
       </div>
     );
   }
