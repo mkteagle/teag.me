@@ -14,30 +14,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If customPath is provided, check if it's already in use
+    let id: string;
+
     if (customPath) {
+      // Validate custom path format
+      const customPathRegex = /^[a-zA-Z0-9-_]+$/;
+      if (!customPathRegex.test(customPath)) {
+        return NextResponse.json(
+          {
+            error:
+              "Custom path can only contain letters, numbers, hyphens, and underscores",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check for reserved paths
+      const reservedPaths = [
+        "api",
+        "auth",
+        "admin",
+        "login",
+        "dashboard",
+        "generate",
+        "analytics",
+        "privacy",
+        "terms",
+      ];
+      if (reservedPaths.includes(customPath.toLowerCase())) {
+        return NextResponse.json(
+          { error: "This custom path is reserved and cannot be used" },
+          { status: 400 }
+        );
+      }
+
+      // Check for existing custom path
       const existing = await prisma.qRCode.findFirst({
         where: { id: customPath },
       });
 
       if (existing) {
         return NextResponse.json(
-          { error: "This custom path is already in use" },
+          {
+            error:
+              "This custom path is already in use. Please choose another one.",
+          },
           { status: 400 }
         );
       }
+
+      id = customPath;
+    } else {
+      // Generate a unique short ID if no custom path is provided
+      id = await generateUniqueShortId(prisma);
     }
 
-    // Use either the custom path or generate a unique short ID
-    const id = customPath || (await generateUniqueShortId(prisma));
-
     // Create the short URL using teag.me domain
-    const shortUrl = `https://teag.me/${id}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://teag.me";
+    const shortUrl = `${baseUrl}/${id}`;
 
     // Generate QR code with the short URL
     const qrDataUrl = await QRCode.toDataURL(shortUrl);
 
-    // Create the QR code entry with the generated base64 data
+    // Create the QR code entry
     const qrCode = await prisma.qRCode.create({
       data: {
         id,
