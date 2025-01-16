@@ -72,10 +72,10 @@ function determineSource(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const qrCode = await prisma.qRCode.findUnique({
       where: { id },

@@ -95,9 +95,7 @@ export default function AnalyticsPage() {
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="p-4 rounded-lg bg-muted/20">
             <div className="text-sm text-muted-foreground">Total Scans</div>
-            <div className="text-2xl font-bold">
-              {analytics.interactions.length}
-            </div>
+            <div className="text-2xl font-bold">{analytics.scans.length}</div>
           </div>
           <div className="p-4 rounded-lg bg-muted/20">
             <div className="text-sm text-muted-foreground">
@@ -122,7 +120,7 @@ export default function AnalyticsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <LineChart data={analytics.interactions} />
+          <LineChart data={analytics.scans} />
         </CardContent>
       </Card>
 
@@ -130,7 +128,7 @@ export default function AnalyticsPage() {
       <LocationMap locations={locations} />
 
       {/* Scan History */}
-      <InteractionHistory interactions={analytics.interactions} />
+      <InteractionHistory interactions={analytics.scans} />
     </div>
   );
 }

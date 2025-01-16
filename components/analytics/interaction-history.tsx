@@ -14,7 +14,8 @@ import {
   Tablet,
   Monitor,
   Globe,
-  Link as LinkIcon,
+  Scan,
+  MousePointer,
 } from "lucide-react";
 
 interface InteractionProps {
@@ -25,7 +26,7 @@ interface InteractionProps {
   country?: string;
   city?: string;
   region?: string;
-  type: "scan" | "click";
+  type?: string;
   source?: string;
   medium?: string;
   device?: string;
@@ -43,6 +44,14 @@ function getDeviceIcon(type: string | undefined) {
     default:
       return <Globe className="h-4 w-4" />;
   }
+}
+
+function getTypeIcon(type: string | undefined) {
+  return type === "scan" ? (
+    <Scan className="h-4 w-4" />
+  ) : (
+    <MousePointer className="h-4 w-4" />
+  );
 }
 
 function getSourceBadgeColor(source: string | undefined) {
@@ -90,7 +99,7 @@ export function InteractionHistory({
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium flex items-center gap-2">
+                  <div className="text-sm font-medium flex items-center justify-end gap-2">
                     {getDeviceIcon(interaction.device)}
                     {interaction.device || "Unknown Device"}
                   </div>
@@ -100,17 +109,20 @@ export function InteractionHistory({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div
-                  className={`px-2 py-1 rounded text-xs text-white ${getSourceBadgeColor(
-                    interaction.source
-                  )}`}
-                >
-                  {interaction.type === "scan" ? "QR Scan" : "Link Click"}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {getTypeIcon(interaction.type)}
+                  <span className="text-sm">
+                    {interaction.type === "scan" ? "QR Scan" : "Link Click"}
+                  </span>
                 </div>
                 {interaction.source && (
-                  <div className="text-xs text-muted-foreground">
-                    via {interaction.source}
+                  <div
+                    className={`px-2 py-1 rounded text-xs text-white ${getSourceBadgeColor(
+                      interaction.source
+                    )}`}
+                  >
+                    {interaction.source}
                   </div>
                 )}
               </div>
@@ -163,15 +175,10 @@ export function InteractionHistory({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {interaction.type === "scan" ? (
-                        <div className="px-2 py-1 rounded text-xs bg-primary text-primary-foreground">
-                          QR Scan
-                        </div>
-                      ) : (
-                        <div className="px-2 py-1 rounded text-xs bg-secondary text-secondary-foreground">
-                          Link Click
-                        </div>
-                      )}
+                      {getTypeIcon(interaction.type)}
+                      <span>
+                        {interaction.type === "scan" ? "QR Scan" : "Link Click"}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
