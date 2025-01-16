@@ -43,6 +43,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "topojson-client": "^3.1.0",
+    "ua-parser-js": "^2.0.0",
     "world-atlas": "^2.0.2"
   },
   "devDependencies": {

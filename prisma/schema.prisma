@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +5,11 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model User {
@@ -21,7 +24,7 @@ model User {
 }
 
 model QRCode {
-  id          String   @id @db.VarChar(10) // Changed to support shorter IDs
+  id          String   @id @db.VarChar(10)
   redirectUrl String
   base64      String
   routingUrl  String
@@ -36,7 +39,7 @@ model QRCode {
 
 model Scan {
   id        String   @id
-  qrCode    QRCode  @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  qrCode    QRCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
   qrCodeId  String
   ip        String
   userAgent String
@@ -44,11 +47,13 @@ model Scan {
   city      String?
   region    String?
   timestamp DateTime @default(now())
+  // New fields being added
+  type      String?  // 'scan' or 'click'
+  referrer  String?
+  source    String?  // e.g., 'facebook', 'instagram', etc.
+  medium    String?  // e.g., 'social', 'direct', etc.
+  device    String?  // e.g., 'mobile', 'desktop', etc.
+  browser   String?  // e.g., 'chrome', 'safari', etc.
 
   @@index([qrCodeId])
-}
-
-enum Role {
-  USER
-  ADMIN
 }

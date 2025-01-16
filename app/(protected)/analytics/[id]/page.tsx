@@ -2,11 +2,11 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScanHistory } from "@/components/analytics/scan-history";
+import { InteractionHistory } from "@/components/analytics/interaction-history";
 import { processLocationData } from "@/lib/utils/location";
 import { LocationMap } from "@/components/analytics/location-map";
 import { LineChart } from "@/components/analytics/line-chart";
-import { Location, Scan, Analytics } from "@/types/analytics";
+import { Location, Analytics } from "@/types/analytics";
 
 export default function AnalyticsPage() {
   const params = useParams();
@@ -95,7 +95,9 @@ export default function AnalyticsPage() {
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="p-4 rounded-lg bg-muted/20">
             <div className="text-sm text-muted-foreground">Total Scans</div>
-            <div className="text-2xl font-bold">{analytics.scans.length}</div>
+            <div className="text-2xl font-bold">
+              {analytics.interactions.length}
+            </div>
           </div>
           <div className="p-4 rounded-lg bg-muted/20">
             <div className="text-sm text-muted-foreground">
@@ -120,7 +122,7 @@ export default function AnalyticsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <LineChart data={analytics.scans} />
+          <LineChart data={analytics.interactions} />
         </CardContent>
       </Card>
 
@@ -128,7 +130,7 @@ export default function AnalyticsPage() {
       <LocationMap locations={locations} />
 
       {/* Scan History */}
-      <ScanHistory scans={analytics.scans} />
+      <InteractionHistory interactions={analytics.interactions} />
     </div>
   );
 }
