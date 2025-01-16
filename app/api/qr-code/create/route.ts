@@ -5,7 +5,7 @@ import { generateUniqueShortId } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
-    const { redirectUrl, userId } = await request.json();
+    const { redirectUrl, userId, customPath } = await request.json();
 
     if (!redirectUrl || !userId) {
       return NextResponse.json(
@@ -14,11 +14,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate a unique short ID
-    const shortId = await generateUniqueShortId(prisma);
+    // If customPath is provided, check if it's already in use
+    if (customPath) {
+      const existing = await prisma.qRCode.findFirst({
+        where: { id: customPath },
+      });
+
+      if (existing) {
+        return NextResponse.json(
+          { error: "This custom path is already in use" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Use either the custom path or generate a unique short ID
+    const id = customPath || (await generateUniqueShortId(prisma));
 
     // Create the short URL using teag.me domain
-    const shortUrl = `https://teag.me/${shortId}`;
+    const shortUrl = `https://teag.me/${id}`;
 
     // Generate QR code with the short URL
     const qrDataUrl = await QRCode.toDataURL(shortUrl);
@@ -26,7 +40,7 @@ export async function POST(request: NextRequest) {
     // Create the QR code entry with the generated base64 data
     const qrCode = await prisma.qRCode.create({
       data: {
-        id: shortId, // Use the short ID as the primary key
+        id,
         redirectUrl,
         userId,
         base64: qrDataUrl,

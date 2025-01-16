@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trash2, BarChart2, Download } from "lucide-react";
+import { ExternalLink, Trash2, BarChart2, Download, Edit } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -13,14 +13,15 @@ import { useState } from "react";
 interface RowActionsProps {
   qrCode: ExtendedQRCode;
   onDelete?: (qrCode: ExtendedQRCode) => void;
+  onEdit?: (qrCode: ExtendedQRCode) => void;
 }
 
-export function RowActions({ qrCode, onDelete }: RowActionsProps) {
+export function RowActions({ qrCode, onDelete, onEdit }: RowActionsProps) {
   const [copied, setCopied] = useState(false);
+
   const handleDownload = () => {
     if (!qrCode) return;
 
-    // Create a temporary anchor element
     const link = document.createElement("a");
     link.href = qrCode.base64;
     link.download = `qr-code-${Date.now()}.png`;
@@ -38,7 +39,7 @@ export function RowActions({ qrCode, onDelete }: RowActionsProps) {
     if (!qrCode) return;
 
     try {
-      await navigator.clipboard.writeText(qrCode.base64);
+      await navigator.clipboard.writeText(qrCode.routingUrl);
       setCopied(true);
       toast({
         title: "Copied!",
@@ -76,23 +77,25 @@ export function RowActions({ qrCode, onDelete }: RowActionsProps) {
         </Tooltip>
       </TooltipProvider>
 
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCopy();
-              }}
-            >
-              <BarChart2 className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>View QR Code</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      {onEdit && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(qrCode);
+                }}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit QR Code</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
 
       <TooltipProvider>
         <Tooltip>

@@ -14,12 +14,15 @@ import QRCodesTable from "@/components/qr-codes/table";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ExtendedQRCode } from "@/components/qr-codes/types";
+import { EditQRDialog } from "@/components/qr-codes/edit-qr-code";
 
 export default function DashboardPage() {
   const [qrCodes, setQrCodes] = useState<ExtendedQRCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [qrToDelete, setQrToDelete] = useState<ExtendedQRCode | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [qrToEdit, setQrToEdit] = useState<ExtendedQRCode | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,6 +63,19 @@ export default function DashboardPage() {
   const handleDeleteClick = (qr: ExtendedQRCode) => {
     setQrToDelete(qr);
     setDeleteDialogOpen(true);
+  };
+
+  // Add this to handle edit clicks
+  const handleEditClick = (qr: ExtendedQRCode) => {
+    setQrToEdit(qr);
+    setEditDialogOpen(true);
+  };
+
+  // Add this to handle successful edits
+  const handleEditSuccess = (updatedQR: ExtendedQRCode) => {
+    setQrCodes((prev) =>
+      prev.map((qr) => (qr.id === updatedQR.id ? updatedQR : qr))
+    );
   };
 
   const handleDelete = async () => {
@@ -132,6 +148,12 @@ export default function DashboardPage() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDelete}
         itemName={qrToDelete ? new URL(qrToDelete.redirectUrl).hostname : ""}
+      />
+      <EditQRDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        qrCode={qrToEdit}
+        onSuccess={handleEditSuccess}
       />
     </div>
   );

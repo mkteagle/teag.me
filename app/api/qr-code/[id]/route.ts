@@ -23,3 +23,41 @@ export async function DELETE(
     );
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const { redirectUrl } = await request.json();
+
+    // Validate input
+    if (!redirectUrl) {
+      return NextResponse.json(
+        { error: "redirectUrl is required" },
+        { status: 400 }
+      );
+    }
+
+    // Update the QR code
+    const updatedQR = await prisma.qRCode.update({
+      where: { id },
+      data: {
+        redirectUrl,
+        updatedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: updatedQR,
+    });
+  } catch (error) {
+    console.error("Error updating QR code:", error);
+    return NextResponse.json(
+      { error: "Failed to update QR code" },
+      { status: 500 }
+    );
+  }
+}
