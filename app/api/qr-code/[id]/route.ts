@@ -1,6 +1,27 @@
 // app/api/qr-code/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+// Allow CORS for https://www.mkteagle.com
+const ALLOWED_ORIGIN = "https://www.mkteagle.com";
+
+function withCors(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "DELETE, PATCH, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  response.headers.set("Access-Control-Max-Age", "86400");
+  return response;
+}
+
+export async function OPTIONS() {
+  // Preflight CORS support
+  return withCors(new NextResponse(null, { status: 204 }));
+}
 
 export async function DELETE(
   request: NextRequest,
@@ -14,12 +35,11 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ success: true });
+    return withCors(NextResponse.json({ success: true }));
   } catch (error) {
     console.error("Error deleting QR code:", error);
-    return NextResponse.json(
-      { error: "Failed to delete QR code" },
-      { status: 500 }
+    return withCors(
+      NextResponse.json({ error: "Failed to delete QR code" }, { status: 500 })
     );
   }
 }
@@ -34,9 +54,8 @@ export async function PATCH(
 
     // Validate input
     if (!redirectUrl) {
-      return NextResponse.json(
-        { error: "redirectUrl is required" },
-        { status: 400 }
+      return withCors(
+        NextResponse.json({ error: "redirectUrl is required" }, { status: 400 })
       );
     }
 
@@ -49,15 +68,16 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: updatedQR,
-    });
+    return withCors(
+      NextResponse.json({
+        success: true,
+        data: updatedQR,
+      })
+    );
   } catch (error) {
     console.error("Error updating QR code:", error);
-    return NextResponse.json(
-      { error: "Failed to update QR code" },
-      { status: 500 }
+    return withCors(
+      NextResponse.json({ error: "Failed to update QR code" }, { status: 500 })
     );
   }
 }
