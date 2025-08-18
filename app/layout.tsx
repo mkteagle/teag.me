@@ -39,9 +39,11 @@ export const metadata: Metadata = {
     images: ["/og-image.png"], // Replace with your actual image path
   },
   icons: {
-    icon: "/favicons/favicon-32x32.png",
-    shortcut: "/favicons/favicon.ico",
-    apple: "/favicons/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
   robots: {

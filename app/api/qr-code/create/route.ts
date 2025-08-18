@@ -2,15 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import * as QRCode from "qrcode";
 import { generateUniqueShortId } from "@/lib/utils";
+// Allow CORS for https://www.mkteagle.com
+const ALLOWED_ORIGIN = "https://www.mkteagle.com";
+
+function withCors(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  response.headers.set("Access-Control-Max-Age", "86400");
+  return response;
+}
+
+export async function OPTIONS() {
+  // Preflight CORS support
+  return withCors(new NextResponse(null, { status: 204 }));
+}
 
 export async function POST(request: NextRequest) {
   try {
     const { redirectUrl, userId, customPath } = await request.json();
 
     if (!redirectUrl || !userId) {
-      return NextResponse.json(
-        { error: "redirectUrl and userId are required" },
-        { status: 400 }
+      return withCors(
+        NextResponse.json(
+          { error: "redirectUrl and userId are required" },
+          { status: 400 }
+        )
       );
     }
 
@@ -20,12 +40,14 @@ export async function POST(request: NextRequest) {
       // Validate custom path format
       const customPathRegex = /^[a-zA-Z0-9-_]+$/;
       if (!customPathRegex.test(customPath)) {
-        return NextResponse.json(
-          {
-            error:
-              "Custom path can only contain letters, numbers, hyphens, and underscores",
-          },
-          { status: 400 }
+        return withCors(
+          NextResponse.json(
+            {
+              error:
+                "Custom path can only contain letters, numbers, hyphens, and underscores",
+            },
+            { status: 400 }
+          )
         );
       }
 
@@ -42,9 +64,11 @@ export async function POST(request: NextRequest) {
         "terms",
       ];
       if (reservedPaths.includes(customPath.toLowerCase())) {
-        return NextResponse.json(
-          { error: "This custom path is reserved and cannot be used" },
-          { status: 400 }
+        return withCors(
+          NextResponse.json(
+            { error: "This custom path is reserved and cannot be used" },
+            { status: 400 }
+          )
         );
       }
 
@@ -54,12 +78,14 @@ export async function POST(request: NextRequest) {
       });
 
       if (existing) {
-        return NextResponse.json(
-          {
-            error:
-              "This custom path is already in use. Please choose another one.",
-          },
-          { status: 400 }
+        return withCors(
+          NextResponse.json(
+            {
+              error:
+                "This custom path is already in use. Please choose another one.",
+            },
+            { status: 400 }
+          )
         );
       }
 
@@ -87,20 +113,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: qrCode.id,
-        base64: qrCode.base64,
-        redirectUrl: qrCode.redirectUrl,
-        routingUrl: qrCode.routingUrl,
-      },
-    });
+    return withCors(
+      NextResponse.json({
+        success: true,
+        data: {
+          id: qrCode.id,
+          base64: qrCode.base64,
+          redirectUrl: qrCode.redirectUrl,
+          routingUrl: qrCode.routingUrl,
+        },
+      })
+    );
   } catch (error) {
     console.error("Error creating QR code:", error);
-    return NextResponse.json(
-      { error: "Failed to create QR code" },
-      { status: 500 }
+    return withCors(
+      NextResponse.json({ error: "Failed to create QR code" }, { status: 500 })
     );
   }
 }
