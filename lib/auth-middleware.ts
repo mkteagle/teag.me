@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth } from "./firebase-admin";
+import { getAdminAuth } from "./firebase-admin";
 
 export async function validateSession(request: NextRequest) {
   try {
@@ -9,6 +9,7 @@ export async function validateSession(request: NextRequest) {
       throw new Error("No session token found");
     }
 
+    const adminAuth = await getAdminAuth();
     const decodedClaims = await adminAuth.verifySessionCookie(session, true);
     return { userId: decodedClaims.uid };
   } catch (error) {

@@ -2,7 +2,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/styles/globals.css";
-import { Metadata } from "next/types";
+import { Metadata, Viewport } from "next/types";
 import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -50,15 +50,18 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0b1e" },
-  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Teag.me",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0b1e" },
+  ],
 };
 
 export default function RootLayout({
@@ -68,7 +71,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-[#0a0b1e]`}>
+      <body className={inter.className}>
         <ThemeProvider>
           <div className="flex min-h-screen">{children}</div>
           <Toaster />

@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Download, Copy, Check } from "lucide-react";
-import { generateQRCode } from "@/lib/actions";
+import { Download, Copy, Check, Sparkles, Link2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function GeneratePage() {
@@ -19,9 +17,11 @@ export default function GeneratePage() {
   const [qrCode, setQrCode] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    setMounted(true);
     const userId = localStorage.getItem("userId");
     if (!userId) {
       router.push("/auth/login");
@@ -128,121 +128,197 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <Card className="hover-lift glassmorphism">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">
-            Generate QR Code
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Form Section */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="redirectUrl">Destination URL</Label>
-                <Input
-                  id="redirectUrl"
-                  type="url"
-                  placeholder="https://example.com"
-                  value={formData.redirectUrl}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      redirectUrl: e.target.value,
-                    }))
-                  }
-                  required
-                  className="w-full"
-                />
-              </div>
+    <div className="min-h-screen p-8 lg:p-12">
+      {/* Header */}
+      <div className="mb-12">
+        <h1 className="text-4xl lg:text-5xl font-bold mb-3 tracking-tight">
+          Generate QR Code
+        </h1>
+        <p className="text-lg text-muted-foreground font-serif italic">
+          Create trackable QR codes with custom short URLs
+        </p>
+      </div>
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="customPath"
-                  className="flex items-center justify-between"
-                >
-                  Custom Path
-                  <span className="text-sm text-muted-foreground">
-                    Optional - e.g., "mylink" for teag.me/mylink
-                  </span>
-                </Label>
-                <Input
-                  id="customPath"
-                  placeholder="mylink"
-                  value={formData.customPath}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      customPath: e.target.value,
-                    }))
-                  }
-                  pattern="^[a-zA-Z0-9-_]+$"
-                  title="Only letters, numbers, hyphens, and underscores are allowed"
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Leave empty for an auto-generated short URL
-                </p>
-              </div>
+      <div className="max-w-4xl">
+        {/* Form Section */}
+        <div
+          className="data-card p-8 mb-8"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          <div className="flex items-center gap-3 mb-6 pb-6 border-b-2 border-dashed border-border">
+            <Link2 className="w-6 h-6 text-primary" strokeWidth={2.5} />
+            <h2 className="text-2xl font-bold">Configuration</h2>
+          </div>
 
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Generating..." : "Generate QR Code"}
-              </Button>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="redirectUrl" className="text-sm font-mono uppercase tracking-wider">
+                Destination URL
+                <span className="text-destructive ml-1">*</span>
+              </Label>
+              <Input
+                id="redirectUrl"
+                type="url"
+                placeholder="https://example.com"
+                value={formData.redirectUrl}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    redirectUrl: e.target.value,
+                  }))
+                }
+                required
+                className="font-mono border-2 border-border focus:border-primary transition-colors"
+              />
+              <p className="text-xs font-serif text-muted-foreground">
+                The URL where users will be redirected after scanning
+              </p>
             </div>
-          </form>
 
-          {/* QR Code Display Section */}
-          {qrCode && (
-            <div className="space-y-4 mt-8">
-              <div className="flex justify-center">
+            <div className="space-y-3">
+              <Label
+                htmlFor="customPath"
+                className="text-sm font-mono uppercase tracking-wider flex items-center justify-between"
+              >
+                <span>Custom Path</span>
+                <span className="mono-badge">OPTIONAL</span>
+              </Label>
+              <Input
+                id="customPath"
+                placeholder="my-custom-link"
+                value={formData.customPath}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    customPath: e.target.value,
+                  }))
+                }
+                pattern="^[a-zA-Z0-9-_]+$"
+                title="Only letters, numbers, hyphens, and underscores are allowed"
+                className="font-mono border-2 border-border focus:border-primary transition-colors"
+              />
+              <p className="text-xs font-serif text-muted-foreground">
+                Leave empty for auto-generated short URL • Example: teag.me/your-path
+              </p>
+            </div>
+
+            <div className="receipt-line" />
+
+            <Button
+              type="submit"
+              disabled={loading}
+              size="lg"
+              className="w-full data-card border-2 border-foreground bg-foreground text-background hover:bg-primary hover:border-primary font-mono font-semibold text-base"
+            >
+              {loading ? (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2 animate-pulse" strokeWidth={2.5} />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" strokeWidth={2.5} />
+                  Generate QR Code
+                </>
+              )}
+            </Button>
+          </form>
+        </div>
+
+        {/* QR Code Result Section */}
+        {qrCode && (
+          <div
+            className="data-card p-8"
+            style={{
+              opacity: mounted ? 1 : 0,
+              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s',
+            }}
+          >
+            <div className="flex items-center gap-3 mb-6 pb-6 border-b-2 border-dashed border-border">
+              <Check className="w-6 h-6 text-primary" strokeWidth={2.5} />
+              <h2 className="text-2xl font-bold">Generated QR Code</h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* QR Code Display */}
+              <div className="flex flex-col items-center justify-center">
                 <div className="relative group">
+                  <div className="absolute -inset-4 bg-primary/10 -z-10" />
                   <img
                     src={qrCode.base64}
                     alt="Generated QR Code"
-                    className="max-w-[200px] rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                    className="w-64 h-64 border-4 border-foreground bg-white p-4 transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <p className="text-white text-sm">
-                      Click actions below to save
-                    </p>
-                  </div>
                 </div>
-              </div>
-
-              <div className="text-center space-y-2">
-                <p className="text-sm font-medium">Your QR code URL:</p>
-                <p className="text-sm text-muted-foreground break-all">
-                  {qrCode.routingUrl}
+                <p className="text-xs font-mono text-muted-foreground mt-4 uppercase tracking-wider">
+                  Scan to test
                 </p>
               </div>
 
-              <div className="flex justify-center space-x-4">
-                <Button
-                  onClick={handleDownload}
-                  variant="secondary"
-                  className="w-32"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
-                <Button
-                  onClick={handleCopy}
-                  variant="secondary"
-                  className="w-32"
-                >
-                  {copied ? (
-                    <Check className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Copy className="mr-2 h-4 w-4" />
-                  )}
-                  {copied ? "Copied!" : "Copy URL"}
-                </Button>
+              {/* QR Code Info & Actions */}
+              <div className="flex flex-col justify-between">
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+                      Short URL
+                    </p>
+                    <div className="data-card bg-muted/50 p-4">
+                      <p className="font-mono text-sm break-all text-primary font-semibold">
+                        {qrCode.routingUrl}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+                      Redirects To
+                    </p>
+                    <div className="data-card bg-muted/50 p-4">
+                      <p className="font-serif text-sm break-all text-muted-foreground">
+                        {formData.redirectUrl}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={handleDownload}
+                    size="lg"
+                    className="w-full data-card border-2 border-foreground bg-card hover:bg-foreground hover:text-background font-mono font-semibold"
+                  >
+                    <Download className="mr-2 h-5 w-5" strokeWidth={2.5} />
+                    Download PNG
+                  </Button>
+                  <Button
+                    onClick={handleCopy}
+                    size="lg"
+                    variant="outline"
+                    className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-white font-mono font-semibold"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="mr-2 h-5 w-5" strokeWidth={2.5} />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 h-5 w-5" strokeWidth={2.5} />
+                        Copy URL
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

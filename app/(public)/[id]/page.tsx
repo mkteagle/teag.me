@@ -5,12 +5,14 @@ import { fetchUrlMetadata } from "@/lib/metadata";
 import { type Metadata, type ResolvingMetadata } from "next/types";
 
 export async function generateMetadata(
-  { params }: any,
+  { params }: { params: Promise<{ id: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
+  const { id } = await params;
+
   // Get QR code data
   const qrCode = await prisma.qRCode.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!qrCode) {

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { generateId } from "./utils";
-import { getAuth } from "firebase-admin/auth";
+import { getAdminAuth } from "./firebase-admin";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 
@@ -16,7 +16,8 @@ async function getCurrentUserId() {
       throw new Error("Not authenticated");
     }
 
-    const decodedClaims = await getAuth().verifySessionCookie(sessionCookie);
+    const adminAuth = await getAdminAuth();
+    const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie);
     return decodedClaims.uid;
   } catch (error: any) {
     console.error("Error verifying session cookie:", error);
