@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Download, Copy, Check, Sparkles, Link2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { LogoUpload } from "@/components/qr-codes/LogoUpload";
+import { LogoSizeSlider } from "@/components/qr-codes/LogoSizeSlider";
 
 export default function GeneratePage() {
   const router = useRouter();
@@ -14,6 +16,8 @@ export default function GeneratePage() {
     redirectUrl: "",
     customPath: "",
   });
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [logoSize, setLogoSize] = useState(20);
   const [qrCode, setQrCode] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -62,6 +66,8 @@ export default function GeneratePage() {
           redirectUrl: formData.redirectUrl,
           customPath: formData.customPath || undefined,
           userId,
+          logoDataUrl,
+          logoSize,
         }),
       });
 
@@ -205,6 +211,20 @@ export default function GeneratePage() {
                 Leave empty for auto-generated short URL • Example: teag.me/your-path
               </p>
             </div>
+
+            <div className="receipt-line" />
+
+            <LogoUpload
+              onLogoChange={setLogoDataUrl}
+              logoPreview={logoDataUrl}
+            />
+
+            {logoDataUrl && (
+              <LogoSizeSlider
+                value={logoSize}
+                onChange={setLogoSize}
+              />
+            )}
 
             <div className="receipt-line" />
 

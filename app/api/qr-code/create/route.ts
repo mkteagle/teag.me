@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import * as QRCode from "qrcode";
 import { generateUniqueShortId } from "@/lib/utils";
+import { generateQRWithLogo, processLogoImage } from "@/lib/qr-with-logo";
 // Allow CORS for https://www.mkteagle.com
 const ALLOWED_ORIGIN = "https://www.mkteagle.com";
 
@@ -23,7 +23,7 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { redirectUrl, userId, customPath } = await request.json();
+    const { redirectUrl, userId, customPath, logoDataUrl, logoSize } = await request.json();
 
     if (!redirectUrl || !userId) {
       return withCors(
@@ -99,8 +99,24 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://teag.me";
     const shortUrl = `${baseUrl}/${id}`;
 
-    // Generate QR code with the short URL
-    const qrDataUrl = await QRCode.toDataURL(shortUrl);
+    // Process logo if provided
+    let processedLogoUrl = logoDataUrl;
+    if (logoDataUrl) {
+      const { dataUrl, error } = await processLogoImage(logoDataUrl);
+      processedLogoUrl = dataUrl;
+      if (error) {
+        console.warn('Logo processing warning:', error);
+      }
+    }
+
+    // Generate QR code with or without logo
+    const qrDataUrl = await generateQRWithLogo({
+      text: shortUrl,
+      logoDataUrl: processedLogoUrl,
+      logoSize: logoSize || 20,
+      qrSize: 512,
+      errorCorrectionLevel: 'H', // High error correction for logo embedding
+    });
 
     // Create the QR code entry
     const qrCode = await prisma.qRCode.create({
@@ -110,6 +126,8 @@ export async function POST(request: NextRequest) {
         userId,
         base64: qrDataUrl,
         routingUrl: shortUrl,
+        logoUrl: processedLogoUrl,
+        logoSize: logoSize || null,
       },
     });
 
