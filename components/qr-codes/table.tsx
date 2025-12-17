@@ -10,6 +10,8 @@ export default function QRCodesTable({
   isAdmin = false,
   showUserInfo = false,
   onDelete,
+  onArchive,
+  onEdit,
 }: QRTableProps) {
   const router = useRouter();
 
@@ -34,12 +36,16 @@ export default function QRCodesTable({
       <MobileTable
         qrCodes={qrCodes}
         onDelete={onDelete}
+        onArchive={onArchive}
+        onEdit={onEdit}
         handleRowClick={handleRowClick}
       />
       <DesktopTable
         qrCodes={qrCodes}
         showUserInfo={showUserInfo}
         onDelete={onDelete}
+        onArchive={onArchive}
+        onEdit={onEdit}
         handleRowClick={handleRowClick}
       />
     </>

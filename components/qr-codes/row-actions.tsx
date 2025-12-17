@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trash2, BarChart2, Download, Edit } from "lucide-react";
+import { ExternalLink, Trash2, Download, Edit, Archive, ArchiveRestore } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,17 +8,15 @@ import {
 } from "@/components/ui/tooltip";
 import { ExtendedQRCode } from "./types";
 import { toast } from "../ui/use-toast";
-import { useState } from "react";
 
 interface RowActionsProps {
   qrCode: ExtendedQRCode;
   onDelete?: (qrCode: ExtendedQRCode) => void;
   onEdit?: (qrCode: ExtendedQRCode) => void;
+  onArchive?: (qrCode: ExtendedQRCode, archived: boolean) => void;
 }
 
-export function RowActions({ qrCode, onDelete, onEdit }: RowActionsProps) {
-  const [copied, setCopied] = useState(false);
-
+export function RowActions({ qrCode, onDelete, onEdit, onArchive }: RowActionsProps) {
   const handleDownload = () => {
     if (!qrCode) return;
 
@@ -33,28 +31,6 @@ export function RowActions({ qrCode, onDelete, onEdit }: RowActionsProps) {
       title: "QR Code Downloaded",
       description: "Your QR code has been saved to your device.",
     });
-  };
-
-  const handleCopy = async () => {
-    if (!qrCode) return;
-
-    try {
-      await navigator.clipboard.writeText(qrCode.routingUrl);
-      setCopied(true);
-      toast({
-        title: "Copied!",
-        description: "QR code URL copied to clipboard.",
-      });
-
-      // Reset copy status after 2 seconds
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to copy QR code URL.",
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -114,6 +90,32 @@ export function RowActions({ qrCode, onDelete, onEdit }: RowActionsProps) {
           <TooltipContent>Download QR Code</TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      {onArchive && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onArchive(qrCode, !qrCode.archived);
+                }}
+              >
+                {qrCode.archived ? (
+                  <ArchiveRestore className="h-4 w-4" />
+                ) : (
+                  <Archive className="h-4 w-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {qrCode.archived ? "Unarchive QR Code" : "Archive QR Code"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
 
       {onDelete && (
         <TooltipProvider>

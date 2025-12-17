@@ -151,14 +151,10 @@ export function Sidebar() {
       </SidebarContent>
 
       <div className="mt-auto p-6 border-t-2 border-dashed border-border">
-        <div className="font-mono text-xs text-muted-foreground space-y-1">
+        <div className="font-mono text-xs text-muted-foreground">
           <div className="flex justify-between">
             <span>STATUS</span>
             <span className="text-primary">ONLINE</span>
-          </div>
-          <div className="flex justify-between">
-            <span>VERSION</span>
-            <span>2.0.1</span>
           </div>
         </div>
       </div>

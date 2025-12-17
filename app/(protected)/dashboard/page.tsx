@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QRCodesTable from "@/components/qr-codes/table";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ExtendedQRCode } from "@/components/qr-codes/types";
 import { EditQRDialog } from "@/components/qr-codes/edit-qr-code";
-import { Plus, Database, TrendingUp, MapPin } from "lucide-react";
+import { Plus, Database, TrendingUp, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+}
 
 export default function DashboardPage() {
   const [qrCodes, setQrCodes] = useState<ExtendedQRCode[]>([]);
@@ -18,29 +26,45 @@ export default function DashboardPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [qrToEdit, setQrToEdit] = useState<ExtendedQRCode | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 20,
+    totalCount: 0,
+    totalPages: 0,
+  });
   const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
     const fetchQRCodes = async () => {
+      setLoading(true);
       try {
         const userId = localStorage.getItem("userId");
         if (!userId) {
           return;
         }
 
-        const response = await fetch("/api/qr-codes", {
-          headers: {
-            Authorization: `Bearer ${userId}`,
-          },
-        });
+        const archived = activeTab === "archived";
+        const response = await fetch(
+          `/api/qr-codes?archived=${archived}&page=${pagination.page}&limit=${pagination.limit}`,
+          {
+            headers: {
+              Authorization: `Bearer ${userId}`,
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch QR codes");
         }
 
         const data = await response.json();
-        setQrCodes(data);
+        setQrCodes(data.qrCodes || []);
+        setPagination(data.pagination || pagination);
       } catch (error) {
         console.error(error);
         toast({
@@ -54,7 +78,7 @@ export default function DashboardPage() {
     };
 
     fetchQRCodes();
-  }, [toast]);
+  }, [activeTab, pagination.page, pagination.limit, toast]);
 
   const handleDeleteClick = (qr: ExtendedQRCode) => {
     setQrToDelete(qr);
@@ -72,12 +96,57 @@ export default function DashboardPage() {
     );
   };
 
+  const handleArchive = async (qr: ExtendedQRCode, archived: boolean) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        throw new Error("Not logged in");
+      }
+
+      const response = await fetch(`/api/qr-code/${qr.id}/archive`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ archived }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to archive QR code");
+      }
+
+      // Remove from current list since it's now in a different tab
+      setQrCodes((prev) => prev.filter((qrCode) => qrCode.id !== qr.id));
+
+      toast({
+        title: archived ? "QR Code archived" : "QR Code unarchived",
+        description: `The QR code has been successfully ${archived ? "archived" : "unarchived"}.`,
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to update QR code. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDelete = async () => {
     if (!qrToDelete) return;
 
     try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        throw new Error("Not logged in");
+      }
+
       const response = await fetch(`/api/qr-code/${qrToDelete.id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${userId}`,
+        },
       });
 
       if (!response.ok) {
@@ -218,18 +287,68 @@ export default function DashboardPage() {
           <div className="border-b-2 border-foreground p-6">
             <div className="flex items-baseline gap-3 mb-2">
               <h2 className="text-2xl font-bold">QR Code Registry</h2>
-              <span className="mono-badge">{qrCodes.length} CODES</span>
+              <span className="mono-badge">{pagination.totalCount} CODES</span>
             </div>
             <p className="text-sm font-serif text-muted-foreground">
               Click any row to view detailed analytics and performance metrics
             </p>
           </div>
           <div className="p-6">
-            <QRCodesTable
-              qrCodes={qrCodes}
-              isLoading={loading}
-              onDelete={handleDeleteClick}
-            />
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "active" | "archived")}>
+              <TabsList className="mb-6">
+                <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="archived">Archived</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="active">
+                <QRCodesTable
+                  qrCodes={qrCodes}
+                  isLoading={loading}
+                  onDelete={handleDeleteClick}
+                  onArchive={handleArchive}
+                  onEdit={handleEditClick}
+                />
+              </TabsContent>
+
+              <TabsContent value="archived">
+                <QRCodesTable
+                  qrCodes={qrCodes}
+                  isLoading={loading}
+                  onDelete={handleDeleteClick}
+                  onArchive={handleArchive}
+                  onEdit={handleEditClick}
+                />
+              </TabsContent>
+            </Tabs>
+
+            {/* Pagination Controls */}
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+                <div className="text-sm text-muted-foreground">
+                  Page {pagination.page} of {pagination.totalPages} ({pagination.totalCount} total)
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+                    disabled={pagination.page === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+                    disabled={pagination.page === pagination.totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

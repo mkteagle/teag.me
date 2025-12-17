@@ -13,6 +13,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ExtendedQRCode } from "@/components/qr-codes/types";
+import { LogoUpload } from "@/components/qr-codes/LogoUpload";
+import { LogoSizeSlider } from "@/components/qr-codes/LogoSizeSlider";
+import Image from "next/image";
+import { X } from "lucide-react";
 
 interface EditQRDialogProps {
   qrCode: ExtendedQRCode | null;
@@ -28,6 +32,9 @@ export function EditQRDialog({
   onSuccess,
 }: EditQRDialogProps) {
   const [redirectUrl, setRedirectUrl] = useState(qrCode?.redirectUrl || "");
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [logoSize, setLogoSize] = useState(20);
+  const [removeLogo, setRemoveLogo] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -35,8 +42,16 @@ export function EditQRDialog({
   useEffect(() => {
     if (qrCode) {
       setRedirectUrl(qrCode.redirectUrl);
+      setLogoDataUrl(qrCode.logoUrl || null);
+      setLogoSize(qrCode.logoSize || 20);
+      setRemoveLogo(false);
     }
   }, [qrCode, open]);
+
+  const handleRemoveLogo = () => {
+    setLogoDataUrl(null);
+    setRemoveLogo(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +83,8 @@ export function EditQRDialog({
         },
         body: JSON.stringify({
           redirectUrl,
+          logoDataUrl: removeLogo ? null : logoDataUrl,
+          logoSize: removeLogo ? null : logoSize,
         }),
       });
 
@@ -102,12 +119,11 @@ export function EditQRDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit QR Code</DialogTitle>
           <DialogDescription>
-            Update the destination URL for this QR code. The QR code image and
-            short URL will remain the same.
+            Update the destination URL and logo for this QR code. The QR code will be regenerated with your changes.
           </DialogDescription>
         </DialogHeader>
 
@@ -129,6 +145,40 @@ export function EditQRDialog({
             <p className="text-sm text-muted-foreground">
               {qrCode?.routingUrl}
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Logo (Optional)</Label>
+            {logoDataUrl && !removeLogo ? (
+              <div className="space-y-2">
+                <div className="relative w-24 h-24 border rounded-lg overflow-hidden">
+                  <Image
+                    src={logoDataUrl}
+                    alt="QR Code Logo"
+                    fill
+                    className="object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6"
+                    onClick={handleRemoveLogo}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <LogoSizeSlider
+                  value={logoSize}
+                  onChange={setLogoSize}
+                />
+              </div>
+            ) : (
+              <LogoUpload
+                onLogoChange={setLogoDataUrl}
+                logoPreview={logoDataUrl}
+              />
+            )}
           </div>
 
           <div className="flex justify-end gap-4">

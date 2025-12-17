@@ -15,5 +15,7 @@ export interface QRTableProps {
   isAdmin?: boolean;
   showUserInfo?: boolean;
   onDelete?: (qrCode: ExtendedQRCode) => void;
+  onArchive?: (qrCode: ExtendedQRCode, archived: boolean) => void;
+  onEdit?: (qrCode: ExtendedQRCode) => void;
   handleRowClick?: (id: string) => void;
 }

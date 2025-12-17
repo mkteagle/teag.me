@@ -62,7 +62,7 @@ export default function AdminPage() {
         }
 
         const data = await response.json();
-        setQRCodes(data);
+        setQRCodes(data.qrCodes || data); // Handle both old and new API response formats
       } catch (error) {
         console.error(error);
         setError("Failed to load QR codes");

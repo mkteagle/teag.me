@@ -14,7 +14,7 @@ import { formatDate } from "./utils";
 import type { QRTableProps } from "./types";
 
 interface DesktopTableProps
-  extends Pick<QRTableProps, "qrCodes" | "onDelete" | "showUserInfo"> {
+  extends Pick<QRTableProps, "qrCodes" | "onDelete" | "onArchive" | "onEdit" | "showUserInfo"> {
   handleRowClick: (id: string) => void;
 }
 
@@ -22,6 +22,8 @@ export function DesktopTable({
   qrCodes,
   showUserInfo = false,
   onDelete,
+  onArchive,
+  onEdit,
   handleRowClick,
 }: DesktopTableProps) {
   return (
@@ -126,7 +128,7 @@ export function DesktopTable({
                 )}
               </TableCell>
               <TableCell className="text-right py-4">
-                <RowActions qrCode={qr} onDelete={onDelete} />
+                <RowActions qrCode={qr} onDelete={onDelete} onArchive={onArchive} onEdit={onEdit} />
               </TableCell>
             </TableRow>
           ))}

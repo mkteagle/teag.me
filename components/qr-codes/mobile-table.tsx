@@ -6,13 +6,15 @@ import { RowActions } from "./row-actions";
 import { formatDate } from "./utils";
 import type { QRTableProps } from "./types";
 
-interface MobileTableProps extends Pick<QRTableProps, "qrCodes" | "onDelete"> {
+interface MobileTableProps extends Pick<QRTableProps, "qrCodes" | "onDelete" | "onArchive" | "onEdit"> {
   handleRowClick: (id: string) => void;
 }
 
 export function MobileTable({
   qrCodes,
   onDelete,
+  onArchive,
+  onEdit,
   handleRowClick,
 }: MobileTableProps) {
   return (
@@ -83,7 +85,7 @@ export function MobileTable({
                 </div>
 
                 <div className="mt-4 flex justify-end">
-                  <RowActions qrCode={qr} onDelete={onDelete} />
+                  <RowActions qrCode={qr} onDelete={onDelete} onArchive={onArchive} onEdit={onEdit} />
                 </div>
               </div>
             </div>
