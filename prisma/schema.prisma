@@ -24,15 +24,15 @@ model User {
 }
 
 model QRCode {
-  id          String   @id @db.VarChar(10)
-  redirectUrl String
-  base64      String
-  routingUrl  String
+  id          String   @id @db.VarChar(50)
+  redirectUrl String   @db.Text
+  base64      String   @db.Text
+  routingUrl  String   @db.Text
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   scans       Scan[]
   // Logo customization fields
-  logoUrl     String?  // Base64 or URL of the embedded logo
+  logoUrl     String?  @db.Text // Blob storage URL for the logo
   logoSize    Int?     // Logo size percentage (10-30)
   archived    Boolean  @default(false)
   createdAt   DateTime @default(now())
