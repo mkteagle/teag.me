@@ -17,7 +17,6 @@ export default function GenerateButton() {
   const [loading, setLoading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [logoSize, setLogoSize] = useState(20);
@@ -48,8 +47,6 @@ export default function GenerateButton() {
       });
       return;
     }
-
-    setLogoFile(file);
 
     // Create preview and process image to square aspect ratio
     const reader = new FileReader();
@@ -108,7 +105,6 @@ export default function GenerateButton() {
   };
 
   const handleRemoveLogo = () => {
-    setLogoFile(null);
     setLogoPreview(null);
     setLogoDataUrl(null);
     setQrPreview(null);
@@ -313,7 +309,7 @@ export default function GenerateButton() {
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, customPath: e.target.value }))
             }
-            pattern="^[a-zA-Z0-9-_]+$"
+            pattern="[a-zA-Z0-9\-_]+"
             title="Only letters, numbers, hyphens, and underscores are allowed"
             className="w-full"
           />
