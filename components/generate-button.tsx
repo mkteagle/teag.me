@@ -56,6 +56,17 @@ export default function GenerateButton() {
       try {
         // Process image to square aspect ratio
         const processedDataUrl = await processImageToSquare(dataUrl);
+
+        // Check data URL size (limit to ~500KB in base64)
+        if (processedDataUrl.length > 700000) {
+          toast({
+            title: "Image too complex",
+            description: "Please use a simpler logo image",
+            variant: "destructive",
+          });
+          return;
+        }
+
         setLogoPreview(processedDataUrl);
         setLogoDataUrl(processedDataUrl);
 
@@ -86,18 +97,23 @@ export default function GenerateButton() {
         }
 
         // Determine the size (use the smaller dimension to create a square)
-        const size = Math.min(img.width, img.height);
+        // Limit to max 400x400 to reduce data size
+        const originalSize = Math.min(img.width, img.height);
+        const maxSize = 400;
+        const size = Math.min(originalSize, maxSize);
+
         canvas.width = size;
         canvas.height = size;
 
         // Calculate crop position to center the image
-        const sx = (img.width - size) / 2;
-        const sy = (img.height - size) / 2;
+        const sx = (img.width - originalSize) / 2;
+        const sy = (img.height - originalSize) / 2;
 
         // Draw the cropped and centered image
-        ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+        ctx.drawImage(img, sx, sy, originalSize, originalSize, 0, 0, size, size);
 
-        resolve(canvas.toDataURL("image/png"));
+        // Use JPEG with quality setting for smaller file size
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
       };
       img.onerror = () => reject(new Error("Failed to load image"));
       img.src = dataUrl;

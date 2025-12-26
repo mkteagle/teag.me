@@ -23,7 +23,16 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { redirectUrl, userId, customPath, logoDataUrl, logoSize } = await request.json();
+    const body = await request.json();
+    const { redirectUrl, userId, customPath, logoDataUrl, logoSize } = body;
+
+    console.log("Create QR code request:", {
+      redirectUrl,
+      userId,
+      customPath,
+      hasLogo: !!logoDataUrl,
+      logoSize,
+    });
 
     if (!redirectUrl || !userId) {
       return withCors(
@@ -102,14 +111,14 @@ export async function POST(request: NextRequest) {
     // Process logo if provided
     let processedLogoUrl = logoDataUrl;
     if (logoDataUrl) {
-      const { dataUrl, error } = await processLogoImage(logoDataUrl);
+      console.log('Processing logo image...');
+      const { dataUrl } = await processLogoImage(logoDataUrl);
       processedLogoUrl = dataUrl;
-      if (error) {
-        console.warn('Logo processing warning:', error);
-      }
+      console.log('Logo processed successfully');
     }
 
     // Generate QR code with or without logo
+    console.log('Generating QR code...');
     const qrDataUrl = await generateQRWithLogo({
       text: shortUrl,
       logoDataUrl: processedLogoUrl,
@@ -117,6 +126,7 @@ export async function POST(request: NextRequest) {
       qrSize: 512,
       errorCorrectionLevel: 'H', // High error correction for logo embedding
     });
+    console.log('QR code generated successfully');
 
     // Create the QR code entry
     const qrCode = await prisma.qRCode.create({

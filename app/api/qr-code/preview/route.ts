@@ -41,11 +41,8 @@ export async function POST(request: NextRequest) {
     // Process logo if provided
     let processedLogoUrl = logoDataUrl;
     if (logoDataUrl) {
-      const { dataUrl, error } = await processLogoImage(logoDataUrl);
+      const { dataUrl } = await processLogoImage(logoDataUrl);
       processedLogoUrl = dataUrl;
-      if (error) {
-        console.warn('Logo processing warning:', error);
-      }
     }
 
     // Generate QR code preview with or without logo

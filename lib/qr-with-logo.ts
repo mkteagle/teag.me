@@ -47,7 +47,9 @@ export async function generateQRWithLogo({
     const logoPosition = (qrSize - logoSizePixels) / 2;
 
     // Load logo image
+    console.log('Loading logo image, data URL length:', logoDataUrl?.length);
     const logoImage = await loadImage(logoDataUrl);
+    console.log('Logo image loaded successfully:', logoImage.width, 'x', logoImage.height);
 
     // Draw white background circle for logo (for better visibility)
     const padding = 8;
@@ -118,28 +120,31 @@ export async function processLogoImage(
   imageDataUrl: string
 ): Promise<{ dataUrl: string; error?: string }> {
   try {
-    // Extract base64 data
-    const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
+    // Extract base64 data - support both PNG and JPEG
+    const base64Data = imageDataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
+    console.log('Original buffer size:', buffer.length);
+
     // Use sharp to process and optimize the image
+    // Resize to smaller size and use JPEG for better compression
     const processedBuffer = await sharp(buffer)
-      .resize(200, 200, {
-        fit: 'contain',
-        background: { r: 255, g: 255, b: 255, alpha: 0 },
+      .resize(150, 150, {
+        fit: 'cover',
+        position: 'center',
       })
-      .png()
+      .jpeg({ quality: 80 })
       .toBuffer();
 
+    console.log('Processed buffer size:', processedBuffer.length);
+
     // Convert back to data URL
-    const processedDataUrl = `data:image/png;base64,${processedBuffer.toString('base64')}`;
+    const processedDataUrl = `data:image/jpeg;base64,${processedBuffer.toString('base64')}`;
 
     return { dataUrl: processedDataUrl };
   } catch (error) {
     console.error('Error processing logo image:', error);
-    return {
-      dataUrl: imageDataUrl,
-      error: 'Failed to process image. Using original.',
-    };
+    // If sharp fails, return error without fallback to prevent DB issues
+    throw new Error('Failed to process logo image. Please try a different image.');
   }
 }
