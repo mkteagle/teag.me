@@ -17,21 +17,28 @@ export async function generateQRWithLogo({
   qrSize = 512,
   errorCorrectionLevel = 'H', // High error correction for logo embedding
 }: QRWithLogoOptions): Promise<string> {
-  // Generate base QR code
-  const qrCodeDataUrl = await QRCode.toDataURL(text, {
+  // Generate base QR code as PNG buffer first for better control
+  const qrCodeBuffer = await QRCode.toBuffer(text, {
     width: qrSize,
     margin: 1,
     errorCorrectionLevel,
+    type: 'png',
     color: {
       dark: '#000000',
       light: '#FFFFFF',
     },
   });
 
-  // If no logo, return the base QR code
+  // If no logo, compress and return the base QR code
   if (!logoDataUrl) {
-    return qrCodeDataUrl;
+    // Use sharp to compress the QR code
+    const compressedBuffer = await sharp(qrCodeBuffer)
+      .png({ compressionLevel: 9, quality: 90 })
+      .toBuffer();
+    return `data:image/png;base64,${compressedBuffer.toString('base64')}`;
   }
+
+  const qrCodeDataUrl = `data:image/png;base64,${qrCodeBuffer.toString('base64')}`;
 
   try {
     // Create canvas
@@ -103,12 +110,21 @@ export async function generateQRWithLogo({
     );
     ctx.stroke();
 
-    // Convert canvas to data URL
-    return canvas.toDataURL('image/png');
+    // Convert canvas to buffer and compress with sharp
+    const canvasBuffer = canvas.toBuffer('image/png');
+    const compressedBuffer = await sharp(canvasBuffer)
+      .png({ compressionLevel: 9, quality: 90 })
+      .toBuffer();
+
+    console.log('Final QR code size:', compressedBuffer.length);
+    return `data:image/png;base64,${compressedBuffer.toString('base64')}`;
   } catch (error) {
     console.error('Error generating QR code with logo:', error);
-    // Return base QR code if logo embedding fails
-    return qrCodeDataUrl;
+    // Return compressed base QR code if logo embedding fails
+    const compressedBuffer = await sharp(qrCodeBuffer)
+      .png({ compressionLevel: 9, quality: 90 })
+      .toBuffer();
+    return `data:image/png;base64,${compressedBuffer.toString('base64')}`;
   }
 }
 
