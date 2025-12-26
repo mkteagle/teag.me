@@ -10,13 +10,13 @@ interface QRWithLogoOptions {
   errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H';
 }
 
-export async function generateQRWithLogo({
+export async function generateQRWithLogoBuffer({
   text,
   logoDataUrl,
   logoSize = 20,
   qrSize = 512,
-  errorCorrectionLevel = 'H', // High error correction for logo embedding
-}: QRWithLogoOptions): Promise<string> {
+  errorCorrectionLevel = 'H',
+}: QRWithLogoOptions): Promise<Buffer> {
   // Generate base QR code as PNG buffer first for better control
   const qrCodeBuffer = await QRCode.toBuffer(text, {
     width: qrSize,
@@ -31,11 +31,10 @@ export async function generateQRWithLogo({
 
   // If no logo, compress and return the base QR code
   if (!logoDataUrl) {
-    // Use JPEG for smaller file size
     const compressedBuffer = await sharp(qrCodeBuffer)
       .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
-    return `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`;
+    return compressedBuffer;
   }
 
   const qrCodeDataUrl = `data:image/png;base64,${qrCodeBuffer.toString('base64')}`;
@@ -118,15 +117,21 @@ export async function generateQRWithLogo({
       .toBuffer();
 
     console.log('Final QR code size:', compressedBuffer.length);
-    return `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`;
+    return compressedBuffer;
   } catch (error) {
     console.error('Error generating QR code with logo:', error);
     // Return compressed base QR code if logo embedding fails
     const compressedBuffer = await sharp(qrCodeBuffer)
       .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
-    return `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`;
+    return compressedBuffer;
   }
+}
+
+// Wrapper that returns data URL for preview
+export async function generateQRWithLogo(options: QRWithLogoOptions): Promise<string> {
+  const buffer = await generateQRWithLogoBuffer(options);
+  return `data:image/jpeg;base64,${buffer.toString('base64')}`;
 }
 
 /**

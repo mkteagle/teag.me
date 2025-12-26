@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { generateUniqueShortId } from "@/lib/utils";
-import { generateQRWithLogo, processLogoImage } from "@/lib/qr-with-logo";
+import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
+import { uploadToBlob, dataUrlToBuffer } from "@/lib/blob-storage";
 // Allow CORS for https://www.mkteagle.com
 const ALLOWED_ORIGIN = "https://www.mkteagle.com";
 
@@ -108,36 +109,45 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://teag.me";
     const shortUrl = `${baseUrl}/${id}`;
 
-    // Process logo if provided
-    let processedLogoUrl = logoDataUrl;
+    // Process and upload logo if provided
+    let logoUrl: string | null = null;
+    let processedLogoDataUrl: string | undefined;
+
     if (logoDataUrl) {
       console.log('Processing logo image...');
       const { dataUrl } = await processLogoImage(logoDataUrl);
-      processedLogoUrl = dataUrl;
-      console.log('Logo processed successfully');
+      processedLogoDataUrl = dataUrl;
+
+      // Upload logo to blob storage
+      const logoBuffer = dataUrlToBuffer(dataUrl);
+      logoUrl = await uploadToBlob(logoBuffer, `logos/${id}-logo.jpg`, 'image/jpeg');
+      console.log('Logo uploaded to blob storage:', logoUrl);
     }
 
     // Generate QR code with or without logo
     console.log('Generating QR code...');
-    const qrDataUrl = await generateQRWithLogo({
+    const qrCodeBuffer = await generateQRWithLogoBuffer({
       text: shortUrl,
-      logoDataUrl: processedLogoUrl,
+      logoDataUrl: processedLogoDataUrl,
       logoSize: logoSize || 20,
-      qrSize: 300, // Reduced from 512 to fit in database
-      errorCorrectionLevel: 'H', // High error correction for logo embedding
+      qrSize: 512, // Back to 512 since we're using blob storage
+      errorCorrectionLevel: 'H',
     });
-    console.log('QR code generated successfully');
-    console.log('QR code data URL length:', qrDataUrl.length);
+    console.log('QR code generated successfully, size:', qrCodeBuffer.length);
 
-    // Create the QR code entry
+    // Upload QR code to blob storage
+    const qrCodeUrl = await uploadToBlob(qrCodeBuffer, `qr-codes/${id}.jpg`, 'image/jpeg');
+    console.log('QR code uploaded to blob storage:', qrCodeUrl);
+
+    // Create the QR code entry with blob URLs
     const qrCode = await prisma.qRCode.create({
       data: {
         id,
         redirectUrl,
         userId,
-        base64: qrDataUrl,
+        base64: qrCodeUrl, // Now stores blob URL instead of base64
         routingUrl: shortUrl,
-        logoUrl: processedLogoUrl,
+        logoUrl: logoUrl,
         logoSize: logoSize || null,
       },
     });
