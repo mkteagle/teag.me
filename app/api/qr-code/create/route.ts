@@ -123,10 +123,11 @@ export async function POST(request: NextRequest) {
       text: shortUrl,
       logoDataUrl: processedLogoUrl,
       logoSize: logoSize || 20,
-      qrSize: 512,
+      qrSize: 300, // Reduced from 512 to fit in database
       errorCorrectionLevel: 'H', // High error correction for logo embedding
     });
     console.log('QR code generated successfully');
+    console.log('QR code data URL length:', qrDataUrl.length);
 
     // Create the QR code entry
     const qrCode = await prisma.qRCode.create({

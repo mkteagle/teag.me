@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       text: previewUrl,
       logoDataUrl: processedLogoUrl,
       logoSize: logoSize || 20,
-      qrSize: 512,
+      qrSize: 300, // Match create endpoint size
       errorCorrectionLevel: 'H', // High error correction for logo embedding
     });
 

@@ -31,11 +31,11 @@ export async function generateQRWithLogo({
 
   // If no logo, compress and return the base QR code
   if (!logoDataUrl) {
-    // Use sharp to compress the QR code
+    // Use JPEG for smaller file size
     const compressedBuffer = await sharp(qrCodeBuffer)
-      .png({ compressionLevel: 9, quality: 90 })
+      .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
-    return `data:image/png;base64,${compressedBuffer.toString('base64')}`;
+    return `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`;
   }
 
   const qrCodeDataUrl = `data:image/png;base64,${qrCodeBuffer.toString('base64')}`;
@@ -111,20 +111,21 @@ export async function generateQRWithLogo({
     ctx.stroke();
 
     // Convert canvas to buffer and compress with sharp
+    // Use JPEG for much smaller file size
     const canvasBuffer = canvas.toBuffer('image/png');
     const compressedBuffer = await sharp(canvasBuffer)
-      .png({ compressionLevel: 9, quality: 90 })
+      .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
 
     console.log('Final QR code size:', compressedBuffer.length);
-    return `data:image/png;base64,${compressedBuffer.toString('base64')}`;
+    return `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`;
   } catch (error) {
     console.error('Error generating QR code with logo:', error);
     // Return compressed base QR code if logo embedding fails
     const compressedBuffer = await sharp(qrCodeBuffer)
-      .png({ compressionLevel: 9, quality: 90 })
+      .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
-    return `data:image/png;base64,${compressedBuffer.toString('base64')}`;
+    return `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`;
   }
 }
 
