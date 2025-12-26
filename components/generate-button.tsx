@@ -38,6 +38,16 @@ export default function GenerateButton() {
       return;
     }
 
+    // Block SVG files - they need special handling
+    if (file.type === "image/svg+xml") {
+      toast({
+        title: "SVG not supported",
+        description: "Please use PNG, JPG, or other raster image formats",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
@@ -343,12 +353,12 @@ export default function GenerateButton() {
                 id="logoUpload"
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
                 onChange={handleLogoUpload}
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Image will be cropped to square aspect ratio
+                PNG, JPG, or WebP only. Image will be cropped to square
               </p>
             </div>
             {logoPreview && (

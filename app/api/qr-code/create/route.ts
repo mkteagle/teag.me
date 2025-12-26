@@ -154,8 +154,18 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error creating QR code:", error);
+
+    // Provide more specific error messages
+    let errorMessage = "Failed to create QR code";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     return withCors(
-      NextResponse.json({ error: "Failed to create QR code" }, { status: 500 })
+      NextResponse.json({
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : String(error)
+      }, { status: 500 })
     );
   }
 }

@@ -63,8 +63,17 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error generating QR code preview:", error);
+
+    let errorMessage = "Failed to generate preview";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     return withCors(
-      NextResponse.json({ error: "Failed to generate preview" }, { status: 500 })
+      NextResponse.json({
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : String(error)
+      }, { status: 500 })
     );
   }
 }
