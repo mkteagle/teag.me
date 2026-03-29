@@ -1,8 +1,8 @@
 // app/api/track/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { generateId } from "@/lib/utils";
 import { UAParser } from "ua-parser-js";
+import { createScan, findQrCodeById } from "@/lib/db/queries";
 
 function determineSource(
   referrer: string | null,
@@ -77,9 +77,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const qrCode = await prisma.qRCode.findUnique({
-      where: { id },
-    });
+    const qrCode = await findQrCodeById(id);
 
     if (!qrCode) {
       return NextResponse.json({ error: "QR code not found" }, { status: 404 });
@@ -110,22 +108,20 @@ export async function GET(
     const { source, medium } = determineSource(referrer, userAgent);
 
     // Record the scan
-    await prisma.scan.create({
-      data: {
-        id: generateId(),
-        qrCodeId: id,
-        ip,
-        userAgent,
-        country,
-        city,
-        region,
-        type: isScan ? "scan" : "click",
-        referrer: referrer || null,
-        source,
-        medium,
-        device: result.device.type || result.device.vendor || "unknown",
-        browser: result.browser.name || "unknown",
-      },
+    await createScan({
+      id: generateId(),
+      qrCodeId: id,
+      ip,
+      userAgent,
+      country,
+      city,
+      region,
+      type: isScan ? "scan" : "click",
+      referrer: referrer || null,
+      source,
+      medium,
+      device: result.device.type || result.device.vendor || "unknown",
+      browser: result.browser.name || "unknown",
     });
 
     return NextResponse.json({

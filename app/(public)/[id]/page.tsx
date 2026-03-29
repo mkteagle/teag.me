@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
 import ClientRedirect from "@/components/client-redirect";
 import { fetchUrlMetadata } from "@/lib/metadata";
 import { type Metadata, type ResolvingMetadata } from "next/types";
+import { findQrCodeById } from "@/lib/db/queries";
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
@@ -11,9 +11,7 @@ export async function generateMetadata(
   const { id } = await params;
 
   // Get QR code data
-  const qrCode = await prisma.qRCode.findUnique({
-    where: { id },
-  });
+  const qrCode = await findQrCodeById(id);
 
   if (!qrCode) {
     return {
@@ -77,9 +75,7 @@ export default async function RedirectPage({
   const { id } = await params;
 
   // Verify QR code exists on server side first
-  const qrCode = await prisma.qRCode.findUnique({
-    where: { id },
-  });
+  const qrCode = await findQrCodeById(id);
 
   if (!qrCode) {
     redirect("/not-found");

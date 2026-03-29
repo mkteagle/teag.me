@@ -1,5 +1,5 @@
 "use client";
-import { logout } from "@/lib/auth";
+import { logout } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 

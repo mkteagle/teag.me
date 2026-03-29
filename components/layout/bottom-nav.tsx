@@ -2,7 +2,7 @@
 import { Home, QrCode, LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logout } from "@/lib/auth";
+import { logout } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -18,14 +18,7 @@ export function BottomNav() {
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        const userId = localStorage.getItem("userId");
-        if (!userId) return;
-
-        const response = await fetch("/api/admin/check", {
-          headers: {
-            Authorization: `Bearer ${userId}`,
-          },
-        });
+        const response = await fetch("/api/admin/check");
 
         if (!response.ok) {
           throw new Error("Failed to check admin status");

@@ -1,31 +1,19 @@
-// app/(protected)/layout.tsx
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Footer } from "@/components/layout/footer";
+import { requireUser } from "@/lib/auth-session";
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-
-  useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      router.push("/auth/login");
-    }
-  }, [router]);
+  await requireUser();
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        {/* Hide sidebar on mobile */}
         <div className="hidden md:block">
           <Sidebar />
         </div>

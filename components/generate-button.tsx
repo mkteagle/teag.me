@@ -205,13 +205,6 @@ export default function GenerateButton() {
   const handleGenerate = async () => {
     try {
       setLoading(true);
-      const userId = localStorage.getItem("userId");
-
-      if (!userId) {
-        throw new Error("Not logged in");
-      }
-
-      // Basic URL validation
       if (
         !formData.redirectUrl.startsWith("http://") &&
         !formData.redirectUrl.startsWith("https://")
@@ -229,7 +222,6 @@ export default function GenerateButton() {
         body: JSON.stringify({
           redirectUrl: formData.redirectUrl,
           customPath: formData.customPath || undefined,
-          userId,
           logoDataUrl: logoDataUrl,
           logoSize: logoSize,
         }),

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
 import ClientRedirect from "@/components/client-redirect";
+import { findQrCodeById } from "@/lib/db/queries";
 
 export default async function RedirectPage({
   params,
@@ -10,9 +10,7 @@ export default async function RedirectPage({
   const { id } = await params;
 
   // Verify QR code exists on server side first
-  const qrCode = await prisma.qRCode.findUnique({
-    where: { id },
-  });
+  const qrCode = await findQrCodeById(id);
 
   if (!qrCode) {
     redirect("/not-found");

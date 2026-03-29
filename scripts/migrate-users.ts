@@ -1,7 +1,7 @@
-// @ts-ignore
-const { PrismaClient } = require("@prisma/client");
+export {};
+
 const admin = require("firebase-admin");
-const path = require("path");
+const postgres = require("postgres");
 require("dotenv").config();
 
 // Initialize Firebase Admin if not already initialized
@@ -15,23 +15,24 @@ if (!admin.apps.length) {
   });
 }
 
-// @ts-ignore
-const prisma = new PrismaClient();
+const connectionString =
+  process.env.PRODUCTION_DATABASE_URL || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.error("Missing PRODUCTION_DATABASE_URL or DATABASE_URL");
+  process.exit(1);
+}
+
+const sql = postgres(connectionString, { prepare: false });
 
 async function migrateUsers() {
   try {
     // Get all unique userIds from QRCodes
-    const qrCodes = await prisma.qRCode.findMany({
-      select: {
-        userId: true,
-      },
-      distinct: ["userId"],
-      where: {
-        userId: {
-          not: null,
-        },
-      },
-    });
+    const qrCodes = await sql`
+      select distinct "userId"
+      from "QRCode"
+      where "userId" is not null
+    `;
 
     console.log(`Found ${qrCodes.length} unique users to migrate`);
 
@@ -42,14 +43,18 @@ async function migrateUsers() {
       try {
         const firebaseUser = await admin.auth().getUser(userId);
 
-        await prisma.user.create({
-          data: {
-            id: userId,
-            email: firebaseUser.email || `${userId}@placeholder.com`,
-            name: firebaseUser.displayName || null,
-            role: "USER",
-          },
-        });
+        await sql`
+          insert into "User" ("id", "email", "name", "role", "createdAt", "updatedAt")
+          values (
+            ${userId},
+            ${firebaseUser.email || `${userId}@placeholder.com`},
+            ${firebaseUser.displayName || null},
+            'USER',
+            now(),
+            now()
+          )
+          on conflict ("id") do nothing
+        `;
 
         console.log(`Created user record for ${userId}`);
       } catch (error) {
@@ -61,7 +66,7 @@ async function migrateUsers() {
   } catch (error) {
     console.error("Migration failed:", error);
   } finally {
-    await prisma.$disconnect();
+    await sql.end();
   }
 }
 

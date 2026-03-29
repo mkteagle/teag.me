@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { logout } from "@/lib/auth";
+import { logout } from "@/lib/auth-client";
 import { useState, useEffect } from "react";
 
 const menuItems = [
@@ -29,14 +29,7 @@ export function Sidebar() {
     setMounted(true);
     const checkAdminStatus = async () => {
       try {
-        const userId = localStorage.getItem("userId");
-        if (!userId) return;
-
-        const response = await fetch("/api/admin/check", {
-          headers: {
-            Authorization: `Bearer ${userId}`,
-          },
-        });
+        const response = await fetch("/api/admin/check");
 
         if (!response.ok) {
           throw new Error("Failed to check admin status");

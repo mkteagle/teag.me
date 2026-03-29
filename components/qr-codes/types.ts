@@ -1,4 +1,9 @@
-import { QRCode, Scan, User } from "@prisma/client";
+import { InferSelectModel } from "drizzle-orm";
+import { qrCodes, scans, users } from "@/lib/db/schema";
+
+export type User = InferSelectModel<typeof users>;
+export type QRCode = InferSelectModel<typeof qrCodes>;
+export type Scan = InferSelectModel<typeof scans>;
 
 export type ExtendedScan = Omit<Scan, "timestamp"> & {
   timestamp: string | Date;

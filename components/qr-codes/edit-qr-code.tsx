@@ -59,13 +59,6 @@ export function EditQRDialog({
 
     try {
       setLoading(true);
-      const userId = localStorage.getItem("userId");
-
-      if (!userId) {
-        throw new Error("Not logged in");
-      }
-
-      // Basic URL validation
       if (
         !redirectUrl.startsWith("http://") &&
         !redirectUrl.startsWith("https://")
@@ -79,7 +72,6 @@ export function EditQRDialog({
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${userId}`,
         },
         body: JSON.stringify({
           redirectUrl,

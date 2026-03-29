@@ -37,19 +37,16 @@ export function generateShortId(length: number = 6): string {
   return result;
 }
 
-// Update the existing generateId function to use this for QR codes
-export async function generateUniqueShortId(prisma: any): Promise<string> {
+export async function generateUniqueShortId(
+  exists: (id: string) => Promise<boolean>
+): Promise<string> {
   let id: string;
-  let exists: boolean;
+  let alreadyExists: boolean;
 
   do {
     id = generateShortId();
-    // Check if ID exists in database
-    const existing = await prisma.qRCode.findUnique({
-      where: { id },
-    });
-    exists = !!existing;
-  } while (exists);
+    alreadyExists = await exists(id);
+  } while (alreadyExists);
 
   return id;
 }

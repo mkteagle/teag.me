@@ -39,18 +39,7 @@ export default function AdminPage() {
     const fetchQRCodes = async () => {
       try {
         setError(null);
-        const userId = localStorage.getItem("userId");
-
-        if (!userId) {
-          setError("Please log in to access the admin panel");
-          return;
-        }
-
-        const response = await fetch("/api/admin/qr-codes", {
-          headers: {
-            Authorization: `Bearer ${userId}`,
-          },
-        });
+        const response = await fetch("/api/admin/qr-codes");
 
         if (response.status === 403) {
           setError("You do not have permission to access the admin panel");
@@ -85,9 +74,6 @@ export default function AdminPage() {
     try {
       const response = await fetch(`/api/qr-code/${qrToDelete.id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("userId")}`,
-        },
       });
 
       if (!response.ok) {

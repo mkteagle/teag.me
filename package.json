@@ -6,12 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "prisma generate"
+    "lint": "next lint"
   },
   "dependencies": {
-    "@auth/firebase-adapter": "^2.7.4",
-    "@prisma/client": "^6.14.0",
+    "@aws-sdk/client-s3": "^3.1019.0",
+    "@better-auth/cli": "^1.4.21",
+    "@better-auth/drizzle-adapter": "^1.5.6",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
@@ -25,20 +25,19 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@types/leaflet": "^1.9.15",
     "@vercel/analytics": "^1.4.1",
-    "@vercel/blob": "^2.0.0",
     "axios": "^1.7.9",
+    "better-auth": "^1.5.6",
     "canvas": "^3.2.0",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "firebase": "^11.0.2",
-    "firebase-admin": "^13.0.1",
+    "drizzle-orm": "^0.45.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
     "next": "16.0.10",
-    "next-auth": "^4.24.11",
     "next-themes": "^0.4.4",
+    "postgres": "^3.4.8",
     "qrcode": "^1.5.4",
     "qrcode-with-logos": "^1.1.1",
     "react": "^19.2.1",
@@ -60,13 +59,17 @@
     "@types/react-simple-maps": "^3.0.6",
     "@types/topojson-client": "^3.1.5",
     "dotenv": "^16.4.7",
+    "drizzle-kit": "^0.31.10",
     "postcss": "^8",
-    "prisma": "^6.14.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["canvas", "sharp", "@prisma/client", "@prisma/engines", "prisma", "protobufjs", "@firebase/util"]
+    "onlyBuiltDependencies": [
+      "canvas",
+      "sharp",
+      "protobufjs"
+    ]
   },
   "packageManager": "pnpm@10.11.0"
 }

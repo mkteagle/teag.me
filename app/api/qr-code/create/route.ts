@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { generateUniqueShortId } from "@/lib/utils";
 import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
-import { uploadToBlob, dataUrlToBuffer } from "@/lib/blob-storage";
+import { uploadToR2, dataUrlToBuffer } from "@/lib/r2-storage";
+import { createQrCode, findQrCodeById } from "@/lib/db/queries";
+import { getCurrentUser } from "@/lib/auth-session";
 // Allow CORS for https://www.mkteagle.com
 const ALLOWED_ORIGIN = "https://www.mkteagle.com";
 
@@ -24,22 +25,23 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
     const body = await request.json();
-    const { redirectUrl, userId, customPath, logoDataUrl, logoSize } = body;
+    const { redirectUrl, customPath, logoDataUrl, logoSize } = body;
 
     console.log("Create QR code request:", {
       redirectUrl,
-      userId,
+      userId: currentUser?.id,
       customPath,
       hasLogo: !!logoDataUrl,
       logoSize,
     });
 
-    if (!redirectUrl || !userId) {
+    if (!redirectUrl || !currentUser) {
       return withCors(
         NextResponse.json(
-          { error: "redirectUrl and userId are required" },
-          { status: 400 }
+          { error: "Authentication required" },
+          { status: 401 }
         )
       );
     }
@@ -83,9 +85,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Check for existing custom path
-      const existing = await prisma.qRCode.findFirst({
-        where: { id: customPath },
-      });
+      const existing = await findQrCodeById(customPath);
 
       if (existing) {
         return withCors(
@@ -102,7 +102,9 @@ export async function POST(request: NextRequest) {
       id = customPath;
     } else {
       // Generate a unique short ID if no custom path is provided
-      id = await generateUniqueShortId(prisma);
+      id = await generateUniqueShortId(async (candidate) => {
+        return (await findQrCodeById(candidate)) !== null;
+      });
     }
 
     // Create the short URL using teag.me domain
@@ -118,10 +120,10 @@ export async function POST(request: NextRequest) {
       const { dataUrl } = await processLogoImage(logoDataUrl);
       processedLogoDataUrl = dataUrl;
 
-      // Upload logo to blob storage
+      // Upload logo to Cloudflare R2
       const logoBuffer = dataUrlToBuffer(dataUrl);
-      logoUrl = await uploadToBlob(logoBuffer, `logos/${id}-logo.jpg`, 'image/jpeg');
-      console.log('Logo uploaded to blob storage:', logoUrl);
+      logoUrl = await uploadToR2(logoBuffer, `logos/${id}-logo.jpg`, "image/jpeg");
+      console.log("Logo uploaded to Cloudflare R2:", logoUrl);
     }
 
     // Generate QR code with or without logo
@@ -130,26 +132,24 @@ export async function POST(request: NextRequest) {
       text: shortUrl,
       logoDataUrl: processedLogoDataUrl,
       logoSize: logoSize || 20,
-      qrSize: 512, // Back to 512 since we're using blob storage
-      errorCorrectionLevel: 'H',
+      qrSize: 512,
+      errorCorrectionLevel: "H",
     });
-    console.log('QR code generated successfully, size:', qrCodeBuffer.length);
+    console.log("QR code generated successfully, size:", qrCodeBuffer.length);
 
-    // Upload QR code to blob storage
-    const qrCodeUrl = await uploadToBlob(qrCodeBuffer, `qr-codes/${id}.jpg`, 'image/jpeg');
-    console.log('QR code uploaded to blob storage:', qrCodeUrl);
+    // Upload QR code to Cloudflare R2
+    const qrCodeUrl = await uploadToR2(qrCodeBuffer, `qr-codes/${id}.jpg`, "image/jpeg");
+    console.log("QR code uploaded to Cloudflare R2:", qrCodeUrl);
 
-    // Create the QR code entry with blob URLs
-    const qrCode = await prisma.qRCode.create({
-      data: {
-        id,
-        redirectUrl,
-        userId,
-        base64: qrCodeUrl, // Now stores blob URL instead of base64
-        routingUrl: shortUrl,
-        logoUrl: logoUrl,
-        logoSize: logoSize || null,
-      },
+    // Create the QR code entry with public R2 URLs
+    const qrCode = await createQrCode({
+      id,
+      redirectUrl,
+      userId: currentUser.id,
+      base64: qrCodeUrl,
+      routingUrl: shortUrl,
+      logoUrl,
+      logoSize: logoSize || null,
     });
 
     return withCors(

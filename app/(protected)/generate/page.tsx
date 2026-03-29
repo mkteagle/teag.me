@@ -6,12 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Download, Copy, Check, Sparkles, Link2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { LogoUpload } from "@/components/qr-codes/LogoUpload";
 import { LogoSizeSlider } from "@/components/qr-codes/LogoSizeSlider";
 
 export default function GeneratePage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     redirectUrl: "",
     customPath: "",
@@ -26,11 +24,7 @@ export default function GeneratePage() {
 
   useEffect(() => {
     setMounted(true);
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      router.push("/auth/login");
-    }
-  }, [router]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +32,6 @@ export default function GeneratePage() {
 
     try {
       setLoading(true);
-      const userId = localStorage.getItem("userId");
-
-      if (!userId) {
-        throw new Error("Not logged in");
-      }
 
       // Basic URL validation
       if (
@@ -65,7 +54,6 @@ export default function GeneratePage() {
         body: JSON.stringify({
           redirectUrl: formData.redirectUrl,
           customPath: formData.customPath || undefined,
-          userId,
           logoDataUrl,
           logoSize,
         }),

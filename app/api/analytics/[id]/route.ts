@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { getAnalyticsForQrCode } from "@/lib/db/queries";
 
 export async function GET(
   request: NextRequest,
@@ -8,25 +8,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const qrCode = await prisma.qRCode.findUnique({
-      where: { id },
-      include: {
-        scans: {
-          orderBy: {
-            timestamp: "asc",
-          },
-          select: {
-            id: true,
-            timestamp: true,
-            country: true,
-            city: true,
-            region: true,
-            userAgent: true,
-            ip: true,
-          },
-        },
-      },
-    });
+    const qrCode = await getAnalyticsForQrCode(id);
 
     if (!qrCode) {
       return NextResponse.json({ error: "QR code not found" }, { status: 404 });

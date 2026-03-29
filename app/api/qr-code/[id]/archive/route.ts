@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { findQrCodeById, findUserRole, updateQrCode } from "@/lib/db/queries";
+import { getCurrentUser } from "@/lib/auth-session";
 
 // Allow CORS for https://www.mkteagle.com
 const ALLOWED_ORIGIN = "https://www.mkteagle.com";
@@ -29,13 +30,10 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    const currentUser = await getCurrentUser();
     const { archived } = await request.json();
 
-    // Get userId from Authorization header
-    const authHeader = request.headers.get("authorization");
-    const userId = authHeader?.replace("Bearer ", "");
-
-    if (!userId) {
+    if (!currentUser) {
       return withCors(
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
@@ -48,25 +46,18 @@ export async function PATCH(
       );
     }
 
-    // Get the user to check if they're an admin
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    });
+    const role = await findUserRole(currentUser.id);
 
-    if (!user) {
+    if (!role) {
       return withCors(
         NextResponse.json({ error: "User not found" }, { status: 404 })
       );
     }
 
-    const isAdmin = user.role === "ADMIN";
+    const isAdmin = role === "ADMIN";
 
     // First, verify the QR code belongs to this user (unless they're an admin)
-    const qrCode = await prisma.qRCode.findUnique({
-      where: { id },
-      select: { userId: true },
-    });
+    const qrCode = await findQrCodeById(id);
 
     if (!qrCode) {
       return withCors(
@@ -74,20 +65,14 @@ export async function PATCH(
       );
     }
 
-    if (!isAdmin && qrCode.userId !== userId) {
+    if (!isAdmin && qrCode.userId !== currentUser.id) {
       return withCors(
         NextResponse.json({ error: "Forbidden: You don't own this QR code" }, { status: 403 })
       );
     }
 
     // Update the archived status
-    const updatedQR = await prisma.qRCode.update({
-      where: { id },
-      data: {
-        archived,
-        updatedAt: new Date(),
-      },
-    });
+    const updatedQR = await updateQrCode(id, { archived });
 
     return withCors(
       NextResponse.json({

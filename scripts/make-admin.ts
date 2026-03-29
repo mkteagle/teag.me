@@ -1,5 +1,6 @@
-// @ts-ignore
-const { PrismaClient } = require("@prisma/client");
+export {};
+
+const postgres = require("postgres");
 require("dotenv").config();
 
 const userId = process.argv[2];
@@ -10,31 +11,34 @@ if (!userId) {
   process.exit(1);
 }
 
-// @ts-ignore
-const prisma = new PrismaClient({
-  datasourceUrl: process.env.PRODUCTION_DATABASE_URL,
-});
+const connectionString =
+  process.env.PRODUCTION_DATABASE_URL || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.error("Missing PRODUCTION_DATABASE_URL or DATABASE_URL");
+  process.exit(1);
+}
+
+const sql = postgres(connectionString, { prepare: false });
 
 async function makeAdmin() {
   try {
-    const user = await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        role: "ADMIN",
-      },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-      },
-    });
+    const [user] = await sql`
+      update "User"
+      set "role" = 'ADMIN', "updatedAt" = now()
+      where "id" = ${userId}
+      returning "id", "email", "role"
+    `;
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     console.log("✅ Successfully updated user to admin:", user);
   } catch (error) {
     console.error("❌ Error updating user:", error);
   } finally {
-    await prisma.$disconnect();
+    await sql.end();
   }
 }
 

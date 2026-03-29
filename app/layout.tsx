@@ -1,23 +1,34 @@
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono, Sora } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next/types";
 import { Analytics } from "@vercel/analytics/react";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-heading",
+});
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https:/teag.me";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://teag.me";
 
 export const metadata: Metadata = {
-  title: "Teag.me - QR Code Generation and Tracking",
+  title: "teag.me | Free QR Tracking Without the Paywall",
   description:
-    "Teag.me helps you create, manage, and track QR codes effortlessly. Monitor scan data, analyze trends, and optimize your QR campaigns with ease.",
+    "Create QR codes, shorten links, and track scans with a generous free tier. Upgrade only when you need more volume, branding, and deeper analytics.",
   metadataBase: new URL(baseUrl),
   openGraph: {
-    title: "Teag.me - QR Code Generation and Tracking",
+    title: "teag.me | Free QR Tracking Without the Paywall",
     description:
-      "Easily generate, customize, and track QR codes with Teag.me. Gain insights into scan data and maximize the effectiveness of your campaigns.",
+      "Create QR codes, shorten links, and see scan analytics without getting forced into a paid plan just to unlock the basics.",
     url: baseUrl,
     siteName: "Teag.me",
     images: [
@@ -33,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Teag.me - QR Code Generation and Tracking",
+    title: "teag.me | Free QR Tracking Without the Paywall",
     description:
-      "Create and track QR codes with Teag.me. Monitor scan performance, analyze trends, and take your QR campaigns to the next level.",
+      "Generate QR codes, shorten links, and track scans with a generous free tier.",
     images: ["/og-image.png"], // Replace with your actual image path
   },
   icons: {
@@ -59,8 +70,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0b1e" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f4ef" },
+    { media: "(prefers-color-scheme: dark)", color: "#16181d" },
   ],
 };
 
@@ -71,7 +82,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body
+        className={`${inter.variable} ${sora.variable} ${jetbrainsMono.variable} font-sans`}
+      >
         <ThemeProvider>
           <div className="flex min-h-screen">{children}</div>
           <Toaster />

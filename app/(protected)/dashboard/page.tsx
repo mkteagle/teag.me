@@ -43,19 +43,9 @@ export default function DashboardPage() {
     const fetchQRCodes = async () => {
       setLoading(true);
       try {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-          return;
-        }
-
         const archived = activeTab === "archived";
         const response = await fetch(
-          `/api/qr-codes?archived=${archived}&page=${pagination.page}&limit=${pagination.limit}`,
-          {
-            headers: {
-              Authorization: `Bearer ${userId}`,
-            },
-          }
+          `/api/qr-codes?archived=${archived}&page=${pagination.page}&limit=${pagination.limit}`
         );
 
         if (!response.ok) {
@@ -98,16 +88,10 @@ export default function DashboardPage() {
 
   const handleArchive = async (qr: ExtendedQRCode, archived: boolean) => {
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        throw new Error("Not logged in");
-      }
-
       const response = await fetch(`/api/qr-code/${qr.id}/archive`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${userId}`,
         },
         body: JSON.stringify({ archived }),
       });
@@ -137,16 +121,8 @@ export default function DashboardPage() {
     if (!qrToDelete) return;
 
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        throw new Error("Not logged in");
-      }
-
       const response = await fetch(`/api/qr-code/${qrToDelete.id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${userId}`,
-        },
       });
 
       if (!response.ok) {
