@@ -14,9 +14,7 @@ interface LocationMapProps {
 const Map = dynamic(() => import("./map-component"), {
   ssr: false,
   loading: () => (
-    <div className="h-[500px] w-full rounded-lg flex items-center justify-center bg-muted/20">
-      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-    </div>
+    <div className="h-[500px] w-full rounded-lg bg-muted/20 animate-pulse" />
   ),
 });
 

@@ -53,8 +53,10 @@ export default function AnalyticsPage() {
         <div className="grid gap-8">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="hover-lift glassmorphism">
-              <CardContent className="flex items-center justify-center h-[300px]">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+              <CardContent className="h-[300px] p-6 space-y-4">
+                <div className="h-6 w-1/3 rounded bg-muted animate-pulse" />
+                <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
+                <div className="flex-1 h-48 rounded-lg bg-muted animate-pulse" />
               </CardContent>
             </Card>
           ))}

@@ -1,4 +1,3 @@
-// app/api/qr-code/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { generateQRWithLogo, processLogoImage } from "@/lib/qr-with-logo";
 import {
@@ -8,27 +7,6 @@ import {
   updateQrCode,
 } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
-// Allow CORS for https://www.mkteagle.com
-const ALLOWED_ORIGIN = "https://www.mkteagle.com";
-
-function withCors(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  response.headers.set(
-    "Access-Control-Allow-Methods",
-    "DELETE, PATCH, OPTIONS"
-  );
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  response.headers.set("Access-Control-Max-Age", "86400");
-  return response;
-}
-
-export async function OPTIONS() {
-  // Preflight CORS support
-  return withCors(new NextResponse(null, { status: 204 }));
-}
 
 export async function DELETE(
   request: NextRequest,
@@ -39,17 +17,13 @@ export async function DELETE(
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
-      return withCors(
-        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = await findUserRole(currentUser.id);
 
     if (!role) {
-      return withCors(
-        NextResponse.json({ error: "User not found" }, { status: 404 })
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const isAdmin = role === "ADMIN";
@@ -58,26 +32,20 @@ export async function DELETE(
     const qrCode = await findQrCodeById(id);
 
     if (!qrCode) {
-      return withCors(
-        NextResponse.json({ error: "QR code not found" }, { status: 404 })
-      );
+      return NextResponse.json({ error: "QR code not found" }, { status: 404 });
     }
 
     if (!isAdmin && qrCode.userId !== currentUser.id) {
-      return withCors(
-        NextResponse.json({ error: "Forbidden: You don't own this QR code" }, { status: 403 })
-      );
+      return NextResponse.json({ error: "Forbidden: You don't own this QR code" }, { status: 403 });
     }
 
     // Delete the QR code by ID
     await deleteQrCode(id);
 
-    return withCors(NextResponse.json({ success: true }));
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting QR code:", error);
-    return withCors(
-      NextResponse.json({ error: "Failed to delete QR code" }, { status: 500 })
-    );
+    return NextResponse.json({ error: "Failed to delete QR code" }, { status: 500 });
   }
 }
 
@@ -91,24 +59,18 @@ export async function PATCH(
     const { redirectUrl, logoDataUrl, logoSize } = await request.json();
 
     if (!currentUser) {
-      return withCors(
-        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Validate input
     if (!redirectUrl) {
-      return withCors(
-        NextResponse.json({ error: "redirectUrl is required" }, { status: 400 })
-      );
+      return NextResponse.json({ error: "redirectUrl is required" }, { status: 400 });
     }
 
     const role = await findUserRole(currentUser.id);
 
     if (!role) {
-      return withCors(
-        NextResponse.json({ error: "User not found" }, { status: 404 })
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const isAdmin = role === "ADMIN";
@@ -117,15 +79,11 @@ export async function PATCH(
     const existingQRCode = await findQrCodeById(id);
 
     if (!existingQRCode) {
-      return withCors(
-        NextResponse.json({ error: "QR code not found" }, { status: 404 })
-      );
+      return NextResponse.json({ error: "QR code not found" }, { status: 404 });
     }
 
     if (!isAdmin && existingQRCode.userId !== currentUser.id) {
-      return withCors(
-        NextResponse.json({ error: "Forbidden: You don't own this QR code" }, { status: 403 })
-      );
+      return NextResponse.json({ error: "Forbidden: You don't own this QR code" }, { status: 403 });
     }
 
     // Process logo if provided
@@ -155,16 +113,12 @@ export async function PATCH(
       logoSize: logoSize || null,
     });
 
-    return withCors(
-      NextResponse.json({
-        success: true,
-        data: updatedQR,
-      })
-    );
+    return NextResponse.json({
+      success: true,
+      data: updatedQR,
+    });
   } catch (error) {
     console.error("Error updating QR code:", error);
-    return withCors(
-      NextResponse.json({ error: "Failed to update QR code" }, { status: 500 })
-    );
+    return NextResponse.json({ error: "Failed to update QR code" }, { status: 500 });
   }
 }

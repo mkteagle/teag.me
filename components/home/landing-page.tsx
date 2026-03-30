@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BarChart3, Check, Globe2, QrCode, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TeagMark } from "@/components/brand/teag-mark";
 
 const proofPoints = [
   "10 active dynamic QR codes on Free",
@@ -61,9 +62,7 @@ export function LandingPage() {
       <main className="mx-auto flex w-full max-w-7xl flex-col px-6 pb-20 pt-8 md:px-10 lg:px-12">
         <header className="mb-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm">
-              <QrCode className="h-5 w-5" />
-            </div>
+            <TeagMark />
             <div>
               <div className="text-lg font-semibold tracking-tight">teag.me</div>
               <div className="text-sm text-muted-foreground">

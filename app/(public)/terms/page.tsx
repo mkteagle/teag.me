@@ -114,7 +114,7 @@ export default function TermsPage() {
             <div className="font-serif text-muted-foreground space-y-3 leading-relaxed">
               <p>
                 The Service and its original content, features, and functionality are and will remain the
-                exclusive property of teag.me and its licensors. The Service is protected by copyright,
+                exclusive property of Kindling Signal and its licensors. The Service is protected by copyright,
                 trademark, and other intellectual property laws. Our trademarks may not be used in connection
                 with any product or service without prior written consent.
               </p>
@@ -213,7 +213,7 @@ export default function TermsPage() {
             </h2>
             <div className="font-serif text-muted-foreground space-y-3 leading-relaxed">
               <p>
-                You agree to defend, indemnify, and hold harmless teag.me and its licensors, employees, agents,
+                You agree to defend, indemnify, and hold harmless Kindling Signal and its licensors, employees, agents,
                 and affiliates from and against any claims, liabilities, damages, judgments, awards, losses,
                 costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to
                 your violation of these Terms or your use of the Service.
@@ -293,8 +293,9 @@ export default function TermsPage() {
                 If you have any questions about these Terms, please contact us at:
               </p>
               <div className="mt-4 p-4 bg-muted/50 border-l-4 border-primary font-mono text-sm">
-                <p>Email: sayhello@mkteagle.com</p>
+                <p>Email: hello@bykindling.com</p>
                 <p>Service: teag.me QR Analytics Platform</p>
+                <p>Operated by Kindling Signal</p>
               </div>
             </div>
           </section>

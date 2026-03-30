@@ -4,24 +4,6 @@ import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
 import { uploadToR2, dataUrlToBuffer } from "@/lib/r2-storage";
 import { createQrCode, findQrCodeById } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
-// Allow CORS for https://www.mkteagle.com
-const ALLOWED_ORIGIN = "https://www.mkteagle.com";
-
-function withCors(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  response.headers.set("Access-Control-Max-Age", "86400");
-  return response;
-}
-
-export async function OPTIONS() {
-  // Preflight CORS support
-  return withCors(new NextResponse(null, { status: 204 }));
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,11 +20,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!redirectUrl || !currentUser) {
-      return withCors(
-        NextResponse.json(
-          { error: "Authentication required" },
-          { status: 401 }
-        )
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
       );
     }
 
@@ -52,14 +32,12 @@ export async function POST(request: NextRequest) {
       // Validate custom path format
       const customPathRegex = /^[a-zA-Z0-9-_]+$/;
       if (!customPathRegex.test(customPath)) {
-        return withCors(
-          NextResponse.json(
-            {
-              error:
-                "Custom path can only contain letters, numbers, hyphens, and underscores",
-            },
-            { status: 400 }
-          )
+        return NextResponse.json(
+          {
+            error:
+              "Custom path can only contain letters, numbers, hyphens, and underscores",
+          },
+          { status: 400 }
         );
       }
 
@@ -76,11 +54,9 @@ export async function POST(request: NextRequest) {
         "terms",
       ];
       if (reservedPaths.includes(customPath.toLowerCase())) {
-        return withCors(
-          NextResponse.json(
-            { error: "This custom path is reserved and cannot be used" },
-            { status: 400 }
-          )
+        return NextResponse.json(
+          { error: "This custom path is reserved and cannot be used" },
+          { status: 400 }
         );
       }
 
@@ -88,14 +64,12 @@ export async function POST(request: NextRequest) {
       const existing = await findQrCodeById(customPath);
 
       if (existing) {
-        return withCors(
-          NextResponse.json(
-            {
-              error:
-                "This custom path is already in use. Please choose another one.",
-            },
-            { status: 400 }
-          )
+        return NextResponse.json(
+          {
+            error:
+              "This custom path is already in use. Please choose another one.",
+          },
+          { status: 400 }
         );
       }
 
@@ -152,31 +126,23 @@ export async function POST(request: NextRequest) {
       logoSize: logoSize || null,
     });
 
-    return withCors(
-      NextResponse.json({
-        success: true,
-        data: {
-          id: qrCode.id,
-          base64: qrCode.base64,
-          redirectUrl: qrCode.redirectUrl,
-          routingUrl: qrCode.routingUrl,
-        },
-      })
-    );
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: qrCode.id,
+        base64: qrCode.base64,
+        redirectUrl: qrCode.redirectUrl,
+        routingUrl: qrCode.routingUrl,
+      },
+    });
   } catch (error) {
     console.error("Error creating QR code:", error);
 
-    // Provide more specific error messages
     let errorMessage = "Failed to create QR code";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
 
-    return withCors(
-      NextResponse.json({
-        error: errorMessage,
-        details: error instanceof Error ? error.stack : String(error)
-      }, { status: 500 })
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

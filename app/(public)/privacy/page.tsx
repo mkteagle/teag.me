@@ -298,7 +298,7 @@ export default function PrivacyPage() {
               </ul>
 
               <p>
-                To exercise these rights, please contact us at <span className="font-mono text-primary">sayhello@mkteagle.com</span>.
+                To exercise these rights, please contact us at <span className="font-mono text-primary">hello@bykindling.com</span>.
                 We will respond to your request within 30 days.
               </p>
             </div>
@@ -389,7 +389,7 @@ export default function PrivacyPage() {
                 <li>Right to non-discrimination for exercising your privacy rights</li>
               </ul>
               <p>
-                To exercise these rights, contact us at <span className="font-mono text-primary">sayhello@mkteagle.com</span>.
+                To exercise these rights, contact us at <span className="font-mono text-primary">hello@bykindling.com</span>.
               </p>
             </div>
           </section>
@@ -459,7 +459,7 @@ export default function PrivacyPage() {
                 please contact us:
               </p>
               <div className="mt-4 p-6 bg-muted/50 border-l-4 border-primary font-mono text-sm space-y-2">
-                <p><strong>Email:</strong> sayhello@mkteagle.com</p>
+                <p><strong>Email:</strong> hello@bykindling.com</p>
                 <p><strong>Service:</strong> teag.me QR Analytics Platform</p>
                 <p><strong>Data Protection Officer:</strong> Available upon request</p>
               </div>
