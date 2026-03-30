@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, QrCode, Shield, LogOut, Activity, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Home, QrCode, Shield, LogOut, PanelLeftClose, Zap } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -27,6 +27,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { toggleSidebar, state } = useSidebar();
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -39,7 +40,19 @@ export function Sidebar() {
         setIsAdminUser(false);
       }
     };
+    const checkPlan = async () => {
+      try {
+        const response = await fetch("/api/plan");
+        if (response.ok) {
+          const data = await response.json();
+          setPlan(data.plan);
+        }
+      } catch {
+        // ignore
+      }
+    };
     checkAdminStatus();
+    checkPlan();
   }, []);
 
   const isCollapsed = state === "collapsed";
@@ -112,6 +125,21 @@ export function Sidebar() {
 
       <SidebarFooter className="px-3 pb-4">
         <SidebarMenu>
+          {plan !== "PRO" && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === "/upgrade"}
+                tooltip="Upgrade"
+                className="h-9 text-primary"
+              >
+                <Link href="/upgrade">
+                  <Zap className="w-4 h-4" />
+                  <span>Upgrade to Pro</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Sign Out"

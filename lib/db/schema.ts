@@ -163,10 +163,47 @@ export const verifications = pgTable(
   })
 );
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const planEnum = pgEnum("Plan", ["FREE", "PRO"]);
+
+export const subscriptions = pgTable("subscription", {
+  id: text("id").primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  plan: planEnum("plan").notNull().default("FREE"),
+  stripeCustomerId: text("stripeCustomerId").unique(),
+  stripeSubscriptionId: text("stripeSubscriptionId").unique(),
+  stripePriceId: text("stripePriceId"),
+  status: text("status").notNull().default("active"),
+  currentPeriodStart: timestamp("currentPeriodStart", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  currentPeriodEnd: timestamp("currentPeriodEnd", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  createdAt: timestamp("createdAt", { withTimezone: true, mode: "date" })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true, mode: "date" })
+    .defaultNow()
+    .notNull(),
+});
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many, one }) => ({
   qrCodes: many(qrCodes),
   sessions: many(sessions),
   accounts: many(accounts),
+  subscription: one(subscriptions),
 }));
 
 export const qrCodesRelations = relations(qrCodes, ({ one, many }) => ({

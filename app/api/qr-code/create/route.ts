@@ -4,6 +4,7 @@ import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
 import { uploadToR2, dataUrlToBuffer } from "@/lib/r2-storage";
 import { createQrCode, findQrCodeById } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
+import { checkQrCodeLimit, checkFeatureAccess } from "@/lib/plan-enforcement";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,19 +12,42 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { redirectUrl, customPath, logoDataUrl, logoSize } = body;
 
-    console.log("Create QR code request:", {
-      redirectUrl,
-      userId: currentUser?.id,
-      customPath,
-      hasLogo: !!logoDataUrl,
-      logoSize,
-    });
-
     if (!redirectUrl || !currentUser) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
       );
+    }
+
+    // Enforce QR code limit
+    const qrLimit = await checkQrCodeLimit(currentUser.id);
+    if (!qrLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "QR code limit reached",
+          code: "LIMIT_REACHED",
+          current: qrLimit.current,
+          limit: qrLimit.limit,
+          plan: qrLimit.plan,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Enforce logo upload as pro feature
+    if (logoDataUrl) {
+      const logoAccess = await checkFeatureAccess(currentUser.id, "logoUpload");
+      if (!logoAccess.allowed) {
+        return NextResponse.json(
+          {
+            error: "Logo uploads require a Pro plan",
+            code: "PRO_REQUIRED",
+            feature: "logoUpload",
+            plan: logoAccess.plan,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     let id: string;

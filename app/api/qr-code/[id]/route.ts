@@ -7,6 +7,7 @@ import {
   updateQrCode,
 } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
+import { checkFeatureAccess } from "@/lib/plan-enforcement";
 
 export async function DELETE(
   request: NextRequest,
@@ -84,6 +85,17 @@ export async function PATCH(
 
     if (!isAdmin && existingQRCode.userId !== currentUser.id) {
       return NextResponse.json({ error: "Forbidden: You don't own this QR code" }, { status: 403 });
+    }
+
+    // Enforce logo upload as pro feature
+    if (logoDataUrl) {
+      const logoAccess = await checkFeatureAccess(currentUser.id, "logoUpload");
+      if (!logoAccess.allowed) {
+        return NextResponse.json(
+          { error: "Logo uploads require a Pro plan", code: "PRO_REQUIRED", feature: "logoUpload", plan: logoAccess.plan },
+          { status: 403 }
+        );
+      }
     }
 
     // Process logo if provided
