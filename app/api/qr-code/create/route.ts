@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { generateUniqueShortId } from "@/lib/utils";
 import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
 import { uploadToR2, dataUrlToBuffer } from "@/lib/r2-storage";
 import { createQrCode, findQrCodeById } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
 import { checkQrCodeLimit, checkFeatureAccess } from "@/lib/plan-enforcement";
+import { cacheQrCodeMetadata } from "@/lib/metadata";
 
 export async function POST(request: NextRequest) {
   try {
@@ -149,6 +151,9 @@ export async function POST(request: NextRequest) {
       logoUrl,
       logoSize: logoSize || null,
     });
+
+    // Fetch and cache OG metadata in the background
+    after(() => cacheQrCodeMetadata(id, redirectUrl));
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trash2, Download, Edit, Archive, ArchiveRestore } from "lucide-react";
+import { ExternalLink, Trash2, Download, Edit, Archive, ArchiveRestore, RefreshCw } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +18,22 @@ interface RowActionsProps {
 }
 
 export function RowActions({ qrCode, onDelete, onEdit, onArchive }: RowActionsProps) {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefreshMetadata = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/qr-code/${qrCode.id}/refresh-metadata`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      toast({ title: "Preview updated", description: "Link preview metadata has been refreshed." });
+    } catch {
+      toast({ title: "Failed to refresh", description: "Could not update the link preview.", variant: "destructive" });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleDownload = () => {
     if (!qrCode) return;
 
@@ -72,6 +89,22 @@ export function RowActions({ qrCode, onDelete, onEdit, onArchive }: RowActionsPr
           </Tooltip>
         </TooltipProvider>
       )}
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefreshMetadata}
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Refresh link preview</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <TooltipProvider>
         <Tooltip>

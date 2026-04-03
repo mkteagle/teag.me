@@ -1,4 +1,5 @@
 import { load } from "cheerio";
+import { updateQrCode } from "@/lib/db/queries";
 
 interface MetadataResult {
   title?: string;
@@ -37,5 +38,23 @@ export async function fetchUrlMetadata(url: string): Promise<MetadataResult> {
   } catch (error) {
     console.error("Error fetching URL metadata:", error);
     return {};
+  }
+}
+
+export async function cacheQrCodeMetadata(
+  qrCodeId: string,
+  url: string
+): Promise<void> {
+  try {
+    const meta = await fetchUrlMetadata(url);
+    if (meta.title || meta.description || meta.image) {
+      await updateQrCode(qrCodeId, {
+        ogTitle: meta.title ?? null,
+        ogDescription: meta.description ?? null,
+        ogImage: meta.image ?? null,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to cache QR code metadata:", err);
   }
 }

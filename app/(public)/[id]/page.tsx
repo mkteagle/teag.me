@@ -1,70 +1,49 @@
 import { redirect } from "next/navigation";
-import ClientRedirect from "@/components/client-redirect";
-import { fetchUrlMetadata } from "@/lib/metadata";
-import { type Metadata, type ResolvingMetadata } from "next/types";
+import { after } from "next/server";
+import { headers } from "next/headers";
+import { type Metadata } from "next";
 import { findQrCodeById } from "@/lib/db/queries";
+import { recordScan } from "@/lib/scan-tracking";
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ id: string }> },
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
-
-  // Get QR code data
   const qrCode = await findQrCodeById(id);
 
   if (!qrCode) {
-    return {
-      title: "Not Found - teag.me",
-      description: "The requested QR code could not be found.",
-    };
+    return { title: "Not Found - teag.me" };
   }
 
+  let hostname = qrCode.redirectUrl;
   try {
-    // Fetch metadata from the destination URL
-    const metadata = await fetchUrlMetadata(qrCode.redirectUrl);
+    hostname = new URL(qrCode.redirectUrl).hostname;
+  } catch {}
 
-    // Create dynamic metadata
-    return {
-      title: metadata.title || "Redirecting...",
-      description:
-        metadata.description ||
-        `You are being redirected to ${qrCode.redirectUrl}`,
-      openGraph: {
-        title: metadata.title || "Redirecting...",
-        description:
-          metadata.description ||
-          `You are being redirected to ${qrCode.redirectUrl}`,
-        url: metadata.url || qrCode.redirectUrl,
-        images: metadata.image ? [{ url: metadata.image }] : undefined,
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: metadata.title || "Redirecting...",
-        description:
-          metadata.description ||
-          `You are being redirected to ${qrCode.redirectUrl}`,
-        images: metadata.image ? [metadata.image] : undefined,
-      },
-      alternates: {
-        canonical: qrCode.redirectUrl,
-      },
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  } catch (error) {
-    console.error("Error generating metadata:", error);
-    return {
-      title: "Redirecting...",
-      description: `You are being redirected to ${qrCode.redirectUrl}`,
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  const title = qrCode.ogTitle ?? `QR Code → ${hostname}`;
+  const description = qrCode.ogDescription ?? `Scan to visit ${qrCode.redirectUrl}`;
+  const image = qrCode.ogImage;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: qrCode.redirectUrl,
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
+    alternates: { canonical: qrCode.redirectUrl },
+    robots: { index: false, follow: true },
+  };
 }
 
 export default async function RedirectPage({
@@ -73,14 +52,35 @@ export default async function RedirectPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-
-  // Verify QR code exists on server side first
   const qrCode = await findQrCodeById(id);
 
   if (!qrCode) {
     redirect("/not-found");
   }
 
-  // Pass to client component for tracking and redirect
-  return <ClientRedirect id={id} />;
+  const headersList = await headers();
+  const ip =
+    headersList.get("x-forwarded-for")?.split(",")[0] ??
+    headersList.get("x-real-ip") ??
+    "unknown";
+  const userAgent = headersList.get("user-agent") ?? "unknown";
+  const referrer = headersList.get("referer");
+  const country = headersList.get("x-vercel-ip-country");
+  const city = headersList.get("x-vercel-ip-city");
+  const region = headersList.get("x-vercel-ip-region");
+
+  after(() =>
+    recordScan({
+      qrCodeId: id,
+      userId: qrCode.userId,
+      ip,
+      userAgent,
+      referrer,
+      country,
+      city,
+      region,
+    })
+  );
+
+  redirect(qrCode.redirectUrl);
 }

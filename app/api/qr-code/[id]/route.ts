@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { generateQRWithLogo, processLogoImage } from "@/lib/qr-with-logo";
 import {
   deleteQrCode,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
 import { checkFeatureAccess } from "@/lib/plan-enforcement";
+import { cacheQrCodeMetadata } from "@/lib/metadata";
 
 export async function DELETE(
   request: NextRequest,
@@ -124,6 +126,11 @@ export async function PATCH(
       logoUrl: processedLogoUrl || null,
       logoSize: logoSize || null,
     });
+
+    // Re-cache OG metadata if URL changed
+    if (redirectUrl !== existingQRCode.redirectUrl) {
+      after(() => cacheQrCodeMetadata(id, redirectUrl));
+    }
 
     return NextResponse.json({
       success: true,

@@ -40,6 +40,9 @@ export const qrCodes = pgTable(
     logoUrl: text("logoUrl"),
     logoSize: integer("logoSize"),
     archived: boolean("archived").notNull().default(false),
+    ogTitle: text("ogTitle"),
+    ogDescription: text("ogDescription"),
+    ogImage: text("ogImage"),
     createdAt: timestamp("createdAt", { withTimezone: true, mode: "date" })
       .defaultNow()
       .notNull(),
