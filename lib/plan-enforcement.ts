@@ -1,6 +1,6 @@
 import { and, count, eq, gte } from "drizzle-orm";
 import { getDb } from "./db";
-import { qrCodes, scans, subscriptions } from "./db/schema";
+import { qrCodes, scans, subscriptions, users } from "./db/schema";
 import { type PlanId, getPlanLimits } from "./plans";
 
 export interface UserPlan {
@@ -19,14 +19,15 @@ export interface UsageCheck {
 }
 
 export async function getUserPlan(userId: string): Promise<UserPlan> {
-  const [sub] = await getDb()
-    .select()
-    .from(subscriptions)
-    .where(eq(subscriptions.userId, userId))
-    .limit(1);
+  const [[user], [sub]] = await Promise.all([
+    getDb().select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1),
+    getDb().select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1),
+  ]);
 
+  // Admins always get Pro — not tied to billing
+  const isAdmin = user?.role === "ADMIN";
   const plan: PlanId =
-    sub?.plan === "PRO" && sub.status === "active" ? "PRO" : "FREE";
+    isAdmin || (sub?.plan === "PRO" && sub.status === "active") ? "PRO" : "FREE";
 
   return {
     plan,
