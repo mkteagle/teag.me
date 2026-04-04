@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QRCodesTable from "@/components/qr-codes/table";
@@ -11,7 +12,7 @@ import { ExtendedQRCode } from "@/components/qr-codes/types";
 import { EditQRDialog } from "@/components/qr-codes/edit-qr-code";
 import { UpgradeWall } from "@/components/upgrade-wall";
 import { usePlan } from "@/lib/hooks/use-plan";
-import { Plus, Database, TrendingUp, MapPin, ChevronLeft, ChevronRight, Zap } from "lucide-react";
+import { Plus, Database, TrendingUp, MapPin, ChevronLeft, ChevronRight, Zap, PartyPopper } from "lucide-react";
 
 interface PaginationInfo {
   page: number;
@@ -38,10 +39,22 @@ export default function DashboardPage() {
   });
   const { toast } = useToast();
   const { data: planData, atQrLimit } = usePlan();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("upgraded") === "true") {
+      toast({
+        title: "Welcome to Pro! 🎉",
+        description: "Your account has been upgraded. Enjoy 100 QR codes, 50k scans/month, and all Pro features.",
+      });
+      router.replace("/dashboard");
+    }
+  }, [searchParams, router, toast]);
 
   useEffect(() => {
     const fetchQRCodes = async () => {
@@ -164,6 +177,17 @@ export default function DashboardPage() {
           Monitor and manage your QR code analytics
         </p>
       </div>
+
+      {/* Upgrade success banner */}
+      {planData?.plan === "PRO" && searchParams.get("upgraded") === "true" && (
+        <div className="mb-8 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <PartyPopper className="h-5 w-5 shrink-0 text-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">You&apos;re on Pro!</p>
+            <p className="text-xs text-muted-foreground">100 QR codes, 50k scans/month, and all Pro features are now unlocked.</p>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div
