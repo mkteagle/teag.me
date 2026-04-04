@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Download, Copy, Check, Sparkles, Link2 } from "lucide-react";
+import { Download, Copy, Check, Sparkles, Link2, Zap } from "lucide-react";
 import { LogoUpload } from "@/components/qr-codes/LogoUpload";
 import { LogoSizeSlider } from "@/components/qr-codes/LogoSizeSlider";
+import { UpgradeWall } from "@/components/upgrade-wall";
+import { usePlan } from "@/lib/hooks/use-plan";
 
 export default function GeneratePage() {
   const [formData, setFormData] = useState({
@@ -20,7 +22,9 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [upgradeWallOpen, setUpgradeWallOpen] = useState(false);
   const { toast } = useToast();
+  const { data: planData, atQrLimit } = usePlan();
 
   useEffect(() => {
     setMounted(true);
@@ -61,6 +65,14 @@ export default function GeneratePage() {
 
       if (!response.ok) {
         const error = await response.json();
+        if (error.code === "LIMIT_REACHED") {
+          setUpgradeWallOpen(true);
+          return;
+        }
+        if (error.code === "PRO_REQUIRED") {
+          setUpgradeWallOpen(true);
+          return;
+        }
         throw new Error(error.error || "Failed to generate QR code");
       }
 
@@ -134,6 +146,23 @@ export default function GeneratePage() {
       </div>
 
       <div className="max-w-4xl">
+        {/* Limit banner */}
+        {atQrLimit && (
+          <div className="mb-8 flex items-center justify-between gap-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+            <p className="text-sm text-muted-foreground">
+              You&apos;ve reached the {planData?.usage.activeQrCodes.limit} QR code limit on the Free plan.
+            </p>
+            <Button
+              size="sm"
+              className="shrink-0 gap-1.5"
+              onClick={() => setUpgradeWallOpen(true)}
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Upgrade
+            </Button>
+          </div>
+        )}
+
         {/* Form Section */}
         <div
           className="data-card p-8 mb-8"
@@ -216,26 +245,46 @@ export default function GeneratePage() {
 
             <div className="receipt-line" />
 
-            <Button
-              type="submit"
-              disabled={loading}
-              size="lg"
-              className="w-full data-card border-2 border-foreground bg-foreground text-background hover:bg-primary hover:border-primary font-mono font-semibold text-base"
-            >
-              {loading ? (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2 animate-pulse" strokeWidth={2.5} />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" strokeWidth={2.5} />
-                  Generate QR Code
-                </>
-              )}
-            </Button>
+            {atQrLimit ? (
+              <Button
+                type="button"
+                size="lg"
+                className="w-full gap-2 font-mono font-semibold text-base"
+                onClick={() => setUpgradeWallOpen(true)}
+              >
+                <Zap className="w-5 h-5" strokeWidth={2.5} />
+                Upgrade to Generate More
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={loading}
+                size="lg"
+                className="w-full data-card border-2 border-foreground bg-foreground text-background hover:bg-primary hover:border-primary font-mono font-semibold text-base"
+              >
+                {loading ? (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2 animate-pulse" strokeWidth={2.5} />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" strokeWidth={2.5} />
+                    Generate QR Code
+                  </>
+                )}
+              </Button>
+            )}
           </form>
         </div>
+
+        <UpgradeWall
+          open={upgradeWallOpen}
+          onClose={() => setUpgradeWallOpen(false)}
+          title="QR code limit reached"
+          current={planData?.usage.activeQrCodes.current}
+          limit={planData?.usage.activeQrCodes.limit}
+        />
 
         {/* QR Code Result Section */}
         {qrCode && (

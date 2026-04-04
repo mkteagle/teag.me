@@ -9,7 +9,9 @@ import { DeleteDialog } from "@/components/delete-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ExtendedQRCode } from "@/components/qr-codes/types";
 import { EditQRDialog } from "@/components/qr-codes/edit-qr-code";
-import { Plus, Database, TrendingUp, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { UpgradeWall } from "@/components/upgrade-wall";
+import { usePlan } from "@/lib/hooks/use-plan";
+import { Plus, Database, TrendingUp, MapPin, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 
 interface PaginationInfo {
   page: number;
@@ -25,6 +27,7 @@ export default function DashboardPage() {
   const [qrToDelete, setQrToDelete] = useState<ExtendedQRCode | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [qrToEdit, setQrToEdit] = useState<ExtendedQRCode | null>(null);
+  const [upgradeWallOpen, setUpgradeWallOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
   const [pagination, setPagination] = useState<PaginationInfo>({
@@ -34,6 +37,7 @@ export default function DashboardPage() {
     totalPages: 0,
   });
   const { toast } = useToast();
+  const { data: planData, atQrLimit } = usePlan();
 
   useEffect(() => {
     setMounted(true);
@@ -234,19 +238,32 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-2xl font-bold mb-2">Generate New QR Code</h2>
               <p className="text-muted-foreground font-serif">
-                Create trackable QR codes with custom URLs and real-time analytics
+                {atQrLimit
+                  ? `You've reached the ${planData?.usage.activeQrCodes.limit} QR code limit on the Free plan.`
+                  : "Create trackable QR codes with custom URLs and real-time analytics"}
               </p>
             </div>
-            <Button
-              asChild
-              size="lg"
-              className="data-card border-2 border-foreground bg-foreground text-background hover:bg-primary hover:border-primary font-mono font-semibold"
-            >
-              <Link href="/generate" className="flex items-center gap-2">
-                <Plus className="w-5 h-5" strokeWidth={2.5} />
-                Create QR Code
-              </Link>
-            </Button>
+            {atQrLimit ? (
+              <Button
+                size="lg"
+                className="data-card border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90 font-mono font-semibold gap-2"
+                onClick={() => setUpgradeWallOpen(true)}
+              >
+                <Zap className="w-5 h-5" strokeWidth={2.5} />
+                Upgrade to Create More
+              </Button>
+            ) : (
+              <Button
+                asChild
+                size="lg"
+                className="data-card border-2 border-foreground bg-foreground text-background hover:bg-primary hover:border-primary font-mono font-semibold"
+              >
+                <Link href="/generate" className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" strokeWidth={2.5} />
+                  Create QR Code
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -340,6 +357,13 @@ export default function DashboardPage() {
         onOpenChange={setEditDialogOpen}
         qrCode={qrToEdit}
         onSuccess={handleEditSuccess}
+      />
+      <UpgradeWall
+        open={upgradeWallOpen}
+        onClose={() => setUpgradeWallOpen(false)}
+        title="QR code limit reached"
+        current={planData?.usage.activeQrCodes.current}
+        limit={planData?.usage.activeQrCodes.limit}
       />
     </div>
   );
