@@ -16,32 +16,20 @@ import {
 } from 'expo-camera';
 import * as Clipboard from 'expo-clipboard';
 
-const ACCENT = '#22c55e';
+import { colors, MONO } from './lib/theme';
+import { parseScan, type Scan } from './lib/parseScan';
+import { LogoTile, PulsingDot, Wordmarks } from './components/branding';
+import { Reticle } from './components/Reticle';
+import { ResultSheet } from './components/ResultSheet';
+import { SafetyTeaser } from './components/SafetyTeaser';
 
-type Scan = {
-  raw: string;
-  isLink: boolean;
-  host: string | null;
-};
-
-function parseScan(raw: string): Scan {
-  const value = raw.trim();
-  const isLink = /^https?:\/\//i.test(value);
-  let host: string | null = null;
-  if (isLink) {
-    try {
-      host = new URL(value).hostname.replace(/^www\./, '');
-    } catch {
-      host = null;
-    }
-  }
-  return { raw: value, isLink, host };
-}
+const ACCENT = colors.accent; // '#0F7BFF' — brand primary blue
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scan, setScan] = useState<Scan | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showTeaser, setShowTeaser] = useState(false);
   // Guards against the camera firing onBarcodeScanned dozens of times per second.
   const locked = useRef(false);
 
@@ -58,16 +46,17 @@ export default function App() {
   }, []);
 
   const open = useCallback(() => {
-    if (scan?.isLink) Linking.openURL(scan.raw);
+    if (scan?.kind === 'url') Linking.openURL(scan.raw).catch(() => {});
   }, [scan]);
 
   const copy = useCallback(async () => {
     if (!scan) return;
-    await Clipboard.setStringAsync(scan.raw);
+    const toCopy = scan.kind === 'wifi' && scan.wifi?.password ? scan.wifi.password : scan.raw;
+    await Clipboard.setStringAsync(toCopy);
     setCopied(true);
   }, [scan]);
 
-  // --- Permission states -----------------------------------------------------
+  // --- Loading permission state ---------------------------------------------
   if (!permission) {
     return (
       <View style={styles.center}>
@@ -77,27 +66,31 @@ export default function App() {
     );
   }
 
+  // --- Camera permission screen ---------------------------------------------
   if (!permission.granted) {
     return (
-      <SafeAreaView style={styles.center}>
-        <Text style={styles.logo}>
-          teag<Text style={{ color: ACCENT }}>.</Text>me
-        </Text>
-        <Text style={styles.tagline}>scanner</Text>
-        <Text style={styles.permTitle}>Camera access needed</Text>
-        <Text style={styles.permBody}>
-          Point your camera at any QR code to read the link inside it. Nothing
-          leaves your phone.
-        </Text>
-        <Pressable style={styles.primaryBtn} onPress={requestPermission}>
-          <Text style={styles.primaryBtnText}>Enable camera</Text>
-        </Pressable>
+      <SafeAreaView style={styles.permScreen}>
+        <View style={styles.permBody}>
+          <LogoTile size={72} />
+          <View style={styles.permWordmark}>
+            <Wordmarks size={24} outlined />
+          </View>
+          <Text style={styles.permLead}>Point your camera at any QR code.</Text>
+          <Text style={styles.permSub}>Nothing leaves your phone.</Text>
+          <Pressable
+            style={({ pressed }) => [styles.enableBtn, pressed && styles.pressed]}
+            onPress={requestPermission}
+          >
+            <Text style={styles.enableBtnText}>Enable camera</Text>
+          </Pressable>
+          <Text style={styles.permFootnote}>ON-DEVICE · NO ACCOUNT</Text>
+        </View>
         <StatusBar style="light" />
       </SafeAreaView>
     );
   }
 
-  // --- Scanner ---------------------------------------------------------------
+  // --- Scanner + result states ----------------------------------------------
   return (
     <View style={styles.flex}>
       <CameraView
@@ -107,60 +100,44 @@ export default function App() {
         onBarcodeScanned={scan ? undefined : handleScanned}
       />
 
-      {/* Viewfinder + hint (only while actively scanning) */}
-      {!scan && (
-        <SafeAreaView style={styles.overlay} pointerEvents="none">
-          <Text style={styles.brand}>
-            teag<Text style={{ color: ACCENT }}>.</Text>me
-          </Text>
-          <View style={styles.reticle}>
-            <View style={[styles.corner, styles.tl]} />
-            <View style={[styles.corner, styles.tr]} />
-            <View style={[styles.corner, styles.bl]} />
-            <View style={[styles.corner, styles.br]} />
+      {/* Viewfinder overlay (only while actively scanning) */}
+      {!scan && !showTeaser && (
+        <SafeAreaView style={styles.overlay}>
+          <View style={styles.topBar} pointerEvents="none">
+            <Wordmarks size={17} />
           </View>
-          <Text style={styles.hint}>Point at a QR code</Text>
-        </SafeAreaView>
-      )}
 
-      {/* Result sheet */}
-      {scan && (
-        <SafeAreaView style={styles.resultWrap}>
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>
-              {scan.isLink ? 'Link' : 'Scanned'}
-            </Text>
+          <View style={styles.reticleWrap} pointerEvents="none">
+            <Reticle />
+          </View>
 
-            {scan.host && <Text style={styles.host}>{scan.host}</Text>}
-
-            <Pressable onPress={scan.isLink ? open : undefined}>
-              <Text
-                style={[styles.value, scan.isLink && styles.valueLink]}
-                numberOfLines={4}
-              >
-                {scan.raw}
-              </Text>
-            </Pressable>
-
-            <View style={styles.actions}>
-              {scan.isLink && (
-                <Pressable style={styles.primaryBtn} onPress={open}>
-                  <Text style={styles.primaryBtnText}>Open link</Text>
-                </Pressable>
-              )}
-              <Pressable style={styles.secondaryBtn} onPress={copy}>
-                <Text style={styles.secondaryBtnText}>
-                  {copied ? 'Copied ✓' : 'Copy'}
-                </Text>
-              </Pressable>
+          <View style={styles.bottomBar}>
+            <View style={styles.hintPill} pointerEvents="none">
+              <PulsingDot size={7} />
+              <Text style={styles.hintText}>Point at a QR code</Text>
             </View>
-
-            <Pressable style={styles.scanAgain} onPress={reset}>
-              <Text style={styles.scanAgainText}>Scan another</Text>
-            </Pressable>
+            {__DEV__ && (
+              <Pressable style={styles.devToggle} onPress={() => setShowTeaser(true)}>
+                <Text style={styles.devToggleText}>preview safety check</Text>
+              </Pressable>
+            )}
           </View>
         </SafeAreaView>
       )}
+
+      {/* Result sheet (URL / Wi-Fi / text) */}
+      {scan && (
+        <ResultSheet
+          scan={scan}
+          copied={copied}
+          onOpen={open}
+          onCopy={copy}
+          onScanAnother={reset}
+        />
+      )}
+
+      {/* Optional decorative safety-check teaser (dev preview only) */}
+      {showTeaser && <SafetyTeaser onClose={() => setShowTeaser(false)} />}
 
       <StatusBar style="light" />
     </View>
@@ -168,100 +145,88 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#000' },
+  flex: { flex: 1, backgroundColor: colors.phoneBody },
+  pressed: { opacity: 0.85 },
+
   center: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: colors.phoneBody,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
-    gap: 16,
   },
-
-  // Branding
-  logo: { color: '#fff', fontSize: 30, fontWeight: '800', letterSpacing: -1 },
-  tagline: {
-    color: '#737373',
-    fontSize: 14,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 4,
-    marginTop: -6,
-  },
-  brand: { color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
 
   // Permission screen
-  permTitle: { color: '#fff', fontSize: 22, fontWeight: '700', marginTop: 8 },
+  permScreen: { flex: 1, backgroundColor: colors.phoneBody },
   permBody: {
-    color: '#a3a3a3',
-    fontSize: 15,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 34,
+  },
+  permWordmark: { marginTop: 28, marginBottom: 22 },
+  permLead: {
+    color: '#C4C9D2',
+    fontSize: 16,
+    lineHeight: 25,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  permSub: {
+    color: colors.mutedLabel,
+    fontSize: 14.5,
     lineHeight: 22,
     textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 36,
+  },
+  enableBtn: {
+    alignSelf: 'stretch',
+    backgroundColor: ACCENT,
+    paddingVertical: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+    shadowColor: ACCENT,
+    shadowOpacity: 0.36,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+  },
+  enableBtnText: { color: colors.pureWhite, fontSize: 16, fontWeight: '600' },
+  permFootnote: {
+    fontFamily: MONO,
+    fontSize: 10.5,
+    color: colors.faint,
+    letterSpacing: 0.4,
+    marginTop: 18,
   },
 
   // Scanner overlay
-  overlay: { flex: 1, alignItems: 'center', justifyContent: 'space-between', paddingVertical: 24 },
-  reticle: { width: 240, height: 240, marginTop: '40%' },
-  corner: {
-    position: 'absolute',
-    width: 40,
-    height: 40,
-    borderColor: ACCENT,
-  },
-  tl: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 16 },
-  tr: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 16 },
-  bl: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 16 },
-  br: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 16 },
-  hint: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-
-  // Result sheet
-  resultWrap: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' },
-  card: {
-    backgroundColor: '#141414',
-    margin: 16,
-    borderRadius: 28,
-    padding: 24,
-    gap: 14,
+  overlay: { flex: 1, justifyContent: 'space-between' },
+  topBar: { alignItems: 'center', paddingTop: 22 },
+  reticleWrap: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  bottomBar: { alignItems: 'center', paddingBottom: 32, gap: 14 },
+  hintPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(10,10,10,0.66)',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 19,
+    paddingVertical: 11,
+    borderRadius: 999,
   },
-  cardLabel: {
-    color: '#737373',
-    fontSize: 13,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+  hintText: { color: colors.white, fontSize: 13, fontWeight: '500' },
+  devToggle: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,138,61,0.4)',
   },
-  host: { color: '#fff', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-  value: { color: '#d4d4d4', fontSize: 15, lineHeight: 21 },
-  valueLink: { color: ACCENT },
-
-  actions: { flexDirection: 'row', gap: 12, marginTop: 6 },
-  primaryBtn: {
-    flex: 1,
-    backgroundColor: ACCENT,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
+  devToggleText: {
+    fontFamily: MONO,
+    fontSize: 9,
+    color: colors.orange,
+    letterSpacing: 0.6,
   },
-  primaryBtnText: { color: '#04210f', fontSize: 16, fontWeight: '800' },
-  secondaryBtn: {
-    flex: 1,
-    backgroundColor: '#262626',
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  secondaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  scanAgain: { alignItems: 'center', paddingVertical: 8 },
-  scanAgainText: { color: '#737373', fontSize: 15, fontWeight: '600' },
 });

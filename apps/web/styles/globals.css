@@ -126,6 +126,37 @@
     opacity: 0.45;
     pointer-events: none;
   }
+
+  /* Full-bleed marketing/landing sections — client wants no max-width container.
+     Horizontal padding 60px on desktop, comfortable on mobile. */
+  .full-bleed {
+    width: 100%;
+    padding-left: clamp(20px, 5vw, 60px);
+    padding-right: clamp(20px, 5vw, 60px);
+  }
+}
+
+/* Brand animations (from the design system reference) — motion supports
+   hierarchy only; keep it restrained. */
+@keyframes teagPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.82); }
+}
+@keyframes teagScanline {
+  0% { transform: translateY(-44%); opacity: 0; }
+  12% { opacity: 0.9; }
+  88% { opacity: 0.9; }
+  100% { transform: translateY(44%); opacity: 0; }
+}
+@keyframes teagRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@layer utilities {
+  .animate-teag-rise { animation: teagRise 0.6s ease both; }
+  .animate-teag-pulse { animation: teagPulse 1.8s ease-in-out infinite; }
+  .animate-teag-scanline { animation: teagScanline 2.6s ease-in-out infinite; }
 }
 
 /* Dark theme popup styles */
