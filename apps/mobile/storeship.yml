@@ -1,0 +1,102 @@
+# storeship project config for "teag.me scanner" — a managed Expo (SDK 56 / CNG) app.
+# Secrets are referenced by env/path, never inlined.
+#
+#   storeship ship --config storeship.yml --platform ios --dry-run
+#
+# ── EXPO / EAS NOTE (read before building) ─────────────────────────────────────
+# This repo is a *managed* Expo app: there is NO committed ios/ or android/ dir
+# (Continuous Native Generation). Storeship's own build/capture stages assume a
+# bare native project (xcodebuild against project_path / an XCUITest), so the
+# BINARY is built outside storeship via EAS (see eas.json), and storeship is used
+# for metadata + screenshots + upload. Two supported paths:
+#
+#   A) EAS build (recommended, no Xcode needed):
+#        eas build --platform ios   --profile production   # -> .ipa
+#        eas build --platform android --profile production # -> .aab
+#      then hand the artifact to storeship:
+#        storeship metadata    --config storeship.yml --platform ios
+#        storeship screenshots --config storeship.yml --platform ios
+#        storeship upload      --config storeship.yml --platform ios --artifact <App.ipa>
+#
+#   B) If you want storeship's xcodebuild path, first generate native projects:
+#        npx expo prebuild --platform ios   # creates ios/teagmescanner.xcodeproj
+#      then `storeship build`/`capture` can use ios.project_path below.
+#
+# Screenshots: this app has no committed XCUITest, so screenshots are produced by
+# storeship's Pillow framer (oinkstash pattern). Drop raw 6.9" captures (e.g. from
+# an Expo Go / dev-client run on an iPhone 17 Pro Max simulator, or `xcrun simctl
+# io booted screenshot`) into store/screenshots/raw/, then:
+#   storeship style --config storeship.yml \
+#     --raw store/screenshots/raw --out store/screenshots/styled/en-US
+
+name: teag.me scanner
+repo: ~/developer/teag.me/apps/mobile
+locales: [en-US]
+
+ios:
+  bundle_id: me.teag.scanner
+  app_id: "6784932487"                  # ASC numeric app id (App Store Connect record created)
+  scheme: teagmescanner                 # Expo-generated scheme after `expo prebuild` (path B only)
+  project_path: ios/teagmescanner.xcodeproj  # only exists after `expo prebuild`; unused on the EAS path
+  devices: ["iPhone 17 Pro Max"]        # iPhone-only listing (supportsTablet=true but no iPad screenshots yet)
+  metadata_dir: store/metadata/en-US
+  screenshots:
+    - store/screenshots/styled/en-US    # 6.9" iPhone, styled by the framer below
+  asc:
+    key_id: "${ASC_KEY_ID}"             # set in env / .env.local — never committed
+    issuer_id: "${ASC_ISSUER_ID}"       # set in env / .env.local — never committed
+    key_path: ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+  # TestFlight beta review info — no demo account needed (no login in the app).
+  beta:
+    contact_first_name: Michael
+    contact_last_name: Teagle
+    contact_email: mkteagle@gmail.com
+    demo_account_required: false
+    privacy_policy_url: https://teag.me/scanner/privacy
+    marketing_url: https://teag.me/scanner
+    description: >-
+      Open the app, allow camera access, and point it at any QR code. The link
+      is decoded on-device; the full URL and its domain are shown before you
+      open or copy it. No account, no login, no data collected.
+
+android:
+  package: me.teag.scanner
+  module: app
+  gradle_dir: android                   # only exists after `expo prebuild --platform android`; EAS path doesn't need it
+  metadata_dir: store/play/listings/en-US
+  screenshots:
+    - store/screenshots/styled/en-US
+  play:
+    # NOTE: fill in before any Play upload — Play Console access / service account TBD.
+    service_account_json: ~/.config/storeship/play-teagme-scanner.json
+
+# Optional AI marketing imagery (runs only if OPENAI_API_KEY is set).
+images:
+  provider: openai
+  api_key_env: OPENAI_API_KEY
+  # background_prompt: "deep near-black studio backdrop, soft electric-blue glow, premium, minimal, camera-first"
+
+# AI-refresh "What's New" each ship from recent commits (gated on the Claude CLI).
+metadata_ai:
+  provider: claude
+  fields: [release_notes]
+  app_summary: >-
+    teag.me scanner is a private, on-device QR code reader. Point the camera at a
+    QR code; it decodes instantly and shows the full URL + domain before you open
+    or copy it. Also reads Wi-Fi and plain-text codes. No account, no tracking,
+    Data Not Collected. Companion to teag.me (QR + short-link product).
+  paths: ["apps/mobile"]
+
+# Brand palette + per-screenshot captions for the Pillow framer.
+# Dark, camera-first surface: near-black canvas, electric-blue accent, off-white ink.
+brand:
+  paper:  "#1C1C1E"   # canvas top (scanner page bg)
+  paper2: "#0A0A0A"   # canvas bottom (phone body)
+  ink:    "#FFFDF8"   # headline — warm off-white
+  accent: "#0F7BFF"   # eyebrow + glow — electric blue
+  captions:
+    01_scan.png:    { eyebrow: "Point and scan",   headline: "Read any QR code, instantly." }
+    02_link.png:    { eyebrow: "See the real link", headline: "Know where it goes before you tap." }
+    03_open.png:    { eyebrow: "Open or copy",      headline: "You decide what happens next." }
+    04_wifi.png:    { eyebrow: "Wi-Fi and text too", headline: "More than links, no setup." }
+    05_privacy.png: { eyebrow: "On-device, always", headline: "Nothing leaves your phone." }

@@ -1,0 +1,22 @@
+Scan a QR code and see the real link before you tap it.
+
+teag.me scanner is a fast, no-nonsense QR reader. Point your camera at a code and it decodes instantly, then shows you the full URL and the domain it actually goes to. You decide whether to open or copy it. No surprises, no redirects you didn't see coming.
+
+WHAT IT DOES
+- Scan any QR code with your camera, instantly
+- See the full link and its domain up front, before you open anything
+- Open the link, or copy it to use later
+- Read Wi-Fi codes and plain text just as easily
+- Works the moment you open it. No setup, no sign-in.
+
+PRIVATE BY DEFAULT
+- Everything happens on your device. Scans never leave your phone.
+- No account. No login. No profile to manage.
+- No tracking, no analytics, no ads.
+- Data Not Collected, and we mean it.
+
+The whole point of a QR code is that you can't read it with your own eyes. teag.me scanner gives you back that step: see where a code leads, then choose. It's the kind of small, sharp tool that just works and then gets out of your way.
+
+A companion to teag.me, the QR and short-link product that helps you tag it, share it, and track it.
+
+Tag it. Share it. Track it.

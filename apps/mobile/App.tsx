@@ -12,9 +12,11 @@ import { StatusBar } from 'expo-status-bar';
 import {
   CameraView,
   useCameraPermissions,
+  scanFromURLAsync,
   type BarcodeScanningResult,
 } from 'expo-camera';
 import * as Clipboard from 'expo-clipboard';
+import * as ImagePicker from 'expo-image-picker';
 
 import { colors, MONO } from './lib/theme';
 import { parseScan, type Scan } from './lib/parseScan';
@@ -30,6 +32,8 @@ export default function App() {
   const [scan, setScan] = useState<Scan | null>(null);
   const [copied, setCopied] = useState(false);
   const [showTeaser, setShowTeaser] = useState(false);
+  const [decoding, setDecoding] = useState(false);
+  const [noQrFound, setNoQrFound] = useState(false);
   // Guards against the camera firing onBarcodeScanned dozens of times per second.
   const locked = useRef(false);
 
@@ -42,7 +46,34 @@ export default function App() {
   const reset = useCallback(() => {
     setScan(null);
     setCopied(false);
+    setNoQrFound(false);
     locked.current = false;
+  }, []);
+
+  // Decode a QR straight from a saved/screenshot image — no camera needed.
+  // The OS barcode detector (Apple Vision on iOS, ML Kit on Android) reads it
+  // on-device; nothing leaves the phone.
+  const pickFromLibrary = useCallback(async () => {
+    setNoQrFound(false);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+    });
+    if (result.canceled || !result.assets?.length) return;
+    setDecoding(true);
+    try {
+      const found = await scanFromURLAsync(result.assets[0].uri, ['qr']);
+      if (found.length > 0) {
+        locked.current = true;
+        setScan(parseScan(found[0].data));
+      } else {
+        setNoQrFound(true);
+      }
+    } catch {
+      setNoQrFound(true);
+    } finally {
+      setDecoding(false);
+    }
   }, []);
 
   const open = useCallback(() => {
@@ -83,8 +114,18 @@ export default function App() {
           >
             <Text style={styles.enableBtnText}>Enable camera</Text>
           </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.photoBtnOutline, pressed && styles.pressed]}
+            onPress={pickFromLibrary}
+          >
+            <Text style={styles.photoBtnOutlineText}>Scan a photo instead</Text>
+          </Pressable>
+          {noQrFound && (
+            <Text style={styles.noQrText}>No QR code found in that image.</Text>
+          )}
           <Text style={styles.permFootnote}>ON-DEVICE · NO ACCOUNT</Text>
         </View>
+        {decoding && <DecodingOverlay />}
         <StatusBar style="light" />
       </SafeAreaView>
     );
@@ -116,6 +157,15 @@ export default function App() {
               <PulsingDot size={7} />
               <Text style={styles.hintText}>Point at a QR code</Text>
             </View>
+            {noQrFound && (
+              <Text style={styles.noQrText}>No QR code found in that image.</Text>
+            )}
+            <Pressable
+              style={({ pressed }) => [styles.photoPill, pressed && styles.pressed]}
+              onPress={pickFromLibrary}
+            >
+              <Text style={styles.photoPillText}>⤓  Scan from photo</Text>
+            </Pressable>
             {__DEV__ && (
               <Pressable style={styles.devToggle} onPress={() => setShowTeaser(true)}>
                 <Text style={styles.devToggleText}>preview safety check</Text>
@@ -124,6 +174,8 @@ export default function App() {
           </View>
         </SafeAreaView>
       )}
+
+      {decoding && <DecodingOverlay />}
 
       {/* Result sheet (URL / Wi-Fi / text) */}
       {scan && (
@@ -140,6 +192,15 @@ export default function App() {
       {showTeaser && <SafetyTeaser onClose={() => setShowTeaser(false)} />}
 
       <StatusBar style="light" />
+    </View>
+  );
+}
+
+function DecodingOverlay() {
+  return (
+    <View style={styles.decodingOverlay}>
+      <ActivityIndicator color={ACCENT} size="large" />
+      <Text style={styles.decodingText}>Reading image…</Text>
     </View>
   );
 }
@@ -191,6 +252,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
   },
   enableBtnText: { color: colors.pureWhite, fontSize: 16, fontWeight: '600' },
+  photoBtnOutline: {
+    alignSelf: 'stretch',
+    marginTop: 12,
+    paddingVertical: 15,
+    borderRadius: 15,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.16)',
+  },
+  photoBtnOutlineText: { color: colors.white, fontSize: 15, fontWeight: '600' },
+  noQrText: {
+    color: colors.orange,
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 14,
+  },
   permFootnote: {
     fontFamily: MONO,
     fontSize: 10.5,
@@ -216,6 +294,35 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   hintText: { color: colors.white, fontSize: 13, fontWeight: '500' },
+  photoPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: ACCENT,
+    paddingHorizontal: 22,
+    paddingVertical: 13,
+    borderRadius: 999,
+    shadowColor: ACCENT,
+    shadowOpacity: 0.34,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  photoPillText: { color: colors.pureWhite, fontSize: 14.5, fontWeight: '600' },
+  decodingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  decodingText: {
+    color: colors.white,
+    fontSize: 15,
+    fontWeight: '500',
+  },
   devToggle: {
     paddingHorizontal: 12,
     paddingVertical: 6,

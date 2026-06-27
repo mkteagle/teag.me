@@ -13,10 +13,8 @@
     "android": {
       "package": "me.teag.scanner",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#2b5acb",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -29,6 +27,12 @@
         {
           "cameraPermission": "teag.me scanner uses the camera to read QR codes you point it at.",
           "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "teag.me scanner reads a QR code from a photo you choose. The image is decoded on your device and never uploaded."
         }
       ]
     ]
