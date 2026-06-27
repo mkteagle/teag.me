@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "teag.me scanner",
+    "slug": "teagme-scanner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "me.teag.scanner"
+    },
+    "android": {
+      "package": "me.teag.scanner",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "teag.me scanner uses the camera to read QR codes you point it at.",
+          "barcodeScannerEnabled": true
+        }
+      ]
+    ]
+  }
+}
