@@ -159,6 +159,42 @@
   .animate-teag-scanline { animation: teagScanline 2.6s ease-in-out infinite; }
 }
 
+/* Range slider (components/ui/slider.tsx) — brand thumb on a track whose fill
+   is painted via an inline linear-gradient on the input background. */
+.teag-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 9999px;
+  outline: none;
+}
+.teag-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.15rem;
+  width: 1.15rem;
+  border-radius: 9999px;
+  background: #fffdf8;
+  border: 2px solid hsl(var(--primary));
+  box-shadow: 0 2px 8px rgba(15, 123, 255, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.teag-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+.teag-slider::-moz-range-thumb {
+  height: 1.15rem;
+  width: 1.15rem;
+  border-radius: 9999px;
+  background: #fffdf8;
+  border: 2px solid hsl(var(--primary));
+  box-shadow: 0 2px 8px rgba(15, 123, 255, 0.35);
+  cursor: pointer;
+}
+.teag-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.25);
+}
+
 /* Dark theme popup styles */
 .dark-theme-popup .leaflet-popup-content-wrapper {
   background-color: rgb(24 24 27); /* zinc-900 */

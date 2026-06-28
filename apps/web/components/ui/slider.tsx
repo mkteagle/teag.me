@@ -1,28 +1,48 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as SliderPrimitive from "@radix-ui/react-slider"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-const Slider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <SliderPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex w-full touch-none select-none items-center",
-      className
-    )}
-    {...props}
-  >
-    <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-primary/20">
-      <SliderPrimitive.Range className="absolute h-full bg-primary" />
-    </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
-  </SliderPrimitive.Root>
-))
-Slider.displayName = SliderPrimitive.Root.displayName
+interface SliderProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "value" | "defaultValue" | "onChange"
+  > {
+  value?: number[];
+  defaultValue?: number[];
+  onValueChange?: (value: number[]) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}
 
-export { Slider }
+const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
+  (
+    { className, value, defaultValue, onValueChange, min = 0, max = 100, step = 1, ...props },
+    ref
+  ) => {
+    const current = value?.[0] ?? defaultValue?.[0] ?? min;
+    const pct = max === min ? 0 : ((current - min) / (max - min)) * 100;
+    return (
+      <input
+        ref={ref}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value !== undefined ? value[0] : undefined}
+        defaultValue={value === undefined ? defaultValue?.[0] : undefined}
+        onChange={(e) => onValueChange?.([Number(e.target.value)])}
+        className={cn("teag-slider h-1.5 w-full cursor-pointer", className)}
+        style={{
+          background: `linear-gradient(to right, hsl(var(--primary)) ${pct}%, hsl(var(--primary) / 0.2) ${pct}%)`,
+        }}
+        {...props}
+      />
+    );
+  }
+);
+Slider.displayName = "Slider";
+
+export { Slider };
