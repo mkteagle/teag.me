@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, QrCode, Shield, LogOut, PanelLeftClose, Zap } from "lucide-react";
+import { Home, QrCode, Shield, LogOut, PanelLeftClose, Zap, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,6 +21,7 @@ import { TeagMark } from "@/components/brand/teag-mark";
 const menuItems = [
   { icon: Home, label: "Dashboard", href: "/dashboard" },
   { icon: QrCode, label: "Generate", href: "/generate" },
+  { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
 export function Sidebar() {

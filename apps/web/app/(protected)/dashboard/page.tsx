@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ExtendedQRCode } from "@/components/qr-codes/types";
 import { EditQRDialog } from "@/components/qr-codes/edit-qr-code";
 import { UpgradeWall } from "@/components/upgrade-wall";
+import { PasskeyPrompt } from "@/components/auth/passkey-prompt";
 import { usePlan } from "@/lib/hooks/use-plan";
 import { Plus, Database, TrendingUp, MapPin, ChevronLeft, ChevronRight, Zap, PartyPopper } from "lucide-react";
 
@@ -168,6 +169,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-8 lg:p-12">
+      {/* Prompt to register a passkey when the user has none yet */}
+      <PasskeyPrompt />
+
       {/* Header */}
       <div className="mb-12">
         <h1 className="text-4xl lg:text-5xl font-bold mb-3 tracking-tight">

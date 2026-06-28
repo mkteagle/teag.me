@@ -1,5 +1,5 @@
 "use client";
-import { Home, QrCode, LogOut, Shield } from "lucide-react";
+import { Home, QrCode, LogOut, Shield, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/lib/auth-client";
@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 const menuItems = [
   { icon: Home, label: "Home", href: "/" },
   { icon: QrCode, label: "Generate", href: "/generate" },
+  { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
 export function BottomNav() {
