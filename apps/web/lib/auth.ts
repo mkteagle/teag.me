@@ -1,9 +1,11 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { passkey } from "@better-auth/passkey";
 import { getDb } from "@/lib/db";
 import {
   accounts,
+  passkeys,
   qrCodes,
   scans,
   sessions,
@@ -65,11 +67,20 @@ export const auth = betterAuth({
       session: sessions,
       account: accounts,
       verification: verifications,
+      passkey: passkeys,
       qrCodes,
       scans,
     },
   }),
-  plugins: [nextCookies()],
+  plugins: [
+    passkey({
+      rpID: new URL(getBaseUrl()).hostname, // "teag.me" in prod, "localhost" in dev
+      rpName: "teag.me",
+      origin: getBaseUrl(), // full origin the passkey is bound to
+    }),
+    // nextCookies() must stay last.
+    nextCookies(),
+  ],
   trustedProviders: ["google", "apple", "github"],
   account: {
     accountLinking: {

@@ -166,6 +166,32 @@ export const verifications = pgTable(
   })
 );
 
+// WebAuthn / passkey credentials (better-auth passkey plugin).
+export const passkeys = pgTable(
+  "passkey",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    publicKey: text("publicKey").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    credentialID: text("credentialID").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("deviceType").notNull(),
+    backedUp: boolean("backedUp").notNull(),
+    transports: text("transports"),
+    aaguid: text("aaguid"),
+    createdAt: timestamp("createdAt", { withTimezone: true, mode: "date" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("passkey_userId_idx").on(table.userId),
+    credentialIdx: index("passkey_credentialID_idx").on(table.credentialID),
+  })
+);
+
 export const planEnum = pgEnum("Plan", ["FREE", "PRO"]);
 
 export const subscriptions = pgTable("subscription", {
@@ -206,7 +232,15 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   qrCodes: many(qrCodes),
   sessions: many(sessions),
   accounts: many(accounts),
+  passkeys: many(passkeys),
   subscription: one(subscriptions),
+}));
+
+export const passkeysRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, {
+    fields: [passkeys.userId],
+    references: [users.id],
+  }),
 }));
 
 export const qrCodesRelations = relations(qrCodes, ({ one, many }) => ({

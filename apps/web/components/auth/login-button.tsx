@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
@@ -25,6 +26,29 @@ export default function LoginButton({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [loadingProvider, setLoadingProvider] = useState<Provider | null>(null);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+
+  const handlePasskey = async () => {
+    try {
+      setError(null);
+      setPasskeyLoading(true);
+      const res = await authClient.signIn.passkey();
+      if (res?.error) {
+        setError(res.error.message || "No passkey found for this device.");
+        setPasskeyLoading(false);
+        return;
+      }
+      window.location.href = "/dashboard";
+    } catch (passkeyError) {
+      console.error("Passkey sign-in failed:", passkeyError);
+      setError(
+        passkeyError instanceof Error
+          ? passkeyError.message
+          : "Passkey sign-in failed"
+      );
+      setPasskeyLoading(false);
+    }
+  };
 
   const handleLogin = async (provider: Provider) => {
     try {
@@ -64,13 +88,31 @@ export default function LoginButton({
           key={provider}
           onClick={() => handleLogin(provider)}
           className={`w-full flex items-center justify-center gap-2 ${PROVIDER_CLASSES[provider]}`}
-          disabled={loadingProvider !== null}
+          disabled={loadingProvider !== null || passkeyLoading}
         >
           {loadingProvider === provider
             ? "Redirecting..."
             : PROVIDER_LABELS[provider]}
         </Button>
       ))}
+
+      <div className="flex items-center gap-3 py-1">
+        <span className="h-px flex-1 bg-black/10" />
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">
+          or
+        </span>
+        <span className="h-px flex-1 bg-black/10" />
+      </div>
+
+      <Button
+        variant="outline"
+        onClick={handlePasskey}
+        disabled={loadingProvider !== null || passkeyLoading}
+        className="w-full flex items-center justify-center gap-2"
+      >
+        <Fingerprint className="h-4 w-4" />
+        {passkeyLoading ? "Waiting for passkey…" : "Sign in with a passkey"}
+      </Button>
 
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
     </div>

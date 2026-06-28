@@ -1,6 +1,7 @@
 "use client";
 
 import { createAuthClient } from "better-auth/react";
+import { passkeyClient } from "@better-auth/passkey/client";
 
 // Use the current origin for auth requests. Better-auth resolves the base URL
 // from window.location.origin in the browser (and BETTER_AUTH_URL during SSR),
@@ -12,6 +13,7 @@ import { createAuthClient } from "better-auth/react";
 export const authClient = createAuthClient({
   baseURL:
     typeof window !== "undefined" ? window.location.origin : undefined,
+  plugins: [passkeyClient()],
 });
 
 export async function logout() {
