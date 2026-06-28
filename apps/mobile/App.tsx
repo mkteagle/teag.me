@@ -24,6 +24,8 @@ import { LogoTile, PulsingDot, Wordmarks } from './components/branding';
 import { Reticle } from './components/Reticle';
 import { ResultSheet } from './components/ResultSheet';
 import { SafetyTeaser } from './components/SafetyTeaser';
+import { ShotHarness } from './components/ShotHarness';
+import { SHOT } from './shot';
 
 const ACCENT = colors.accent; // '#0F7BFF' — brand primary blue
 
@@ -86,6 +88,10 @@ export default function App() {
     await Clipboard.setStringAsync(toCopy);
     setCopied(true);
   }, [scan]);
+
+  // Screenshot harness (no-op in production: SHOT is null). Placed after all
+  // hooks so hook order stays stable when Fast Refresh swaps the flag.
+  if (SHOT) return <ShotHarness shot={SHOT} />;
 
   // --- Loading permission state ---------------------------------------------
   if (!permission) {
