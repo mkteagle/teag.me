@@ -54,29 +54,29 @@ export function MobileTable({
                   <div>
                     <p className="text-muted-foreground">Total Scans</p>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono">{qr.scans.length}</span>
+                      <span className="font-mono">{qr.scans?.length ?? 0}</span>
                       <div className="flex items-center text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3 mr-1" />
                         <span>
                           {
                             new Set(
-                              qr.scans.map((s) => s.country).filter(Boolean)
+                              (qr.scans ?? []).map((s) => s.country).filter(Boolean)
                             ).size
                           }
                         </span>
                       </div>
                     </div>
                   </div>
-                  {qr.scans[0] && (
+                  {qr.scans?.[0] && (
                     <div className="col-span-2">
                       <p className="text-muted-foreground">Last Scan</p>
                       <div className="flex items-center justify-between">
                         <p>
-                          {formatDate(qr.scans[0].timestamp, "MMM d, h:mm a")}
+                          {formatDate(qr.scans?.[0].timestamp, "MMM d, h:mm a")}
                         </p>
-                        {qr.scans[0].country && (
+                        {qr.scans?.[0].country && (
                           <span className="text-xs text-muted-foreground">
-                            from {qr.scans[0].country}
+                            from {qr.scans?.[0].country}
                           </span>
                         )}
                       </div>

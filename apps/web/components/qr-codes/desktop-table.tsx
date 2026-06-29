@@ -97,27 +97,27 @@ export function DesktopTable({
               </TableCell>
               <TableCell className="py-4">
                 <div className="space-y-1">
-                  <p className="font-mono text-xl font-bold text-primary">{qr.scans.length}</p>
+                  <p className="font-mono text-xl font-bold text-primary">{qr.scans?.length ?? 0}</p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3" />
                     <span className="font-serif">
                       {
-                        new Set(qr.scans.map((s) => s.country).filter(Boolean))
+                        new Set((qr.scans ?? []).map((s) => s.country).filter(Boolean))
                           .size
                       }{" "}
-                      {new Set(qr.scans.map((s) => s.country).filter(Boolean)).size === 1 ? 'country' : 'countries'}
+                      {new Set((qr.scans ?? []).map((s) => s.country).filter(Boolean)).size === 1 ? 'country' : 'countries'}
                     </span>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="py-4">
-                {qr.scans[0] ? (
+                {qr.scans?.[0] ? (
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground font-serif">Last scan</p>
-                    <p className="text-sm font-medium">{formatDate(qr.scans[0].timestamp, "MMM d, h:mm a")}</p>
-                    {qr.scans[0].country && (
+                    <p className="text-sm font-medium">{formatDate(qr.scans?.[0].timestamp, "MMM d, h:mm a")}</p>
+                    {qr.scans?.[0].country && (
                       <p className="text-xs text-muted-foreground font-serif">
-                        {qr.scans[0].country}
+                        {qr.scans?.[0].country}
                       </p>
                     )}
                   </div>

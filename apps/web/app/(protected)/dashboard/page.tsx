@@ -100,7 +100,11 @@ export default function DashboardPage() {
 
   const handleEditSuccess = (updatedQR: ExtendedQRCode) => {
     setQrCodes((prev) =>
-      prev.map((qr) => (qr.id === updatedQR.id ? updatedQR : qr))
+      prev.map((qr) =>
+        qr.id === updatedQR.id
+          ? { ...qr, ...updatedQR, scans: updatedQR.scans ?? qr.scans ?? [] }
+          : qr
+      )
     );
   };
 
@@ -162,9 +166,9 @@ export default function DashboardPage() {
     }
   };
 
-  const totalScans = qrCodes.reduce((acc, qr) => acc + qr.scans.length, 0);
+  const totalScans = qrCodes.reduce((acc, qr) => acc + (qr.scans?.length ?? 0), 0);
   const totalCountries = new Set(
-    qrCodes.flatMap((qr) => qr.scans.map((s) => s.country).filter(Boolean))
+    qrCodes.flatMap((qr) => (qr.scans ?? []).map((s) => s.country).filter(Boolean))
   ).size;
 
   return (
