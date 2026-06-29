@@ -21,6 +21,8 @@ async function geocodeLocation(
   }
 
   try {
+    // NOTE: runs in the browser. Do not set a User-Agent header — browsers
+    // forbid it ("Refused to set unsafe header"), which floods the console.
     const response = await axios.get<GeocodingResponse[]>(
       `https://nominatim.openstreetmap.org/search`,
       {
@@ -29,9 +31,6 @@ async function geocodeLocation(
           country,
           format: "json",
           limit: 1,
-        },
-        headers: {
-          "User-Agent": "Teag.me QR Code Tracker",
         },
       }
     );
