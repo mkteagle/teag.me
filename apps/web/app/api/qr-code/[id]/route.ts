@@ -101,15 +101,32 @@ export async function PATCH(
       }
     }
 
-    // Process the logo (if provided) and upload it to R2 — never store the
-    // raw image data in postgres.
+    // Resolve the logo. The client sends either a fresh `data:` URL (a newly
+    // uploaded logo) or the existing logo's `https://` R2 URL (logo unchanged).
+    // Either way we need the bytes to re-embed into the regenerated QR, and we
+    // only re-upload when it's a new logo. Never store base64 in postgres.
     let processedLogoDataUrl: string | undefined;
     let logoUrl: string | null = null;
-    if (logoDataUrl) {
+    if (logoDataUrl && logoDataUrl.startsWith("data:")) {
+      // New upload: normalize and store in R2.
       const { dataUrl } = await processLogoImage(logoDataUrl);
       processedLogoDataUrl = dataUrl;
       const logoBuffer = dataUrlToBuffer(dataUrl);
       logoUrl = await uploadToR2(logoBuffer, `logos/${id}-logo.png`, "image/png");
+    } else if (logoDataUrl && /^https?:\/\//.test(logoDataUrl)) {
+      // Existing R2 logo, unchanged: keep the URL and fetch the bytes so the
+      // regenerated QR keeps its logo.
+      logoUrl = logoDataUrl;
+      try {
+        const res = await fetch(logoDataUrl);
+        if (res.ok) {
+          const buf = Buffer.from(await res.arrayBuffer());
+          const mime = res.headers.get("content-type") || "image/png";
+          processedLogoDataUrl = `data:${mime};base64,${buf.toString("base64")}`;
+        }
+      } catch (e) {
+        console.warn("Could not fetch existing logo to re-embed:", e);
+      }
     }
 
     // Regenerate the QR code with the updated settings and upload it to R2.
