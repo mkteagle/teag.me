@@ -85,7 +85,7 @@ export function LogoUpload({ onLogoChange, logoPreview }: LogoUploadProps) {
                 Click to upload logo
               </p>
               <p className="text-xs text-muted-foreground font-serif">
-                PNG, JPG, or SVG • Max 2MB
+                PNG, JPG, WebP, or SVG • Max 2MB
               </p>
             </div>
           </div>

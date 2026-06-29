@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
       // Upload logo to Cloudflare R2
       const logoBuffer = dataUrlToBuffer(dataUrl);
-      logoUrl = await uploadToR2(logoBuffer, `logos/${id}-logo.jpg`, "image/jpeg");
+      logoUrl = await uploadToR2(logoBuffer, `logos/${id}-logo.png`, "image/png");
       console.log("Logo uploaded to Cloudflare R2:", logoUrl);
     }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
-import { generateQRWithLogo, processLogoImage } from "@/lib/qr-with-logo";
+import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
+import { uploadToR2, dataUrlToBuffer } from "@/lib/r2-storage";
 import {
   deleteQrCode,
   findQrCodeById,
@@ -100,30 +101,32 @@ export async function PATCH(
       }
     }
 
-    // Process logo if provided
-    let processedLogoUrl = logoDataUrl;
+    // Process the logo (if provided) and upload it to R2 — never store the
+    // raw image data in postgres.
+    let processedLogoDataUrl: string | undefined;
+    let logoUrl: string | null = null;
     if (logoDataUrl) {
-      const { dataUrl, error } = await processLogoImage(logoDataUrl);
-      processedLogoUrl = dataUrl;
-      if (error) {
-        console.warn('Logo processing warning:', error);
-      }
+      const { dataUrl } = await processLogoImage(logoDataUrl);
+      processedLogoDataUrl = dataUrl;
+      const logoBuffer = dataUrlToBuffer(dataUrl);
+      logoUrl = await uploadToR2(logoBuffer, `logos/${id}-logo.png`, "image/png");
     }
 
-    // Regenerate QR code with updated settings
-    const qrDataUrl = await generateQRWithLogo({
+    // Regenerate the QR code with the updated settings and upload it to R2.
+    const qrCodeBuffer = await generateQRWithLogoBuffer({
       text: existingQRCode.routingUrl,
-      logoDataUrl: processedLogoUrl,
+      logoDataUrl: processedLogoDataUrl,
       logoSize: logoSize || 20,
       qrSize: 512,
-      errorCorrectionLevel: 'H',
+      errorCorrectionLevel: "H",
     });
+    const qrCodeUrl = await uploadToR2(qrCodeBuffer, `qr-codes/${id}.jpg`, "image/jpeg");
 
-    // Update the QR code
+    // Update the QR code — store the public R2 URLs, not base64 blobs.
     const updatedQR = await updateQrCode(id, {
       redirectUrl,
-      base64: qrDataUrl,
-      logoUrl: processedLogoUrl || null,
+      base64: qrCodeUrl,
+      logoUrl,
       logoSize: logoSize || null,
     });
 
