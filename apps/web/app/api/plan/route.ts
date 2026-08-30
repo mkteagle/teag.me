@@ -24,6 +24,7 @@ export async function GET() {
       },
       hasStripeCustomer: !!userPlan.stripeCustomerId,
       currentPeriodEnd: userPlan.currentPeriodEnd,
+      billingSource: userPlan.billingSource,
     });
   } catch (error) {
     console.error("Plan check error:", error);

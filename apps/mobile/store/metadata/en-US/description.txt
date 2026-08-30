@@ -7,13 +7,16 @@ WHAT IT DOES
 - See the full link and its domain up front, before you open anything
 - Open the link, or copy it to use later
 - Read Wi-Fi codes and plain text just as easily
-- Works the moment you open it. No setup, no sign-in.
+- Keeps a private URL history on your device
+- Optionally syncs URL-only history when you sign in
+- Works the moment you open it. No setup or account required.
 
 PRIVATE BY DEFAULT
-- Everything happens on your device. Scans never leave your phone.
-- No account. No login. No profile to manage.
+- Camera and photo decoding happen on your device.
+- Anonymous scanning requires no account.
+- Only URL history is synced when you explicitly sign in.
+- Wi-Fi passwords and plain-text codes are never saved or uploaded.
 - No tracking, no analytics, no ads.
-- Data Not Collected, and we mean it.
 
 The whole point of a QR code is that you can't read it with your own eyes. teag.me scanner gives you back that step: see where a code leads, then choose. It's the kind of small, sharp tool that just works and then gets out of your way.
 

@@ -4,7 +4,7 @@ import { LegalSection, LegalShell } from "@/components/scanner/legal-shell";
 export const metadata: Metadata = {
   title: "Terms of Service | teag.me Scanner",
   description:
-    "The terms of service and end-user license agreement for the free teag.me Scanner iOS app. Provided as is; you are responsible for the links you choose to open.",
+    "Terms for teag.me Scanner, including the optional auto-renewing teag.me Pro subscription.",
   openGraph: {
     title: "Terms of Service | teag.me Scanner",
     description:
@@ -19,7 +19,7 @@ export default function ScannerTermsPage() {
     <LegalShell
       eyebrow="teag.me/scanner/terms"
       title="Terms of Service"
-      lastUpdated="June 2026"
+      lastUpdated="August 2026"
     >
       <p>
         These Terms of Service (the &ldquo;Terms&rdquo;) are an agreement between
@@ -35,6 +35,23 @@ export default function ScannerTermsPage() {
           the app on devices you own or control, for both personal and
           commercial use, subject to these Terms and the App Store Terms of
           Service.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="teag.me Pro subscription">
+        <p>
+          Anonymous scanning and local history are free. You may purchase teag.me
+          Pro as an auto-renewing monthly subscription through Apple. The price
+          shown in the app is charged to your Apple ID when you confirm purchase.
+          Your subscription renews automatically unless you cancel at least 24
+          hours before the current period ends. Apple may charge your account for
+          renewal within 24 hours before that period ends.
+        </p>
+        <p>
+          Manage or cancel the subscription in your App Store account settings.
+          Restoring purchases verifies the active Apple subscription against the
+          teag.me account currently signed in. Purchases are subject to Apple&apos;s
+          payment and refund terms.
         </p>
       </LegalSection>
 
@@ -97,8 +114,8 @@ export default function ScannerTermsPage() {
           or for any loss arising from your use of the app or from any site,
           network, or content you reach through a scanned code. Because the app
           is provided free of charge, our total liability to you for any claim
-          relating to the app is limited to the amount you paid for it, which is
-          zero.
+          relating to the app is limited to the amount you paid to us for the app
+          or service during the twelve months before the claim.
         </p>
       </LegalSection>
 

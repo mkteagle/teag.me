@@ -9,6 +9,7 @@ export interface UserPlan {
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   currentPeriodEnd: Date | null;
+  billingSource: "stripe" | "app_store" | null;
 }
 
 export interface UsageCheck {
@@ -26,15 +27,24 @@ export async function getUserPlan(userId: string): Promise<UserPlan> {
 
   // Admins always get Pro — not tied to billing
   const isAdmin = user?.role === "ADMIN";
-  const plan: PlanId =
-    isAdmin || (sub?.plan === "PRO" && sub.status === "active") ? "PRO" : "FREE";
+  const stripeActive = Boolean(
+    sub?.stripeSubscriptionId && sub.plan === "PRO" && sub.status === "active"
+  );
+  const appStoreActive = Boolean(
+    sub?.appStoreProductId &&
+      (sub.appStoreStatus === "active" || sub.appStoreStatus === "grace_period") &&
+      sub.appStoreExpiresAt &&
+      sub.appStoreExpiresAt.getTime() > Date.now()
+  );
+  const plan: PlanId = isAdmin || stripeActive || appStoreActive ? "PRO" : "FREE";
 
   return {
     plan,
     limits: getPlanLimits(plan),
     stripeCustomerId: sub?.stripeCustomerId ?? null,
     stripeSubscriptionId: sub?.stripeSubscriptionId ?? null,
-    currentPeriodEnd: sub?.currentPeriodEnd ?? null,
+    currentPeriodEnd: appStoreActive ? sub?.appStoreExpiresAt ?? null : sub?.currentPeriodEnd ?? null,
+    billingSource: appStoreActive ? "app_store" : stripeActive ? "stripe" : null,
   };
 }
 

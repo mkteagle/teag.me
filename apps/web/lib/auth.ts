@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { passkey } from "@better-auth/passkey";
+import { expo } from "@better-auth/expo";
 import { getDb } from "@/lib/db";
 import {
   accounts,
@@ -72,7 +73,15 @@ export const auth = betterAuth({
       scans,
     },
   }),
+  trustedOrigins: [
+    "teagme-scanner://",
+    "teagme-scanner://*",
+    ...(process.env.NODE_ENV === "development"
+      ? ["exp://*", "exp://**", "http://localhost:*", "http://127.0.0.1:*"]
+      : []),
+  ],
   plugins: [
+    expo(),
     passkey({
       rpID: new URL(getBaseUrl()).hostname, // "teag.me" in prod, "localhost" in dev
       rpName: "teag.me",
@@ -82,12 +91,19 @@ export const auth = betterAuth({
     nextCookies(),
   ],
   trustedProviders: ["google", "apple", "github"],
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 8,
+  },
   account: {
     accountLinking: {
       enabled: true,
     },
   },
   user: {
+    deleteUser: {
+      enabled: true,
+    },
     additionalFields: {
       role: {
         type: "string",

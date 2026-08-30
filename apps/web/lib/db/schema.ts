@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -80,6 +81,35 @@ export const scans = pgTable(
   },
   (table) => ({
     qrCodeIdIdx: index("Scan_qrCodeId_idx").on(table.qrCodeId),
+  })
+);
+
+export const capturedCodes = pgTable(
+  "CapturedCode",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("clientId").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull().default("url"),
+    rawValue: text("rawValue").notNull(),
+    normalizedUrl: text("normalizedUrl").notNull(),
+    host: text("host").notNull(),
+    source: text("source").notNull(),
+    capturedAt: timestamp("capturedAt", { withTimezone: true, mode: "date" })
+      .notNull(),
+    createdAt: timestamp("createdAt", { withTimezone: true, mode: "date" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("CapturedCode_userId_idx").on(table.userId),
+    capturedAtIdx: index("CapturedCode_capturedAt_idx").on(table.capturedAt),
+    userClientIdx: uniqueIndex("CapturedCode_userId_clientId_key").on(
+      table.userId,
+      table.clientId
+    ),
   })
 );
 
@@ -204,6 +234,20 @@ export const subscriptions = pgTable("subscription", {
   stripeCustomerId: text("stripeCustomerId").unique(),
   stripeSubscriptionId: text("stripeSubscriptionId").unique(),
   stripePriceId: text("stripePriceId"),
+  appStoreAccountToken: text("appStoreAccountToken").unique(),
+  appStoreOriginalTransactionId: text("appStoreOriginalTransactionId").unique(),
+  appStoreTransactionId: text("appStoreTransactionId"),
+  appStoreProductId: text("appStoreProductId"),
+  appStoreEnvironment: text("appStoreEnvironment"),
+  appStoreStatus: text("appStoreStatus"),
+  appStoreExpiresAt: timestamp("appStoreExpiresAt", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  appStoreLastVerifiedAt: timestamp("appStoreLastVerifiedAt", {
+    withTimezone: true,
+    mode: "date",
+  }),
   status: text("status").notNull().default("active"),
   currentPeriodStart: timestamp("currentPeriodStart", {
     withTimezone: true,
@@ -230,6 +274,7 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   qrCodes: many(qrCodes),
+  capturedCodes: many(capturedCodes),
   sessions: many(sessions),
   accounts: many(accounts),
   passkeys: many(passkeys),
@@ -255,6 +300,13 @@ export const scansRelations = relations(scans, ({ one }) => ({
   qrCode: one(qrCodes, {
     fields: [scans.qrCodeId],
     references: [qrCodes.id],
+  }),
+}));
+
+export const capturedCodesRelations = relations(capturedCodes, ({ one }) => ({
+  user: one(users, {
+    fields: [capturedCodes.userId],
+    references: [users.id],
   }),
 }));
 

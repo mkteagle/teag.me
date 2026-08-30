@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Linking,
   Pressable,
   SafeAreaView,
@@ -23,27 +24,80 @@ import { parseScan, type Scan } from './lib/parseScan';
 import { LogoTile, PulsingDot, Wordmarks } from './components/branding';
 import { Reticle } from './components/Reticle';
 import { ResultSheet } from './components/ResultSheet';
+import { HistoryScreen } from './components/HistoryScreen';
 import { SafetyTeaser } from './components/SafetyTeaser';
 import { ShotHarness } from './components/ShotHarness';
 import { SHOT } from './shot';
+import { createHistoryEntry, loadHistory, saveHistory, type CaptureSource, type HistoryEntry } from './lib/history';
+import { authClient, signInWithEmail, signInWithProvider, signUpWithEmail, type SocialProvider } from './lib/auth-client';
+import { clearCloudHistory, deleteCloudEntry, syncHistory, type SyncSummary } from './lib/history-sync';
+import { useStoreKitPro } from './lib/storekit';
 
 const ACCENT = colors.accent; // '#0F7BFF' — brand primary blue
 
 export default function App() {
+  const session = authClient.useSession();
+  const storeKit = useStoreKitPro(session.data?.user?.id);
   const [permission, requestPermission] = useCameraPermissions();
   const [scan, setScan] = useState<Scan | null>(null);
   const [copied, setCopied] = useState(false);
   const [showTeaser, setShowTeaser] = useState(false);
   const [decoding, setDecoding] = useState(false);
   const [noQrFound, setNoQrFound] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyReady, setHistoryReady] = useState(false);
+  const [sync, setSync] = useState<SyncSummary>({ state: 'idle', total: 0, limit: 0, plan: 'FREE' });
+  const syncing = useRef(false);
   // Guards against the camera firing onBarcodeScanned dozens of times per second.
   const locked = useRef(false);
+
+  useEffect(() => {
+    loadHistory().then((entries) => {
+      setHistory(entries);
+      setHistoryReady(true);
+    });
+  }, []);
+
+  const runSync = useCallback(async () => {
+    if (!session.data?.user || !historyReady || syncing.current) return;
+    syncing.current = true;
+    setSync((current) => ({ ...current, state: 'syncing' }));
+    try {
+      const result = await syncHistory(history);
+      setHistory(result.entries);
+      await saveHistory(result.entries);
+      setSync(result.summary);
+    } catch {
+      setSync((current) => ({ ...current, state: 'error' }));
+    } finally {
+      syncing.current = false;
+    }
+  }, [history, historyReady, session.data?.user]);
+
+  useEffect(() => {
+    if (!session.data?.user || !historyReady) return;
+    void runSync();
+    // Sync again when a new local capture changes the count.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.data?.user?.id, historyReady, history.length]);
+
+  const presentScan = useCallback((nextScan: Scan, source: CaptureSource) => {
+    setScan(nextScan);
+    const entry = createHistoryEntry(nextScan, source);
+    if (!entry) return;
+    setHistory((current) => {
+      const next = [entry, ...current];
+      void saveHistory(next);
+      return next;
+    });
+  }, []);
 
   const handleScanned = useCallback((result: BarcodeScanningResult) => {
     if (locked.current) return;
     locked.current = true;
-    setScan(parseScan(result.data));
-  }, []);
+    presentScan(parseScan(result.data), 'camera');
+  }, [presentScan]);
 
   const reset = useCallback(() => {
     setScan(null);
@@ -67,7 +121,7 @@ export default function App() {
       const found = await scanFromURLAsync(result.assets[0].uri, ['qr']);
       if (found.length > 0) {
         locked.current = true;
-        setScan(parseScan(found[0].data));
+        presentScan(parseScan(found[0].data), 'photo');
       } else {
         setNoQrFound(true);
       }
@@ -76,6 +130,69 @@ export default function App() {
     } finally {
       setDecoding(false);
     }
+  }, [presentScan]);
+
+  const deleteHistoryEntry = useCallback(async (clientId: string) => {
+    const target = history.find((entry) => entry.clientId === clientId);
+    if (session.data?.user && target?.serverId) {
+      try {
+        await deleteCloudEntry(target.serverId);
+      } catch {
+        Alert.alert('Could not delete', 'You appear to be offline. The link was kept so your device and cloud history stay consistent.');
+        return;
+      }
+    }
+    setHistory((current) => {
+      const next = current.filter((entry) => entry.clientId !== clientId);
+      void saveHistory(next);
+      return next;
+    });
+  }, [history, session.data?.user]);
+
+  const clearHistory = useCallback(async () => {
+    if (session.data?.user) {
+      try {
+        await clearCloudHistory();
+      } catch {
+        Alert.alert('Could not clear history', 'You appear to be offline. Nothing was removed.');
+        return;
+      }
+    }
+    setHistory([]);
+    void saveHistory([]);
+  }, [session.data?.user]);
+
+  const handleSignIn = useCallback(async (provider: SocialProvider) => {
+    const result = await signInWithProvider(provider);
+    if (result.error) Alert.alert('Could not sign in', result.error.message || 'Please try again.');
+  }, []);
+
+  const handleEmailAuth = useCallback(async (mode: 'sign-in' | 'sign-up', values: { name: string; email: string; password: string }) => {
+    const result = mode === 'sign-up'
+      ? await signUpWithEmail(values.name, values.email, values.password)
+      : await signInWithEmail(values.email, values.password);
+    if (result.error) {
+      Alert.alert(mode === 'sign-up' ? 'Could not create account' : 'Could not sign in', result.error.message || 'Check your details and try again.');
+      return false;
+    }
+    return true;
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    await authClient.signOut();
+    setSync({ state: 'idle', total: 0, limit: 0, plan: 'FREE' });
+  }, []);
+
+  const handleDeleteAccount = useCallback(async () => {
+    const result = await authClient.deleteUser();
+    if (result.error) {
+      Alert.alert('Could not delete account', result.error.message || 'Please try again.');
+      return false;
+    }
+    setHistory([]);
+    await saveHistory([]);
+    setSync({ state: 'idle', total: 0, limit: 0, plan: 'FREE' });
+    return true;
   }, []);
 
   const open = useCallback(() => {
@@ -92,6 +209,28 @@ export default function App() {
   // Screenshot harness (no-op in production: SHOT is null). Placed after all
   // hooks so hook order stays stable when Fast Refresh swaps the flag.
   if (SHOT) return <ShotHarness shot={SHOT} />;
+
+  if (showHistory) {
+    return (
+      <>
+        <HistoryScreen
+          entries={history}
+          onBack={() => setShowHistory(false)}
+          onDelete={deleteHistoryEntry}
+          onClear={clearHistory}
+          user={session.data?.user ? { name: session.data.user.name, email: session.data.user.email } : null}
+          sync={sync}
+          onSignIn={handleSignIn}
+          onEmailAuth={handleEmailAuth}
+          onSignOut={handleSignOut}
+          onDeleteAccount={handleDeleteAccount}
+          onSync={runSync}
+          storeKit={storeKit}
+        />
+        <StatusBar style="light" />
+      </>
+    );
+  }
 
   // --- Loading permission state ---------------------------------------------
   if (!permission) {
@@ -144,7 +283,7 @@ export default function App() {
         style={StyleSheet.absoluteFill}
         facing="back"
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        onBarcodeScanned={scan ? undefined : handleScanned}
+        onBarcodeScanned={scan || !historyReady ? undefined : handleScanned}
       />
 
       {/* Viewfinder overlay (only while actively scanning) */}
@@ -171,6 +310,9 @@ export default function App() {
               onPress={pickFromLibrary}
             >
               <Text style={styles.photoPillText}>⤓  Scan from photo</Text>
+            </Pressable>
+            <Pressable style={styles.historyPill} onPress={() => setShowHistory(true)}>
+              <Text style={styles.historyPillText}>History{history.length > 0 ? `  ·  ${history.length}` : ''}</Text>
             </Pressable>
             {__DEV__ && (
               <Pressable style={styles.devToggle} onPress={() => setShowTeaser(true)}>
@@ -313,6 +455,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
   },
   photoPillText: { color: colors.pureWhite, fontSize: 14.5, fontWeight: '600' },
+  historyPill: {
+    backgroundColor: 'rgba(10,10,10,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
+  historyPillText: { color: colors.white, fontSize: 13, fontWeight: '600' },
   decodingOverlay: {
     position: 'absolute',
     top: 0,

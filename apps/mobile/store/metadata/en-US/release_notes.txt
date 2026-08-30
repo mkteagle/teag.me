@@ -1,1 +1,1 @@
-First release. Point your camera at any QR code and see the real link before you tap it. On-device, no account, no tracking.
+First release. Scan anonymously, inspect destinations before opening them, sync URL-only history when signed in, and upgrade or restore teag.me Pro securely through the App Store.

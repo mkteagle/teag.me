@@ -8,6 +8,7 @@ export interface PlanLimits {
   customDomains: boolean;
   csvExport: boolean;
   bulkActions: boolean;
+  maxSyncedCaptures: number;
 }
 
 export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
@@ -19,6 +20,7 @@ export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
     customDomains: false,
     csvExport: false,
     bulkActions: false,
+    maxSyncedCaptures: 100,
   },
   PRO: {
     maxActiveQrCodes: 100,
@@ -28,6 +30,7 @@ export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
     customDomains: true,
     csvExport: true,
     bulkActions: true,
+    maxSyncedCaptures: -1,
   },
 };
 

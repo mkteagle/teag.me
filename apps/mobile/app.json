@@ -2,6 +2,7 @@
   "expo": {
     "name": "teag.me scanner",
     "slug": "teagme-scanner",
+    "scheme": "teagme-scanner",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -34,7 +35,10 @@
         {
           "photosPermission": "teag.me scanner reads a QR code from a photo you choose. The image is decoded on your device and never uploaded."
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-iap"
     ]
   }
 }

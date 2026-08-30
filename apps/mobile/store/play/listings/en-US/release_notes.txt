@@ -1,1 +1,1 @@
-First release. Point your camera at any QR code and see the real link before you tap it. On-device, no account, no tracking.
+First release. Scan QR codes anonymously, inspect destinations before opening them, and optionally sign in to sync URL-only history.

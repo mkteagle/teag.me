@@ -2,6 +2,7 @@
 
 import {
   Home,
+  History,
   QrCode,
   Shield,
   LogOut,
@@ -29,6 +30,7 @@ type NavLink = { icon: LucideIcon; label: string; href: string };
 
 const menuItems: NavLink[] = [
   { icon: Home, label: "Dashboard", href: "/dashboard" },
+  { icon: History, label: "History", href: "/history" },
   { icon: QrCode, label: "Generate", href: "/generate" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];

@@ -7,7 +7,7 @@ import {
   inArray,
 } from "drizzle-orm";
 import { getDb } from "./index";
-import { qrCodes, scans, users } from "./schema";
+import { capturedCodes, qrCodes, scans, users } from "./schema";
 
 type ScanPreview = {
   id: string;
@@ -292,4 +292,80 @@ export async function listAdminQrCodes(options: {
     })),
     totalCount: Number(totalCount),
   };
+}
+
+export async function countUserCapturedCodes(userId: string) {
+  const [{ totalCount }] = await getDb()
+    .select({ totalCount: count() })
+    .from(capturedCodes)
+    .where(eq(capturedCodes.userId, userId));
+  return Number(totalCount);
+}
+
+export async function findExistingCapturedClientIds(
+  userId: string,
+  clientIds: string[]
+) {
+  if (clientIds.length === 0) return new Set<string>();
+  const rows = await getDb()
+    .select({ clientId: capturedCodes.clientId })
+    .from(capturedCodes)
+    .where(
+      and(
+        eq(capturedCodes.userId, userId),
+        inArray(capturedCodes.clientId, clientIds)
+      )
+    );
+  return new Set(rows.map((row) => row.clientId));
+}
+
+export async function createCapturedCodes(
+  values: (typeof capturedCodes.$inferInsert)[]
+) {
+  if (values.length === 0) return [];
+  return getDb()
+    .insert(capturedCodes)
+    .values(values)
+    .onConflictDoNothing({
+      target: [capturedCodes.userId, capturedCodes.clientId],
+    })
+    .returning();
+}
+
+export async function listUserCapturedCodes(options: {
+  userId: string;
+  page: number;
+  limit: number;
+}) {
+  const { userId, page, limit } = options;
+  const database = getDb();
+  const [{ totalCount }] = await database
+    .select({ totalCount: count() })
+    .from(capturedCodes)
+    .where(eq(capturedCodes.userId, userId));
+
+  const rows = await database
+    .select()
+    .from(capturedCodes)
+    .where(eq(capturedCodes.userId, userId))
+    .orderBy(desc(capturedCodes.capturedAt))
+    .limit(limit)
+    .offset((page - 1) * limit);
+
+  return { capturedCodes: rows, totalCount: Number(totalCount) };
+}
+
+export async function deleteUserCapturedCode(id: string, userId: string) {
+  const [deleted] = await getDb()
+    .delete(capturedCodes)
+    .where(and(eq(capturedCodes.id, id), eq(capturedCodes.userId, userId)))
+    .returning({ id: capturedCodes.id });
+  return deleted ?? null;
+}
+
+export async function clearUserCapturedCodes(userId: string) {
+  return getDb()
+    .delete(capturedCodes)
+    .where(eq(capturedCodes.userId, userId))
+    .returning({ id: capturedCodes.id });
 }

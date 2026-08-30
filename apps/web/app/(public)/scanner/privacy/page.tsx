@@ -3,12 +3,10 @@ import { LegalSection, LegalShell } from "@/components/scanner/legal-shell";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | teag.me Scanner",
-  description:
-    "The teag.me Scanner privacy policy. The app works entirely on-device — no account, no tracking, and no scan data ever leaves your phone.",
+  description: "Scan anonymously on-device or optionally sign in to sync URL-only history.",
   openGraph: {
     title: "Privacy Policy | teag.me Scanner",
-    description:
-      "teag.me Scanner decodes QR codes on-device. No account, no analytics SDKs, no data sent to our servers.",
+    description: "QR codes decode on-device. Optional accounts sync URL-only history; Wi-Fi and text codes are never uploaded.",
     url: "/scanner/privacy",
     type: "website",
   },
@@ -16,106 +14,63 @@ export const metadata: Metadata = {
 
 export default function ScannerPrivacyPage() {
   return (
-    <LegalShell
-      eyebrow="teag.me/scanner/privacy"
-      title="Privacy Policy"
-      lastUpdated="June 2026"
-    >
+    <LegalShell eyebrow="teag.me/scanner/privacy" title="Privacy Policy" lastUpdated="August 2026">
       <p>
-        This Privacy Policy explains how the teag.me Scanner app (&ldquo;the
-        app&rdquo;) handles your information. The short version: the app is built
-        to work entirely on your device, and it is designed so that there is
-        almost nothing to collect in the first place.
+        This Privacy Policy explains how teag.me Scanner handles your information. The app is designed to scan privately without an account. If you choose to sign in, URL-only history can sync to your teag.me account.
       </p>
 
       <LegalSection title="The short version">
         <p>
-          teag.me Scanner reads QR codes locally on your phone. It does{" "}
-          <strong>not</strong> require an account, it does{" "}
-          <strong>not</strong> track you, and it does <strong>not</strong> send
-          your scans, the camera image, or the decoded link to teag.me servers.
-          On the App Store, this is reflected as{" "}
-          <strong>&ldquo;Data Not Collected.&rdquo;</strong>
+          QR codes are decoded locally on your phone. An account is not required and we do not track you. Camera images, Wi-Fi credentials, and plain-text QR codes are never uploaded. When you sign in, scanned URLs and their domains are saved so history can sync across devices.
         </p>
       </LegalSection>
 
-      <LegalSection title="No account, no sign-up">
+      <LegalSection title="Accounts are optional">
         <p>
-          You can use the app without creating an account or signing in. We do
-          not ask for your name, email address, phone number, contacts, or any
-          other identifying information, and there is no profile associated with
-          your use of the app.
+          You can use the app without providing personal information. If you create an account, we store your name, email address, authentication records, and the URL-only history you choose to sync. Social sign-in providers also process information under their own privacy policies.
         </p>
       </LegalSection>
 
-      <LegalSection title="How the camera is used">
+      <LegalSection title="Camera and photos">
         <p>
-          The app uses your device camera for a single purpose: to detect and
-          decode QR codes in real time. The camera feed is processed on your
-          device to recognize codes as they enter the frame. The app does not
-          take photographs, it does not record video, and it does not store or
-          upload the camera image. When you close the app or leave the scanner,
-          camera access stops.
-        </p>
-        <p>
-          iOS requires your explicit permission before any app can access the
-          camera. If you decline, the scanner simply will not be able to read
-          codes — and nothing else in the app sends data anywhere.
+          The app uses your camera to detect QR codes and can decode a photo you select. Both operations happen on your device. The app does not record video or upload camera frames or selected images.
         </p>
       </LegalSection>
 
-      <LegalSection title="What we collect">
+      <LegalSection title="What we process">
         <p>
-          Nothing that identifies you. The decoded content of a scan — a link,
-          plain text, or Wi-Fi details — is shown to you on your device and is
-          not transmitted to teag.me. We do not collect your scan history, your
-          location, your contacts, or device identifiers for tracking, and we do
-          not build a profile of you.
+          Without an account, URL history stays on your device. With an account, we process your account details and synced URL history: the URL, domain, capture time, and whether it came from the camera or a selected photo. We do not upload camera images, Wi-Fi passwords, plain-text codes, contacts, precise location, or tracking identifiers.
         </p>
       </LegalSection>
 
-      <LegalSection title="No analytics, no tracking, no ads">
+      <LegalSection title="No analytics, tracking, or ads">
         <p>
-          The app contains no third-party analytics SDKs, no advertising
-          frameworks, and no cross-app or cross-site tracking. We do not use
-          cookies or device fingerprinting, and we do not sell, rent, or share
-          data about you, because we do not collect it.
+          The app contains no third-party analytics SDKs, advertising frameworks, or cross-app tracking. We do not use device fingerprinting and do not sell or rent personal data. Essential session credentials are used only to keep signed-in users secure.
         </p>
       </LegalSection>
 
-      <LegalSection title="Opening links and connecting to networks">
+      <LegalSection title="Retention and deletion">
         <p>
-          When you choose to open a scanned link, your device hands it off to
-          your browser, just like tapping any other link. From that point, the
-          website you visit is responsible for its own data practices, and its
-          privacy policy applies — teag.me is not involved in that request.
-          Similarly, if you choose to join a Wi-Fi network from a scanned code,
-          that connection is handled by iOS and the network operator, not by us.
-          You are always in control of whether to take these actions.
+          Local history remains until you delete it or remove the app. Synced history remains until you delete links, clear history, or delete your account. Permanently delete your account and cloud history from History &gt; Account &gt; Delete account.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Opening links and joining networks">
+        <p>
+          Your browser and destination website handle links you choose to open under their own privacy practices. Joining Wi-Fi is handled by your device and the network operator. You control whether to take either action.
         </p>
       </LegalSection>
 
       <LegalSection title="Children">
-        <p>
-          The app does not knowingly collect any personal information from
-          anyone, including children. Because the app collects no data, it is
-          safe for general audiences.
-        </p>
+        <p>The service is not directed to children under 13, and we do not knowingly create accounts for or collect personal information from children under 13.</p>
       </LegalSection>
 
       <LegalSection title="Changes to this policy">
-        <p>
-          If our practices ever change, we will update this page and revise the
-          &ldquo;Last updated&rdquo; date above. Material changes will be
-          reflected here before they take effect.
-        </p>
+        <p>If our practices change, we will update this page and its last-updated date before material changes take effect.</p>
       </LegalSection>
 
       <LegalSection title="Contact">
-        <p>
-          Questions about privacy? Reach us at{" "}
-          <a href="mailto:privacy@teag.me">privacy@teag.me</a>.
-        </p>
+        <p>Questions? Email <a href="mailto:privacy@teag.me">privacy@teag.me</a>.</p>
       </LegalSection>
     </LegalShell>
   );

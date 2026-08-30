@@ -23,6 +23,7 @@ const proFeatures = [
 export default function UpgradePage() {
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
+  const [billingSource, setBillingSource] = useState<"stripe" | "app_store" | null>(null);
   const [usage, setUsage] = useState<{
     activeQrCodes: { current: number; limit: number };
     scansThisMonth: { current: number; limit: number };
@@ -33,6 +34,7 @@ export default function UpgradePage() {
       .then((r) => r.json())
       .then((data) => {
         setPlan(data.plan);
+        setBillingSource(data.billingSource ?? null);
         setUsage(data.usage);
       })
       .catch(console.error);
@@ -53,6 +55,10 @@ export default function UpgradePage() {
   };
 
   const handleManage = async () => {
+    if (billingSource === "app_store") {
+      window.location.href = "https://apps.apple.com/account/subscriptions";
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
@@ -139,7 +145,7 @@ export default function UpgradePage() {
                 onClick={handleManage}
                 disabled={loading}
               >
-                {loading ? "Loading..." : "Manage subscription"}
+                {loading ? "Loading..." : billingSource === "app_store" ? "Manage in App Store" : "Manage subscription"}
               </Button>
             ) : (
               <Button

@@ -46,18 +46,62 @@ ios:
     key_id: "${ASC_KEY_ID}"             # set in env / .env.local — never committed
     issuer_id: "${ASC_ISSUER_ID}"       # set in env / .env.local — never committed
     key_path: ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
-  # TestFlight beta review info — no demo account needed (no login in the app).
+  copyright: "2026 teag.me"
+  privacy_policy_url: https://teag.me/scanner/privacy
+  app_store_review:
+    contact_first_name: Michael
+    contact_last_name: Teagle
+    contact_email: mkteagle@gmail.com
+    demo_account_name: "${REVIEW_ACCOUNT_EMAIL}"
+    demo_account_password: "${REVIEW_ACCOUNT_PASSWORD}"
+    demo_account_required: true
+    notes: >-
+      Scanning works immediately without an account. To review account features,
+      open History, tap Sign in, and use the demo email and password above. Scan
+      a URL QR code to verify that it appears in cloud history. Wi-Fi passwords,
+      plain-text QR codes, and camera images are never uploaded. To delete the
+      demo account and its saved links, open History > Account and tap Delete
+      account. To review the subscription, remain signed in, open Account, tap
+      Upgrade to Pro, and use the sandbox purchase sheet. Restore Purchases is
+      on the same screen.
   beta:
     contact_first_name: Michael
     contact_last_name: Teagle
     contact_email: mkteagle@gmail.com
-    demo_account_required: false
+    demo_account_name: "${REVIEW_ACCOUNT_EMAIL}"
+    demo_account_password: "${REVIEW_ACCOUNT_PASSWORD}"
+    demo_account_required: true
     privacy_policy_url: https://teag.me/scanner/privacy
     marketing_url: https://teag.me/scanner
     description: >-
-      Open the app, allow camera access, and point it at any QR code. The link
-      is decoded on-device; the full URL and its domain are shown before you
-      open or copy it. No account, no login, no data collected.
+      Open the app, allow camera access, and point it at any QR code. Scanning
+      requires no account. To test optional cloud history, open History, sign in
+      with the demo credentials, and scan a URL QR code. Camera images, Wi-Fi
+      credentials, and plain-text codes are never uploaded.
+  what_to_test: >-
+    Scan QR codes anonymously, inspect the destination before opening it, and
+    scan from a saved photo. Then sign in with the review account from History
+    and verify URL-only history sync. Test sign out and account deletion from
+    the Account sheet.
+  # App Store Server Notifications V2 URL (configure once in App Store Connect):
+  # https://teag.me/api/app-store/notifications
+  subscription_groups:
+    - reference_name: teag.me Pro
+      display_name: teag.me Pro
+      products:
+        - product_id: me.teag.scanner.pro.monthly
+          reference_name: teag.me Pro Monthly
+          period: ONE_MONTH
+          price: 8.99
+          name: teag.me Pro Monthly
+          description: Unlimited synced URL history, 100 dynamic QR codes, and 50,000 tracked scans per month.
+          group_level: 1
+          family_shareable: false
+          review_note: >-
+            Sign in with the review account, open History > Account, and tap
+            Upgrade to Pro. Purchase and Restore Purchases are shown together.
+            The signed StoreKit transaction is verified by teag.me before Pro
+            access is granted.
 
 android:
   package: me.teag.scanner
@@ -81,10 +125,10 @@ metadata_ai:
   provider: claude
   fields: [release_notes]
   app_summary: >-
-    teag.me scanner is a private, on-device QR code reader. Point the camera at a
-    QR code; it decodes instantly and shows the full URL + domain before you open
-    or copy it. Also reads Wi-Fi and plain-text codes. No account, no tracking,
-    Data Not Collected. Companion to teag.me (QR + short-link product).
+    teag.me scanner is a privacy-first QR code reader. It decodes camera images
+    on-device and shows the full URL and domain before opening. Anonymous use is
+    free; signed-in users can optionally sync URL-only history to teag.me. Wi-Fi
+    passwords and plain-text codes are never saved or uploaded.
   paths: ["apps/mobile"]
 
 # Brand palette + per-screenshot captions for the Pillow framer.
@@ -99,4 +143,4 @@ brand:
     02_link.png:    { eyebrow: "See the real link", headline: "Know where it goes before you tap." }
     03_open.png:    { eyebrow: "Open or copy",      headline: "You decide what happens next." }
     04_wifi.png:    { eyebrow: "Wi-Fi and text too", headline: "More than links, no setup." }
-    05_privacy.png: { eyebrow: "On-device, always", headline: "Nothing leaves your phone." }
+    05_privacy.png: { eyebrow: "Private by default", headline: "Sync links only when you sign in." }
