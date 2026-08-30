@@ -31,7 +31,13 @@ export default function UpgradePage() {
 
   useEffect(() => {
     fetch("/api/plan")
-      .then((r) => r.json())
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data?.usage?.activeQrCodes || !data?.usage?.scansThisMonth) {
+          throw new Error("Unable to load plan details.");
+        }
+        return data;
+      })
       .then((data) => {
         setPlan(data.plan);
         setBillingSource(data.billingSource ?? null);
