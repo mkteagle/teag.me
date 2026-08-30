@@ -52,6 +52,7 @@ ios:
     contact_first_name: Michael
     contact_last_name: Teagle
     contact_email: mkteagle@gmail.com
+    contact_phone: "+18018577208"
     demo_account_name: "${REVIEW_ACCOUNT_EMAIL}"
     demo_account_password: "${REVIEW_ACCOUNT_PASSWORD}"
     demo_account_required: true
@@ -68,6 +69,7 @@ ios:
     contact_first_name: Michael
     contact_last_name: Teagle
     contact_email: mkteagle@gmail.com
+    contact_phone: "+18018577208"
     demo_account_name: "${REVIEW_ACCOUNT_EMAIL}"
     demo_account_password: "${REVIEW_ACCOUNT_PASSWORD}"
     demo_account_required: true
