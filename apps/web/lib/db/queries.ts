@@ -11,6 +11,8 @@ import { capturedCodes, qrCodes, scans, users } from "./schema";
 
 type ScanPreview = {
   id: string;
+  timestamp: Date;
+  country: string | null;
 };
 
 type ScanDetail = {
@@ -210,9 +212,12 @@ export async function listUserQrCodes(options: {
           .select({
             id: scans.id,
             qrCodeId: scans.qrCodeId,
+            timestamp: scans.timestamp,
+            country: scans.country,
           })
           .from(scans)
-          .where(inArray(scans.qrCodeId, qrCodeIds));
+          .where(inArray(scans.qrCodeId, qrCodeIds))
+          .orderBy(desc(scans.timestamp));
 
   const scansByQrCode = groupScans(scanRows);
 
@@ -272,7 +277,8 @@ export async function listAdminQrCodes(options: {
             region: scans.region,
           })
           .from(scans)
-          .where(inArray(scans.qrCodeId, qrCodeIds));
+          .where(inArray(scans.qrCodeId, qrCodeIds))
+          .orderBy(desc(scans.timestamp));
 
   const scansByQrCode = groupScans(scanRows);
 
