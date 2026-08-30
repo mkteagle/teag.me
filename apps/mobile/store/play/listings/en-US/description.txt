@@ -16,7 +16,7 @@ PRIVATE BY DEFAULT
 - Anonymous scanning requires no account.
 - Only URL history is synced when you explicitly sign in.
 - Wi-Fi passwords and plain-text codes are never saved or uploaded.
-- No tracking, no analytics, no ads.
+- Privacy-safe product analytics never include scanned content, URLs, photos, credentials, or precise location. No ads or cross-app tracking.
 
 The whole point of a QR code is that you can't read it with your own eyes. teag.me scanner gives you back that step: see where a code leads, then choose. It's the kind of small, sharp tool that just works and then gets out of your way.
 

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/components/ui/use-toast";
 import { Download, Copy, Check, Upload, X } from "lucide-react";
+import { capture } from "@/lib/posthog";
 
 export default function GenerateButton() {
   const [formData, setFormData] = useState({
@@ -235,6 +236,10 @@ export default function GenerateButton() {
 
       setQrCode(data.data);
       setQrPreview(null); // Clear preview after generating
+      capture("qr_code_created", {
+        custom_path: Boolean(formData.customPath),
+        has_logo: Boolean(logoDataUrl),
+      });
       toast({
         title: "Success",
         description: "QR code generated successfully!",

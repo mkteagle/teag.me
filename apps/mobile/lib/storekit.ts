@@ -15,6 +15,7 @@ import {
 } from 'expo-iap';
 
 import { authenticatedFetch } from './auth-client';
+import { capture } from './analytics';
 
 const PRODUCT_ID = 'me.teag.scanner.pro.monthly';
 
@@ -52,10 +53,12 @@ export function useStoreKitPro(userId?: string) {
       await finishTransaction({ purchase, isConsumable: false });
       setIsPro(true);
       setMessage('Pro is active. Your cloud history is now unlimited.');
+      capture('pro_entitlement_activated', { product_id: PRODUCT_ID });
       return true;
     } catch (error) {
       processed.current.delete(key);
       setMessage(error instanceof Error ? error.message : 'Purchase verification failed.');
+      capture('pro_entitlement_failed');
       return false;
     } finally {
       setBusy(false);
@@ -78,6 +81,7 @@ export function useStoreKitPro(userId?: string) {
       if (!active) return;
       setBusy(false);
       if (error.code !== 'user-cancelled') setMessage(error.message);
+      capture(error.code === 'user-cancelled' ? 'pro_purchase_cancelled' : 'pro_purchase_failed');
     });
 
     void (async () => {

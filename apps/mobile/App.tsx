@@ -32,6 +32,7 @@ import { createHistoryEntry, loadHistory, saveHistory, type CaptureSource, type 
 import { authClient, signInWithEmail, signInWithProvider, signUpWithEmail, type SocialProvider } from './lib/auth-client';
 import { clearCloudHistory, deleteCloudEntry, syncHistory, type SyncSummary } from './lib/history-sync';
 import { useStoreKitPro } from './lib/storekit';
+import { capture, identify, resetAnalytics } from './lib/analytics';
 
 const ACCENT = colors.accent; // '#0F7BFF' — brand primary blue
 
@@ -56,8 +57,15 @@ export default function App() {
     loadHistory().then((entries) => {
       setHistory(entries);
       setHistoryReady(true);
+      capture('scanner_opened', { saved_link_count: entries.length });
     });
   }, []);
+
+  useEffect(() => {
+    const userId = session.data?.user?.id;
+    if (userId) identify(userId);
+    else resetAnalytics();
+  }, [session.data?.user?.id]);
 
   const runSync = useCallback(async () => {
     if (!session.data?.user || !historyReady || syncing.current) return;
@@ -68,8 +76,14 @@ export default function App() {
       setHistory(result.entries);
       await saveHistory(result.entries);
       setSync(result.summary);
+      capture('cloud_history_synced', {
+        state: result.summary.state,
+        total: result.summary.total,
+        plan: result.summary.plan,
+      });
     } catch {
       setSync((current) => ({ ...current, state: 'error' }));
+      capture('cloud_history_sync_failed');
     } finally {
       syncing.current = false;
     }
@@ -84,6 +98,7 @@ export default function App() {
 
   const presentScan = useCallback((nextScan: Scan, source: CaptureSource) => {
     setScan(nextScan);
+    capture('qr_code_scanned', { kind: nextScan.kind, source });
     const entry = createHistoryEntry(nextScan, source);
     if (!entry) return;
     setHistory((current) => {
@@ -124,9 +139,11 @@ export default function App() {
         presentScan(parseScan(found[0].data), 'photo');
       } else {
         setNoQrFound(true);
+        capture('photo_scan_no_qr');
       }
     } catch {
       setNoQrFound(true);
+      capture('photo_scan_failed');
     } finally {
       setDecoding(false);
     }
@@ -164,7 +181,12 @@ export default function App() {
 
   const handleSignIn = useCallback(async (provider: SocialProvider) => {
     const result = await signInWithProvider(provider);
-    if (result.error) Alert.alert('Could not sign in', result.error.message || 'Please try again.');
+    if (result.error) {
+      capture('account_sign_in_failed', { method: provider });
+      Alert.alert('Could not sign in', result.error.message || 'Please try again.');
+    } else {
+      capture('account_signed_in', { method: provider });
+    }
   }, []);
 
   const handleEmailAuth = useCallback(async (mode: 'sign-in' | 'sign-up', values: { name: string; email: string; password: string }) => {
@@ -172,14 +194,18 @@ export default function App() {
       ? await signUpWithEmail(values.name, values.email, values.password)
       : await signInWithEmail(values.email, values.password);
     if (result.error) {
+      capture('account_auth_failed', { mode });
       Alert.alert(mode === 'sign-up' ? 'Could not create account' : 'Could not sign in', result.error.message || 'Check your details and try again.');
       return false;
     }
+    capture(mode === 'sign-up' ? 'account_created' : 'account_signed_in', { method: 'email' });
     return true;
   }, []);
 
   const handleSignOut = useCallback(async () => {
     await authClient.signOut();
+    capture('account_signed_out');
+    resetAnalytics();
     setSync({ state: 'idle', total: 0, limit: 0, plan: 'FREE' });
   }, []);
 
@@ -196,13 +222,17 @@ export default function App() {
   }, []);
 
   const open = useCallback(() => {
-    if (scan?.kind === 'url') Linking.openURL(scan.raw).catch(() => {});
+    if (scan?.kind === 'url') {
+      capture('scan_result_opened', { kind: 'url' });
+      Linking.openURL(scan.raw).catch(() => {});
+    }
   }, [scan]);
 
   const copy = useCallback(async () => {
     if (!scan) return;
     const toCopy = scan.kind === 'wifi' && scan.wifi?.password ? scan.wifi.password : scan.raw;
     await Clipboard.setStringAsync(toCopy);
+    capture('scan_result_copied', { kind: scan.kind });
     setCopied(true);
   }, [scan]);
 
@@ -311,7 +341,7 @@ export default function App() {
             >
               <Text style={styles.photoPillText}>⤓  Scan from photo</Text>
             </Pressable>
-            <Pressable style={styles.historyPill} onPress={() => setShowHistory(true)}>
+            <Pressable style={styles.historyPill} onPress={() => { capture('history_opened', { saved_link_count: history.length }); setShowHistory(true); }}>
               <Text style={styles.historyPillText}>History{history.length > 0 ? `  ·  ${history.length}` : ''}</Text>
             </Pressable>
             {__DEV__ && (

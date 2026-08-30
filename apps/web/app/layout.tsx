@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next/types";
 import { Analytics } from "@vercel/analytics/react";
+import { PostHogProvider } from "@/providers/posthog-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -85,10 +86,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${sora.variable} ${jetbrainsMono.variable} font-sans`}
       >
-        <ThemeProvider>
-          <div className="flex min-h-screen">{children}</div>
-          <Toaster />
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider>
+            <div className="flex min-h-screen">{children}</div>
+            <Toaster />
+          </ThemeProvider>
+        </PostHogProvider>
         <Analytics />
       </body>
     </html>

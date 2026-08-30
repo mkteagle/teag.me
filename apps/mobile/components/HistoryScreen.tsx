@@ -8,6 +8,7 @@ import { Wordmarks } from './branding';
 import type { SocialProvider } from '../lib/auth-client';
 import type { SyncSummary } from '../lib/history-sync';
 import type { useStoreKitPro } from '../lib/storekit';
+import { capture } from '../lib/analytics';
 
 type Props = {
   entries: HistoryEntry[];
@@ -157,7 +158,7 @@ export function HistoryScreen({ entries, onBack, onDelete, onClear, user, sync, 
                     <Text style={styles.manageText}>Manage subscription</Text>
                   </Pressable>
                 ) : (
-                  <Pressable style={styles.emailButton} onPress={() => { setAccountOpen(false); setProOpen(true); }}>
+                  <Pressable style={styles.emailButton} onPress={() => { capture('pro_paywall_opened'); setAccountOpen(false); setProOpen(true); }}>
                     <Text style={styles.emailButtonText}>Upgrade to Pro</Text>
                   </Pressable>
                 )}
@@ -203,10 +204,10 @@ export function HistoryScreen({ entries, onBack, onDelete, onClear, user, sync, 
             <View style={styles.proFeature}><Text style={styles.proCheck}>✓</Text><Text style={styles.proFeatureText}>Unlimited synced URL history</Text></View>
             <View style={styles.proFeature}><Text style={styles.proCheck}>✓</Text><Text style={styles.proFeatureText}>100 dynamic QR codes</Text></View>
             <View style={styles.proFeature}><Text style={styles.proCheck}>✓</Text><Text style={styles.proFeatureText}>50,000 tracked scans per month</Text></View>
-            <Pressable disabled={storeKit.busy || !storeKit.available} style={[styles.emailButton, (storeKit.busy || !storeKit.available) && styles.disabled]} onPress={storeKit.purchase}>
+            <Pressable disabled={storeKit.busy || !storeKit.available} style={[styles.emailButton, (storeKit.busy || !storeKit.available) && styles.disabled]} onPress={() => { capture('pro_purchase_started'); storeKit.purchase(); }}>
               <Text style={styles.emailButtonText}>{storeKit.busy ? 'Connecting to App Store…' : `Subscribe · ${storeKit.price}/month`}</Text>
             </Pressable>
-            <Pressable disabled={storeKit.busy} style={styles.modeButton} onPress={storeKit.restore}>
+            <Pressable disabled={storeKit.busy} style={styles.modeButton} onPress={() => { capture('pro_restore_started'); storeKit.restore(); }}>
               <Text style={styles.modeButtonText}>Restore purchases</Text>
             </Pressable>
             {storeKit.message && <Text style={styles.storeMessage}>{storeKit.message}</Text>}

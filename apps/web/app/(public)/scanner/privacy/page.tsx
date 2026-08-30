@@ -21,7 +21,7 @@ export default function ScannerPrivacyPage() {
 
       <LegalSection title="The short version">
         <p>
-          QR codes are decoded locally on your phone. An account is not required and we do not track you. Camera images, Wi-Fi credentials, and plain-text QR codes are never uploaded. When you sign in, scanned URLs and their domains are saved so history can sync across devices.
+          QR codes are decoded locally on your phone. An account is not required. Camera images, Wi-Fi credentials, plain-text QR codes, and scanned content are never sent to analytics. When you sign in, scanned URLs and their domains are saved so history can sync across devices.
         </p>
       </LegalSection>
 
@@ -43,9 +43,9 @@ export default function ScannerPrivacyPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="No analytics, tracking, or ads">
+      <LegalSection title="Privacy-safe product analytics">
         <p>
-          The app contains no third-party analytics SDKs, advertising frameworks, or cross-app tracking. We do not use device fingerprinting and do not sell or rent personal data. Essential session credentials are used only to keep signed-in users secure.
+          We use PostHog to understand basic product activity, such as whether a scan came from the camera or a photo, whether it decoded a URL, Wi-Fi code, or text, and whether features like history sync or subscriptions succeed. We never send the scanned value, URL, domain, photo, Wi-Fi credentials, copied text, or precise location to PostHog. Signed-in activity may be associated with your internal account ID. We do not use advertising identifiers, cross-app tracking, or device fingerprinting, and we do not sell or rent personal data.
         </p>
       </LegalSection>
 
