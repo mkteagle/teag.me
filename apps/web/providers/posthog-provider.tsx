@@ -20,6 +20,11 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
       person_profiles: "identified_only",
       persistence: "localStorage+cookie",
     });
+    posthog.register({
+      app: "teag.me",
+      platform: "web",
+      environment: process.env.NEXT_PUBLIC_ENV ?? process.env.NODE_ENV,
+    });
   }, []);
 
   useEffect(() => {
