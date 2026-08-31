@@ -546,7 +546,7 @@ function Check({ color }: { color: string }) {
 
 function Pricing() {
   const freeFeatures = [
-    "Unlimited dynamic QR codes",
+    "10 active dynamic QR codes",
     "Scan, geo & device analytics",
     "Short links on teag.me",
     "90 days of history",
@@ -614,7 +614,7 @@ function Pricing() {
           </div>
           <div className="mb-1 mt-2.5 flex items-end gap-1.5">
             <span className="text-[44px]" style={{ fontFamily: HEADING, fontWeight: 800, letterSpacing: "-0.03em" }}>
-              $9
+              $2.99
             </span>
             <span className="mb-[9px] text-[14px] text-[#9AA1AE]">/ month</span>
           </div>

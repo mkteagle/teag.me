@@ -161,7 +161,7 @@ export function useStoreKitPro(userId?: string) {
     busy,
     isPro,
     message,
-    price: product?.displayPrice ?? '$8.99',
+    price: product?.displayPrice ?? '$2.99',
     purchase,
     restore,
     manage,

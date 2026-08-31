@@ -96,7 +96,7 @@ ios:
         - product_id: me.teag.scanner.pro.monthly
           reference_name: teag.me Pro Monthly
           period: ONE_MONTH
-          price: 8.99
+          price: 2.99
           name: teag.me Pro Monthly
           description: Unlimited synced URL history, 100 dynamic QR codes, and 50,000 tracked scans per month.
           group_level: 1
@@ -145,6 +145,6 @@ brand:
   captions:
     01_scan.png:    { eyebrow: "Point and scan",   headline: "Read any QR code, instantly." }
     02_link.png:    { eyebrow: "See the real link", headline: "Know where it goes before you tap." }
-    03_open.png:    { eyebrow: "Open or copy",      headline: "You decide what happens next." }
-    04_wifi.png:    { eyebrow: "Wi-Fi and text too", headline: "More than links, no setup." }
-    05_privacy.png: { eyebrow: "Private by default", headline: "Sync links only when you sign in." }
+    03_history.png: { eyebrow: "Keep useful links",  headline: "Your QR history, ready when you need it." }
+    04_photo.png:   { eyebrow: "Scan from Photos",   headline: "Decode screenshots without opening the camera." }
+    05_privacy.png: { eyebrow: "Private by default", headline: "Only URL history syncs when you sign in." }

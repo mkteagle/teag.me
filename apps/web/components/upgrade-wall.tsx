@@ -72,7 +72,7 @@ export function UpgradeWall({
             disabled={loading}
           >
             <Zap className="h-4 w-4" />
-            {loading ? "Redirecting..." : "Upgrade to Pro — $9/mo"}
+            {loading ? "Redirecting..." : "Upgrade to Pro — $2.99/mo"}
           </Button>
           <Button
             className="w-full"

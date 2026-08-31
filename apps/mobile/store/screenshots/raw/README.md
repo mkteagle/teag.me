@@ -5,8 +5,8 @@ Drop raw, unframed 6.9" iPhone captures here, named to match the caption keys in
 
 - `01_scan.png` — scanner viewfinder, reticle on a QR code
 - `02_link.png` — result sheet showing the decoded URL + domain
-- `03_open.png` — result sheet with Open / Copy actions
-- `04_wifi.png` — a Wi-Fi (or plain-text) scan result
+- `03_history.png` — optional signed-in URL history
+- `04_photo.png` — scanning a saved photo or screenshot
 - `05_privacy.png` — the camera-permission / "Nothing leaves your phone" screen
 
 Capture them from an iPhone 17 Pro Max simulator (1320×2868) running the app:
