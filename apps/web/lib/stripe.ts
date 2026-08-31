@@ -5,7 +5,7 @@ let stripeInstance: Stripe | null = null;
 export function getStripe(): Stripe {
   if (stripeInstance) return stripeInstance;
 
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
   if (!key) {
     throw new Error("Missing STRIPE_SECRET_KEY");
   }
@@ -18,7 +18,7 @@ export function getStripe(): Stripe {
 }
 
 export function getProPriceId(): string {
-  const id = process.env.STRIPE_PRO_PRICE_ID;
+  const id = process.env.STRIPE_PRO_PRICE_ID?.trim();
   if (!id) throw new Error("Missing STRIPE_PRO_PRICE_ID");
   return id;
 }
