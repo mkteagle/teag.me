@@ -46,6 +46,7 @@ export default function App() {
   const [decoding, setDecoding] = useState(false);
   const [noQrFound, setNoQrFound] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [openAccountOnHistory, setOpenAccountOnHistory] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyReady, setHistoryReady] = useState(false);
   const [sync, setSync] = useState<SyncSummary>({ state: 'idle', total: 0, limit: 0, plan: 'FREE' });
@@ -221,6 +222,17 @@ export default function App() {
     return true;
   }, []);
 
+  const openAccount = useCallback(() => {
+    capture('account_opened', { source: 'scanner_header' });
+    setOpenAccountOnHistory(true);
+    setShowHistory(true);
+  }, []);
+
+  const closeHistory = useCallback(() => {
+    setOpenAccountOnHistory(false);
+    setShowHistory(false);
+  }, []);
+
   const open = useCallback(() => {
     if (scan?.kind === 'url') {
       capture('scan_result_opened', { kind: 'url' });
@@ -245,7 +257,8 @@ export default function App() {
       <>
         <HistoryScreen
           entries={history}
-          onBack={() => setShowHistory(false)}
+          onBack={closeHistory}
+          openAccountOnMount={openAccountOnHistory}
           onDelete={deleteHistoryEntry}
           onClear={clearHistory}
           user={session.data?.user ? { name: session.data.user.name, email: session.data.user.email } : null}
@@ -319,8 +332,20 @@ export default function App() {
       {/* Viewfinder overlay (only while actively scanning) */}
       {!scan && !showTeaser && (
         <SafeAreaView style={styles.overlay}>
-          <View style={styles.topBar} pointerEvents="none">
-            <Wordmarks size={17} />
+          <View style={styles.topBar}>
+            <View pointerEvents="none">
+              <Wordmarks size={17} />
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={session.data?.user ? 'Open account' : 'Sign in'}
+              hitSlop={10}
+              onPress={openAccount}
+              style={({ pressed }) => [styles.accountPill, pressed && styles.pressed]}
+            >
+              <View style={[styles.accountDot, session.data?.user && styles.accountDotSignedIn]} />
+              <Text style={styles.accountPillText}>{session.data?.user ? 'Account' : 'Sign in'}</Text>
+            </Pressable>
           </View>
 
           <View style={styles.reticleWrap} pointerEvents="none">
@@ -457,7 +482,27 @@ const styles = StyleSheet.create({
 
   // Scanner overlay
   overlay: { flex: 1, justifyContent: 'space-between' },
-  topBar: { alignItems: 'center', paddingTop: 22 },
+  topBar: {
+    paddingTop: 18,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  accountPill: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: 'rgba(10,10,10,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.16)',
+    paddingHorizontal: 14,
+    borderRadius: 999,
+  },
+  accountDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.orange },
+  accountDotSignedIn: { backgroundColor: colors.accent },
+  accountPillText: { color: colors.white, fontSize: 13, fontWeight: '700' },
   reticleWrap: { alignItems: 'center', justifyContent: 'center', flex: 1 },
   bottomBar: { alignItems: 'center', paddingBottom: 32, gap: 14 },
   hintPill: {

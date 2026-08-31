@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Linking, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 
@@ -13,6 +13,7 @@ import { capture } from '../lib/analytics';
 type Props = {
   entries: HistoryEntry[];
   onBack: () => void;
+  openAccountOnMount?: boolean;
   onDelete: (clientId: string) => void;
   onClear: () => void;
   user: { name?: string | null; email: string } | null;
@@ -42,7 +43,7 @@ function syncLabel(sync: SyncSummary) {
   return `CLOUD SYNCED · ${sync.total}${sync.limit === -1 ? '' : `/${sync.limit}`}`;
 }
 
-export function HistoryScreen({ entries, onBack, onDelete, onClear, user, sync, onSignIn, onEmailAuth, onSignOut, onDeleteAccount, onSync, storeKit }: Props) {
+export function HistoryScreen({ entries, onBack, openAccountOnMount = false, onDelete, onClear, user, sync, onSignIn, onEmailAuth, onSignOut, onDeleteAccount, onSync, storeKit }: Props) {
   const [accountOpen, setAccountOpen] = useState(false);
   const [proOpen, setProOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'sign-in' | 'sign-up'>('sign-in');
@@ -50,6 +51,10 @@ export function HistoryScreen({ entries, onBack, onDelete, onClear, user, sync, 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (openAccountOnMount) setAccountOpen(true);
+  }, [openAccountOnMount]);
 
   const submitEmail = async () => {
     if (!email.trim() || password.length < 8 || (authMode === 'sign-up' && !name.trim())) {
