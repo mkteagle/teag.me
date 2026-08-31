@@ -207,7 +207,7 @@ export function HistoryScreen({ entries, onBack, openAccountOnMount = false, onD
             <Text style={styles.accountTitle}>Keep every link.</Text>
             <Text style={styles.accountBody}>Free includes 100 cloud-synced URLs. Pro removes that limit and unlocks the full teag.me web toolkit on the same account.</Text>
             <View style={styles.proFeature}><Text style={styles.proCheck}>✓</Text><Text style={styles.proFeatureText}>Unlimited synced URL history</Text></View>
-            <View style={styles.proFeature}><Text style={styles.proCheck}>✓</Text><Text style={styles.proFeatureText}>100 dynamic QR codes</Text></View>
+            <View style={styles.proFeature}><Text style={styles.proCheck}>✓</Text><Text style={styles.proFeatureText}>Unlimited dynamic QR codes</Text></View>
             <View style={styles.proFeature}><Text style={styles.proCheck}>✓</Text><Text style={styles.proFeatureText}>50,000 tracked scans per month</Text></View>
             <Pressable disabled={storeKit.busy || !storeKit.available} style={[styles.emailButton, (storeKit.busy || !storeKit.available) && styles.disabled]} onPress={() => { capture('pro_purchase_started'); storeKit.purchase(); }}>
               <Text style={styles.emailButtonText}>{storeKit.busy ? 'Connecting to App Store…' : `Subscribe · ${storeKit.price}/month`}</Text>

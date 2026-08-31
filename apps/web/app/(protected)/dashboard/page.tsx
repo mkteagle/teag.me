@@ -51,7 +51,7 @@ export default function DashboardPage() {
     if (searchParams.get("upgraded") === "true") {
       toast({
         title: "Welcome to Pro! 🎉",
-        description: "Your account has been upgraded. Enjoy 100 QR codes, 50k scans/month, and all Pro features.",
+        description: "Your account has been upgraded. Enjoy unlimited QR codes, 50k scans/month, and all Pro features.",
       });
       router.replace("/dashboard");
     }
@@ -192,7 +192,7 @@ export default function DashboardPage() {
           <PartyPopper className="h-5 w-5 shrink-0 text-primary" />
           <div className="flex-1">
             <p className="text-sm font-semibold">You&apos;re on Pro!</p>
-            <p className="text-xs text-muted-foreground">100 QR codes, 50k scans/month, and all Pro features are now unlocked.</p>
+            <p className="text-xs text-muted-foreground">Unlimited QR codes, 50k scans/month, and all Pro features are now unlocked.</p>
           </div>
         </div>
       )}

@@ -102,7 +102,7 @@ export default function ScannerLandingPage() {
           <div className="m-3 rounded-[22px] bg-[#101217] p-8 text-[#FFFDF8] sm:p-10 lg:m-4">
             <div className="font-mono text-[10px] tracking-[0.16em] text-[#FF8A3D]">TEAG.ME PRO</div>
             <div className="mt-2 font-heading text-4xl font-extrabold">$2.99<span className="text-sm font-normal text-[#9AA1AE]"> / month</span></div>
-            <ul className="mt-8 space-y-4 text-sm text-[#D3D7DE]"><li>✓ Unlimited cloud-synced scanner history</li><li>✓ 100 active dynamic QR codes</li><li>✓ 50,000 tracked scans each month</li><li>✓ Full teag.me web toolkit</li></ul>
+            <ul className="mt-8 space-y-4 text-sm text-[#D3D7DE]"><li>✓ Unlimited cloud-synced scanner history</li><li>✓ Unlimited active dynamic QR codes</li><li>✓ 50,000 tracked scans each month</li><li>✓ Full teag.me web toolkit</li></ul>
             <AppStoreBadge href={STORE_URL} className="mt-8 w-full justify-center border border-white/10 bg-white text-[#15181F] shadow-none" />
             <p className="mt-4 text-center text-[11px] leading-[1.5] text-[#777E8B]">Auto-renews monthly. Cancel anytime in App Store settings.</p>
           </div>

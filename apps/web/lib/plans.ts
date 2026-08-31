@@ -23,7 +23,7 @@ export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
     maxSyncedCaptures: 100,
   },
   PRO: {
-    maxActiveQrCodes: 100,
+    maxActiveQrCodes: -1, // unlimited
     maxScansPerMonth: 50_000,
     analyticsRetentionDays: -1, // unlimited
     logoUpload: true,

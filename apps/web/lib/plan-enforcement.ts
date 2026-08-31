@@ -61,7 +61,9 @@ export async function checkQrCodeLimit(
     );
 
   return {
-    allowed: Number(activeCount) < userPlan.limits.maxActiveQrCodes,
+    allowed:
+      userPlan.limits.maxActiveQrCodes === -1 ||
+      Number(activeCount) < userPlan.limits.maxActiveQrCodes,
     current: Number(activeCount),
     limit: userPlan.limits.maxActiveQrCodes,
     plan: userPlan.plan,

@@ -13,7 +13,7 @@ const freeFeatures = [
 ];
 
 const proFeatures = [
-  "100 active dynamic QR codes",
+  "Unlimited active dynamic QR codes",
   "50,000 tracked scans per month",
   "Unlimited retention and CSV exports",
   "Logo uploads and saved brand styles",
@@ -178,15 +178,16 @@ function UsageMeter({
   current: number;
   limit: number;
 }) {
-  const pct = Math.min((current / limit) * 100, 100);
-  const isAtLimit = current >= limit;
+  const unlimited = limit === -1;
+  const pct = unlimited ? 0 : Math.min((current / limit) * 100, 100);
+  const isAtLimit = !unlimited && current >= limit;
 
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
         <span className={isAtLimit ? "font-medium text-destructive" : ""}>
-          {current.toLocaleString()} / {limit.toLocaleString()}
+          {unlimited ? `${current.toLocaleString()} · Unlimited` : `${current.toLocaleString()} / ${limit.toLocaleString()}`}
         </span>
       </div>
       <div className="mt-2 h-2 rounded-full bg-secondary">
@@ -194,7 +195,7 @@ function UsageMeter({
           className={`h-2 rounded-full transition-all ${
             isAtLimit ? "bg-destructive" : "bg-primary"
           }`}
-          style={{ width: `${pct}%` }}
+          style={{ width: unlimited ? "100%" : `${pct}%` }}
         />
       </div>
     </div>

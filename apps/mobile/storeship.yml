@@ -98,7 +98,7 @@ ios:
           period: ONE_MONTH
           price: 2.99
           name: teag.me Pro Monthly
-          description: Unlimited synced URL history, 100 dynamic QR codes, and 50,000 tracked scans per month.
+          description: Unlimited QR codes and history, 50K scans monthly.
           group_level: 1
           family_shareable: false
           review_note: >-
