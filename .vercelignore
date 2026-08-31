@@ -1,13 +1,19 @@
-# Native projects are generated locally for Storeship/Xcode builds. CocoaPods
-# contains symlinks and binary frameworks that Vercel must never archive for the
-# Next.js deployment.
-apps/mobile/ios/
-apps/mobile/android/
+# The Expo scanner is built and shipped by Storeship, never Vercel. Exclude the
+# entire workspace so generated CocoaPods symlinks and native binaries cannot be
+# discovered, archived, or treated as another deployable application.
+apps/mobile
+apps/mobile/**
 
 # Local build artifacts and dependencies are restored by Vercel from manifests.
-node_modules/
-**/node_modules/
-**/.next/
-**/.expo/
-**/dist/
-.git/
+node_modules
+node_modules/**
+**/node_modules
+**/node_modules/**
+**/.next
+**/.next/**
+**/.expo
+**/.expo/**
+**/dist
+**/dist/**
+.git
+.git/**
