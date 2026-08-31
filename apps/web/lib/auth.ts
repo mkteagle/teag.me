@@ -5,6 +5,10 @@ import { passkey } from "@better-auth/passkey";
 import { expo } from "@better-auth/expo";
 import { getDb } from "@/lib/db";
 import {
+  getAppleClientSecret,
+  isAppleAuthConfigured,
+} from "@/lib/apple-client-secret";
+import {
   accounts,
   passkeys,
   qrCodes,
@@ -31,7 +35,7 @@ function getSecret() {
 }
 
 function getSocialProviders() {
-  const providers: Record<string, Record<string, string>> = {};
+  const providers: Record<string, unknown> = {};
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     providers.google = {
@@ -48,11 +52,15 @@ function getSocialProviders() {
     };
   }
 
-  if (process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET) {
-    providers.apple = {
-      clientId: process.env.APPLE_CLIENT_ID,
-      clientSecret: process.env.APPLE_CLIENT_SECRET,
-    };
+  if (isAppleAuthConfigured()) {
+    providers.apple = async () => ({
+      clientId: process.env.APPLE_CLIENT_ID!.trim(),
+      clientSecret: await getAppleClientSecret(),
+      audience: [
+        process.env.APPLE_CLIENT_ID?.trim(),
+        process.env.APPLE_BUNDLE_ID?.trim() ?? "me.teag.scanner",
+      ].filter(Boolean) as string[],
+    });
   }
 
   return providers;
@@ -74,6 +82,7 @@ export const auth = betterAuth({
     },
   }),
   trustedOrigins: [
+    "https://appleid.apple.com",
     "teagme-scanner://",
     "teagme-scanner://*",
     ...(process.env.NODE_ENV === "development"

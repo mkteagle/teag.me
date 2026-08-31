@@ -1,4 +1,5 @@
 import { LoginPageClient } from "@/components/auth/login-page-client";
+import { isAppleAuthConfigured } from "@/lib/apple-client-secret";
 
 export default function LoginPage() {
   const providers = [
@@ -8,9 +9,7 @@ export default function LoginPage() {
     process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
       ? "github"
       : null,
-    process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
-      ? "apple"
-      : null,
+    isAppleAuthConfigured() ? "apple" : null,
   ].filter((provider): provider is "google" | "github" | "apple" =>
     Boolean(provider)
   );
