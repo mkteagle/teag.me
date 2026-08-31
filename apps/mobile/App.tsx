@@ -33,6 +33,7 @@ import { authClient, signInWithEmail, signInWithProvider, signUpWithEmail, type 
 import { clearCloudHistory, deleteCloudEntry, syncHistory, type SyncSummary } from './lib/history-sync';
 import { useStoreKitPro } from './lib/storekit';
 import { capture, identify, resetAnalytics } from './lib/analytics';
+import { resolveScan } from './lib/resolveScan';
 
 const ACCENT = colors.accent; // '#0F7BFF' — brand primary blue
 
@@ -97,9 +98,11 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.data?.user?.id, historyReady, history.length]);
 
-  const presentScan = useCallback((nextScan: Scan, source: CaptureSource) => {
+  const presentScan = useCallback(async (scannedValue: Scan, source: CaptureSource) => {
+    const nextScan = await resolveScan(scannedValue);
+    const resolvedTeagMeLink = nextScan.raw !== scannedValue.raw;
     setScan(nextScan);
-    capture('qr_code_scanned', { kind: nextScan.kind, source });
+    capture('qr_code_scanned', { kind: nextScan.kind, source, resolved_teag_me_link: resolvedTeagMeLink });
     const entry = createHistoryEntry(nextScan, source);
     if (!entry) return;
     setHistory((current) => {
@@ -112,7 +115,7 @@ export default function App() {
   const handleScanned = useCallback((result: BarcodeScanningResult) => {
     if (locked.current) return;
     locked.current = true;
-    presentScan(parseScan(result.data), 'camera');
+    void presentScan(parseScan(result.data), 'camera');
   }, [presentScan]);
 
   const reset = useCallback(() => {
@@ -137,7 +140,7 @@ export default function App() {
       const found = await scanFromURLAsync(result.assets[0].uri, ['qr']);
       if (found.length > 0) {
         locked.current = true;
-        presentScan(parseScan(found[0].data), 'photo');
+        await presentScan(parseScan(found[0].data), 'photo');
       } else {
         setNoQrFound(true);
         capture('photo_scan_no_qr');
