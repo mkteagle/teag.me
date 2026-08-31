@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Terms of Service | teag.me Scanner",
     description:
-      "Plainspoken terms for the free teag.me Scanner app. Provided as is, with no warranty about third-party links.",
+      "Plainspoken terms for teag.me Scanner and the optional teag.me Pro subscription. Provided as is, with no warranty about third-party links.",
     url: "/scanner/terms",
     type: "website",
   },
@@ -30,7 +30,8 @@ export default function ScannerTermsPage() {
 
       <LegalSection title="License to use the app">
         <p>
-          teag.me Scanner is provided free of charge. We grant you a personal,
+          teag.me Scanner includes free scanning and local history, with an
+          optional paid teag.me Pro subscription. We grant you a personal,
           non-exclusive, non-transferable, revocable license to install and use
           the app on devices you own or control, for both personal and
           commercial use, subject to these Terms and the App Store Terms of
@@ -112,8 +113,8 @@ export default function ScannerTermsPage() {
           To the fullest extent permitted by law, teag.me will not be liable for
           any indirect, incidental, special, consequential, or punitive damages,
           or for any loss arising from your use of the app or from any site,
-          network, or content you reach through a scanned code. Because the app
-          is provided free of charge, our total liability to you for any claim
+          network, or content you reach through a scanned code. Our total
+          liability to you for any claim
           relating to the app is limited to the amount you paid to us for the app
           or service during the twelve months before the claim.
         </p>
