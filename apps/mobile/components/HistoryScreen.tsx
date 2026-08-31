@@ -118,7 +118,7 @@ export function HistoryScreen({ entries, onBack, openAccountOnMount = false, onD
         <View style={styles.empty}>
           <View style={styles.emptyIcon}><Text style={styles.emptyGlyph}>↗</Text></View>
           <Text style={styles.emptyTitle}>No links yet</Text>
-          <Text style={styles.emptyBody}>URLs you scan will appear here so you can find them again.</Text>
+          <Text style={styles.emptyBody}>URLs you scan or create will appear here so you can find them again.</Text>
           <Pressable style={styles.scanButton} onPress={onBack}>
             <Text style={styles.scanButtonText}>Scan a QR code</Text>
           </Pressable>

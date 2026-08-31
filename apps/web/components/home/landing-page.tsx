@@ -45,7 +45,7 @@ function Nav() {
           Pricing
         </Link>
         <Link href="/scanner" className="hidden hover:text-[#15181F] sm:inline">
-          Scanner app
+          QR Code app
         </Link>
         <Button asChild className="h-auto rounded-[10px] px-[18px] py-2.5 text-[14px]">
           <Link href="/auth/login">Create a code</Link>
@@ -682,7 +682,7 @@ function FooterCta() {
           </Link>
           <div className="flex gap-[26px] text-[13.5px] text-[#9AA1AE]">
             <Link href="/scanner" className="hover:text-[#FFFDF8]">
-              Scanner app
+              QR Code app
             </Link>
             <Link href="#pricing" className="hover:text-[#FFFDF8]">
               Pricing

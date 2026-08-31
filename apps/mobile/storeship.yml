@@ -1,4 +1,4 @@
-# storeship project config for "teag.me scanner" — a managed Expo (SDK 56 / CNG) app.
+# storeship project config for "QR Code by teag.me" — a managed Expo (SDK 56 / CNG) app.
 # Secrets are referenced by env/path, never inlined.
 #
 #   storeship ship --config storeship.yml --platform ios --dry-run
@@ -29,7 +29,7 @@
 #   storeship style --config storeship.yml \
 #     --raw store/screenshots/raw --out store/screenshots/styled/en-US
 
-name: teag.me scanner
+name: QR Code by teag.me
 repo: ~/developer/teag.me/apps/mobile
 locales: [en-US]
 
@@ -84,9 +84,9 @@ ios:
       credentials, and plain-text codes are never uploaded.
   what_to_test: >-
     Scan QR codes anonymously, inspect the destination before opening it, and
-    scan from a saved photo. Then sign in with the review account from History
-    and verify URL-only history sync. Test sign out and account deletion from
-    the Account sheet.
+    scan from a saved photo. Create and share a static QR code without signing
+    in. Then sign in with the review account and create a tracked teag.me code.
+    Verify URL-only history sync, sign out, and account deletion.
   # App Store Server Notifications V2 URL (configure once in App Store Connect):
   # https://teag.me/api/app-store/notifications
   subscription_groups:
@@ -129,10 +129,10 @@ metadata_ai:
   provider: claude
   fields: [release_notes]
   app_summary: >-
-    teag.me scanner is a privacy-first QR code reader. It decodes camera images
-    on-device and shows the full URL and domain before opening. Anonymous use is
-    free; signed-in users can optionally sync URL-only history to teag.me. Wi-Fi
-    passwords and plain-text codes are never saved or uploaded.
+    QR Code by teag.me is a privacy-first QR scanner and creator. It decodes
+    camera images on-device, creates free static codes, and lets signed-in users
+    make editable tracked teag.me codes. URLs and QR contents are excluded from
+    analytics.
   paths: ["apps/mobile"]
 
 # Brand palette + per-screenshot captions for the Pillow framer.

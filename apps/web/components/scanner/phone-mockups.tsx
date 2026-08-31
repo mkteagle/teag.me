@@ -9,7 +9,7 @@ export function HeroPhone() {
     <div
       className="relative h-[620px] w-[300px] rounded-[48px] border border-[#2A2A2C] bg-[#0A0A0A] p-[11px] shadow-[0_40px_90px_rgba(17,24,39,0.28)]"
       role="img"
-      aria-label="teag.me scanner showing a decoded link for marriott.com"
+      aria-label="QR Code by teag.me showing a decoded link for marriott.com"
     >
       <div className="relative h-full w-full overflow-hidden rounded-[38px] bg-[linear-gradient(155deg,#1A1C20,#0E1013)]">
         <div className="absolute inset-0 bg-[rgba(10,10,10,0.5)]" />
@@ -162,7 +162,7 @@ export function GalleryPermission() {
         <div className="mb-3 font-heading text-lg font-bold text-[#FFFDF8]">
           teag.me{" "}
           <span className="font-mono text-[8px] tracking-[0.18em] text-primary">
-            SCANNER
+            QR CODE
           </span>
         </div>
         <p className="mb-[22px] text-[12.5px] leading-[1.5] text-[#9AA1AE]">

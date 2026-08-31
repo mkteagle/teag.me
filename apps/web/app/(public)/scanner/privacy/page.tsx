@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { LegalSection, LegalShell } from "@/components/scanner/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | teag.me Scanner",
+  title: "Privacy Policy | QR Code by teag.me",
   description: "Scan anonymously on-device or optionally sign in to sync URL-only history.",
   openGraph: {
-    title: "Privacy Policy | teag.me Scanner",
+    title: "Privacy Policy | QR Code by teag.me",
     description: "QR codes decode on-device. Optional accounts sync URL-only history; Wi-Fi and text codes are never uploaded.",
     url: "/scanner/privacy",
     type: "website",
@@ -16,7 +16,7 @@ export default function ScannerPrivacyPage() {
   return (
     <LegalShell eyebrow="teag.me/scanner/privacy" title="Privacy Policy" lastUpdated="August 2026">
       <p>
-        This Privacy Policy explains how teag.me Scanner handles your information. The app is designed to scan privately without an account. If you choose to sign in, URL-only history can sync to your teag.me account.
+        This Privacy Policy explains how QR Code by teag.me handles your information. The app is designed to scan and create static QR codes without an account. If you choose to sign in, URL-only history and tracked codes can sync to your teag.me account.
       </p>
 
       <LegalSection title="The short version">

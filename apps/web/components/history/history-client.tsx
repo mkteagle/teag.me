@@ -94,7 +94,7 @@ export function HistoryClient() {
           </div>
           <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">History</h1>
           <p className="mt-3 max-w-xl text-muted-foreground">
-            Links captured by the teag.me scanner, backed up to your account and available anywhere.
+            Links scanned or created with QR Code by teag.me, backed up to your account and available anywhere.
           </p>
         </div>
         <Button variant="outline" onClick={clear} disabled={entries.length === 0 || clearing}>

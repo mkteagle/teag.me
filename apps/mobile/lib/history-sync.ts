@@ -9,7 +9,7 @@ type RemoteCapture = {
   rawValue: string;
   normalizedUrl: string;
   host: string;
-  source: 'camera' | 'photo' | 'web';
+  source: 'camera' | 'photo' | 'web' | 'created';
   capturedAt: string;
 };
 
@@ -66,7 +66,7 @@ export async function syncHistory(localEntries: HistoryEntry[]) {
       rawValue: item.rawValue,
       normalizedUrl: item.normalizedUrl,
       host: item.host,
-      source: item.source === 'photo' ? 'photo' : 'camera',
+      source: item.source === 'photo' || item.source === 'created' ? item.source : 'camera',
       capturedAt: item.capturedAt,
     });
   }

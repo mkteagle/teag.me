@@ -27,7 +27,7 @@ export function LegalShell({
           href="/scanner"
           className="text-sm font-medium text-[#3C424E] hover:text-foreground"
         >
-          ← Back to Scanner
+          ← Back to QR Code
         </Link>
       </header>
 

@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { LegalSection, LegalShell } from "@/components/scanner/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | teag.me Scanner",
+  title: "Terms of Service | QR Code by teag.me",
   description:
-    "Terms for teag.me Scanner, including the optional auto-renewing teag.me Pro subscription.",
+    "Terms for QR Code by teag.me, including the optional auto-renewing teag.me Pro subscription.",
   openGraph: {
-    title: "Terms of Service | teag.me Scanner",
+    title: "Terms of Service | QR Code by teag.me",
     description:
-      "Plainspoken terms for teag.me Scanner and the optional teag.me Pro subscription. Provided as is, with no warranty about third-party links.",
+      "Plainspoken terms for QR Code by teag.me and the optional teag.me Pro subscription. Provided as is, with no warranty about third-party links.",
     url: "/scanner/terms",
     type: "website",
   },
@@ -23,14 +23,14 @@ export default function ScannerTermsPage() {
     >
       <p>
         These Terms of Service (the &ldquo;Terms&rdquo;) are an agreement between
-        you and teag.me covering your use of the teag.me Scanner app (&ldquo;the
+        you and teag.me covering your use of the QR Code by teag.me app (&ldquo;the
         app&rdquo;). By downloading or using the app, you agree to these Terms.
         If you do not agree, please do not use the app.
       </p>
 
       <LegalSection title="License to use the app">
         <p>
-          teag.me Scanner includes free scanning and local history, with an
+          QR Code by teag.me includes free scanning, QR creation, and local history, with an
           optional paid teag.me Pro subscription. We grant you a personal,
           non-exclusive, non-transferable, revocable license to install and use
           the app on devices you own or control, for both personal and

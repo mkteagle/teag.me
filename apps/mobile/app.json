@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "teag.me scanner",
+    "name": "QR Code by teag.me",
     "slug": "teagme-scanner",
     "scheme": "teagme-scanner",
     "version": "1.0.0",
@@ -30,19 +30,21 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "teag.me scanner uses the camera to read QR codes you point it at.",
+          "cameraPermission": "QR Code by teag.me uses the camera to read QR codes you point it at.",
           "barcodeScannerEnabled": true
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "teag.me scanner reads a QR code from a photo you choose. The image is decoded on your device and never uploaded."
+          "photosPermission": "QR Code by teag.me reads a QR code from a photo you choose. The image is decoded on your device and never uploaded."
         }
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-iap"
+      "expo-iap",
+      "expo-sharing",
+      "expo-media-library"
     ]
   }
 }

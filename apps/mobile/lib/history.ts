@@ -4,7 +4,7 @@ import type { Scan } from './parseScan';
 
 const HISTORY_KEY = 'teag.me.scan-history.v1';
 
-export type CaptureSource = 'camera' | 'photo';
+export type CaptureSource = 'camera' | 'photo' | 'created';
 
 export type HistoryEntry = {
   clientId: string;
@@ -65,7 +65,7 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     typeof entry.rawValue === 'string' &&
     typeof entry.normalizedUrl === 'string' &&
     typeof entry.host === 'string' &&
-    (entry.source === 'camera' || entry.source === 'photo') &&
+    (entry.source === 'camera' || entry.source === 'photo' || entry.source === 'created') &&
     typeof entry.capturedAt === 'string'
   );
 }

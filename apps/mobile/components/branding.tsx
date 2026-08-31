@@ -11,7 +11,7 @@ export function Wordmark({ size = 17 }: { size?: number }) {
   );
 }
 
-// Mono uppercase SCANNER tag, blue, optionally outlined.
+// Mono uppercase QR CODE tag, blue, optionally outlined.
 export function ScannerTag({ size = 8, outlined = false }: { size?: number; outlined?: boolean }) {
   return (
     <Text
@@ -22,7 +22,7 @@ export function ScannerTag({ size = 8, outlined = false }: { size?: number; outl
       ]}
       allowFontScaling={false}
     >
-      SCANNER
+      QR CODE
     </Text>
   );
 }

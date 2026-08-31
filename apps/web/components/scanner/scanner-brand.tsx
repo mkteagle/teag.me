@@ -55,7 +55,7 @@ export function ScannerLogo({
   );
 }
 
-/** Wordmark lockup: mark + "teag.me" + the blue SCANNER tag. */
+/** Wordmark lockup: mark + "teag.me" + the blue QR CODE tag. */
 export function ScannerWordmark({
   logoSize = 30,
   wordmarkClassName,
@@ -84,7 +84,7 @@ export function ScannerWordmark({
       </span>
       {showTag && (
         <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary">
-          Scanner
+          QR Code
         </span>
       )}
     </div>

@@ -25,6 +25,7 @@ import { LogoTile, PulsingDot, Wordmarks } from './components/branding';
 import { Reticle } from './components/Reticle';
 import { ResultSheet } from './components/ResultSheet';
 import { HistoryScreen } from './components/HistoryScreen';
+import { CreateScreen } from './components/CreateScreen';
 import { SafetyTeaser } from './components/SafetyTeaser';
 import { ShotHarness } from './components/ShotHarness';
 import { SHOT } from './shot';
@@ -34,6 +35,7 @@ import { clearCloudHistory, deleteCloudEntry, syncHistory, type SyncSummary } fr
 import { useStoreKitPro } from './lib/storekit';
 import { capture, identify, resetAnalytics } from './lib/analytics';
 import { resolveScan } from './lib/resolveScan';
+import type { GeneratedQr } from './lib/qr-generator';
 
 const ACCENT = colors.accent; // '#0F7BFF' — brand primary blue
 
@@ -47,6 +49,7 @@ export default function App() {
   const [decoding, setDecoding] = useState(false);
   const [noQrFound, setNoQrFound] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const [openAccountOnHistory, setOpenAccountOnHistory] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyReady, setHistoryReady] = useState(false);
@@ -236,6 +239,22 @@ export default function App() {
     setShowHistory(false);
   }, []);
 
+  const handleCreated = useCallback((qr: GeneratedQr) => {
+    const entry = createHistoryEntry(parseScan(qr.encodedUrl), 'created');
+    if (!entry) return;
+    setHistory((current) => {
+      const next = [entry, ...current];
+      void saveHistory(next);
+      return next;
+    });
+  }, []);
+
+  const signInFromCreate = useCallback(() => {
+    setShowCreate(false);
+    setOpenAccountOnHistory(true);
+    setShowHistory(true);
+  }, []);
+
   const open = useCallback(() => {
     if (scan?.kind === 'url') {
       capture('scan_result_opened', { kind: 'url' });
@@ -254,6 +273,20 @@ export default function App() {
   // Screenshot harness (no-op in production: SHOT is null). Placed after all
   // hooks so hook order stays stable when Fast Refresh swaps the flag.
   if (SHOT) return <ShotHarness shot={SHOT} />;
+
+  if (showCreate) {
+    return (
+      <>
+        <CreateScreen
+          signedIn={Boolean(session.data?.user)}
+          onSignIn={signInFromCreate}
+          onCreated={handleCreated}
+          onClose={() => setShowCreate(false)}
+        />
+        <StatusBar style="light" />
+      </>
+    );
+  }
 
   if (showHistory) {
     return (
@@ -304,6 +337,12 @@ export default function App() {
             onPress={requestPermission}
           >
             <Text style={styles.enableBtnText}>Enable camera</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.createBtnOutline, pressed && styles.pressed]}
+            onPress={() => { capture('create_opened', { source: 'permission_screen' }); setShowCreate(true); }}
+          >
+            <Text style={styles.createBtnOutlineText}>Create a QR code</Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.photoBtnOutline, pressed && styles.pressed]}
@@ -369,9 +408,14 @@ export default function App() {
             >
               <Text style={styles.photoPillText}>⤓  Scan from photo</Text>
             </Pressable>
-            <Pressable style={styles.historyPill} onPress={() => { capture('history_opened', { saved_link_count: history.length }); setShowHistory(true); }}>
-              <Text style={styles.historyPillText}>History{history.length > 0 ? `  ·  ${history.length}` : ''}</Text>
-            </Pressable>
+            <View style={styles.navRow}>
+              <Pressable style={styles.createPill} onPress={() => { capture('create_opened', { source: 'scanner' }); setShowCreate(true); }}>
+                <Text style={styles.createPillText}>＋ Create</Text>
+              </Pressable>
+              <Pressable style={styles.historyPill} onPress={() => { capture('history_opened', { saved_link_count: history.length }); setShowHistory(true); }}>
+                <Text style={styles.historyPillText}>History{history.length > 0 ? `  ·  ${history.length}` : ''}</Text>
+              </Pressable>
+            </View>
             {__DEV__ && (
               <Pressable style={styles.devToggle} onPress={() => setShowTeaser(true)}>
                 <Text style={styles.devToggleText}>preview safety check</Text>
@@ -468,6 +512,17 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.16)',
   },
   photoBtnOutlineText: { color: colors.white, fontSize: 15, fontWeight: '600' },
+  createBtnOutline: {
+    alignSelf: 'stretch',
+    marginTop: 12,
+    paddingVertical: 15,
+    borderRadius: 15,
+    alignItems: 'center',
+    backgroundColor: 'rgba(15,123,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(15,123,255,0.35)',
+  },
+  createBtnOutlineText: { color: '#74B4FF', fontSize: 15, fontWeight: '700' },
   noQrText: {
     color: colors.orange,
     fontSize: 13,
@@ -542,6 +597,16 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   historyPillText: { color: colors.white, fontSize: 13, fontWeight: '600' },
+  navRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  createPill: {
+    backgroundColor: 'rgba(15,123,255,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.16)',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
+  createPillText: { color: colors.pureWhite, fontSize: 13, fontWeight: '700' },
   decodingOverlay: {
     position: 'absolute',
     top: 0,

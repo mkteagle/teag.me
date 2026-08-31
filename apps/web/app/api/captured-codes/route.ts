@@ -46,7 +46,7 @@ function parseCapture(value: IncomingCapture, userId: string) {
     return null;
   }
 
-  const source = value.source === "photo" || value.source === "web" ? value.source : "camera";
+  const source = value.source === "photo" || value.source === "web" || value.source === "created" ? value.source : "camera";
   return {
     id: crypto.randomUUID(),
     clientId: value.clientId,
