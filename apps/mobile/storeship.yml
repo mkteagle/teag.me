@@ -145,6 +145,6 @@ brand:
   captions:
     01_scan.png:    { eyebrow: "Point and scan",   headline: "Read any QR code, instantly." }
     02_link.png:    { eyebrow: "See the real link", headline: "Know where it goes before you tap." }
-    03_history.png: { eyebrow: "Keep useful links",  headline: "Your QR history, ready when you need it." }
-    04_photo.png:   { eyebrow: "Scan from Photos",   headline: "Decode screenshots without opening the camera." }
-    05_privacy.png: { eyebrow: "Private by default", headline: "Only URL history syncs when you sign in." }
+    03_create.png:  { eyebrow: "Make your own",      headline: "Create static or trackable QR codes." }
+    04_history.png: { eyebrow: "Keep useful links",  headline: "Your QR history, ready when you need it." }
+    05_photo.png:   { eyebrow: "Private by default", headline: "Scan saved images without uploading them." }

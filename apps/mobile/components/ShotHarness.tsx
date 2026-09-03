@@ -8,6 +8,7 @@ import { parseScan } from '../lib/parseScan';
 import { LogoTile, PulsingDot, Wordmarks } from './branding';
 import { Reticle } from './Reticle';
 import { ResultSheet } from './ResultSheet';
+import { CreateScreen } from './CreateScreen';
 import type { ShotKey } from '../shot';
 
 const ACCENT = colors.accent;
@@ -30,6 +31,19 @@ function Scene() {
 }
 
 export function ShotHarness({ shot }: { shot: ShotKey }) {
+  if (shot === 'create') {
+    return (
+      <CreateScreen
+        signedIn
+        initialUrl="kindling.studio/menu"
+        initialTracked
+        onSignIn={noop}
+        onCreated={noop}
+        onClose={noop}
+      />
+    );
+  }
+
   if (shot === 'privacy' || shot === 'photo') {
     return (
       <SafeAreaView style={styles.permScreen}>
@@ -69,7 +83,7 @@ export function ShotHarness({ shot }: { shot: ShotKey }) {
         <View style={styles.historyList}>
           {[
             ['openai.com', 'https://openai.com/research', 'JUST NOW · CAMERA'],
-            ['apps.apple.com', 'https://apps.apple.com/app/teag-me-scanner', '8M AGO · PHOTO'],
+            ['apps.apple.com', 'https://apps.apple.com/app/qr-code-by-teag-me', '8M AGO · PHOTO'],
             ['nationalparks.org', 'https://www.nationalparks.org/explore', 'YESTERDAY · CAMERA'],
           ].map(([host, url, meta]) => (
             <View key={host} style={styles.historyCard}>

@@ -7,11 +7,18 @@ import { capture } from '../lib/analytics';
 import { generateQr, saveQr, shareQr, type GeneratedQr } from '../lib/qr-generator';
 import { Wordmarks } from './branding';
 
-type Props = { signedIn: boolean; onSignIn: () => void; onCreated: (qr: GeneratedQr) => void; onClose: () => void };
+type Props = {
+  signedIn: boolean;
+  onSignIn: () => void;
+  onCreated: (qr: GeneratedQr) => void;
+  onClose: () => void;
+  initialUrl?: string;
+  initialTracked?: boolean;
+};
 
-export function CreateScreen({ signedIn, onSignIn, onCreated, onClose }: Props) {
-  const [url, setUrl] = useState('');
-  const [tracked, setTracked] = useState(signedIn);
+export function CreateScreen({ signedIn, onSignIn, onCreated, onClose, initialUrl = '', initialTracked }: Props) {
+  const [url, setUrl] = useState(initialUrl);
+  const [tracked, setTracked] = useState(initialTracked ?? signedIn);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<GeneratedQr | null>(null);
   const [copied, setCopied] = useState(false);
