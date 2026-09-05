@@ -1,7 +1,15 @@
 import { LoginPageClient } from "@/components/auth/login-page-client";
 import { isAppleAuthConfigured } from "@/lib/apple-client-secret";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackURL?: string }>;
+}) {
+  const requestedCallback = (await searchParams).callbackURL;
+  const callbackURL = requestedCallback?.startsWith("/") && !requestedCallback.startsWith("//")
+    ? requestedCallback
+    : "/dashboard";
   const providers = [
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? "google"
@@ -14,5 +22,5 @@ export default function LoginPage() {
     Boolean(provider)
   );
 
-  return <LoginPageClient providers={providers} />;
+  return <LoginPageClient providers={providers} callbackURL={callbackURL} />;
 }

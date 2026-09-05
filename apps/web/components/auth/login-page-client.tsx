@@ -12,8 +12,10 @@ type Provider = "google" | "github" | "apple";
 
 export function LoginPageClient({
   providers,
+  callbackURL,
 }: {
   providers: Provider[];
+  callbackURL: string;
 }) {
   const router = useRouter();
   const isInAppBrowser = useDetectInAppBrowser();
@@ -26,9 +28,9 @@ export function LoginPageClient({
 
   useEffect(() => {
     if (!isPending && session?.user) {
-      router.replace("/dashboard");
+      router.replace(callbackURL);
     }
-  }, [isPending, router, session]);
+  }, [callbackURL, isPending, router, session]);
 
   const handleOpenBrowser = () => {
     window.location.href = window.location.href;
@@ -94,7 +96,7 @@ export function LoginPageClient({
         </div>
 
         <div className="mt-8 rounded-2xl border border-black/8 bg-white/60 p-5">
-          <LoginButton providers={providers} />
+          <LoginButton providers={providers} callbackURL={callbackURL} />
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">

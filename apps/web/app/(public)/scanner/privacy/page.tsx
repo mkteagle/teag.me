@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function ScannerPrivacyPage() {
   return (
-    <LegalShell eyebrow="teag.me/scanner/privacy" title="Privacy Policy" lastUpdated="August 2026">
+    <LegalShell eyebrow="teag.me/scanner/privacy" title="Privacy Policy" lastUpdated="September 4, 2026">
       <p>
         This Privacy Policy explains how QR Code by teag.me handles your information. The app is designed to scan and create static QR codes without an account. If you choose to sign in, URL-only history and tracked codes can sync to your teag.me account.
       </p>
@@ -51,7 +51,13 @@ export default function ScannerPrivacyPage() {
 
       <LegalSection title="Retention and deletion">
         <p>
-          Local history remains until you delete it or remove the app. Synced history remains until you delete links, clear history, or delete your account. Permanently delete your account and cloud history from History &gt; Account &gt; Delete account.
+          Local history remains until you clear it or remove the app. Individual synced links remain until you delete them, and synced history remains until you clear it or delete your account.
+        </p>
+        <p>
+          You can permanently delete your account inside the app from History &gt; Account &gt; Delete account, or from our public <a href="/scanner/delete-account">account deletion page</a>. Deletion removes your profile, authentication records, synced URL history, tracked QR codes, associated scan analytics, and teag.me subscription-entitlement record from our primary database. This cannot be undone.
+        </p>
+        <p>
+          Deleting your teag.me account does not automatically cancel an active Apple subscription because Apple controls App Store billing. Cancel it separately in your Apple ID subscription settings to prevent future renewals. Apple retains purchase records under its own policies.
         </p>
       </LegalSection>
 

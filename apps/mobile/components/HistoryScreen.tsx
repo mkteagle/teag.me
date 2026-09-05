@@ -68,7 +68,10 @@ export function HistoryScreen({ entries, onBack, openAccountOnMount = false, onD
   };
 
   const confirmDeleteAccount = () => {
-    Alert.alert('Delete your account?', 'This permanently deletes your teag.me account and cloud URL history. This cannot be undone.', [
+    const subscriptionNote = storeKit.isPro
+      ? ' Your Apple subscription is billed by Apple and must be canceled separately in App Store settings.'
+      : '';
+    Alert.alert('Permanently delete your account?', `This deletes your profile, synced URL history, tracked QR codes, and their scan analytics. This cannot be undone.${subscriptionNote}`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete account',
@@ -173,6 +176,9 @@ export function HistoryScreen({ entries, onBack, openAccountOnMount = false, onD
                 <Pressable style={styles.deleteAccountButton} onPress={confirmDeleteAccount}>
                   <Text style={styles.deleteAccountText}>Delete account and cloud history</Text>
                 </Pressable>
+                <Pressable onPress={() => Linking.openURL('https://teag.me/scanner/delete-account')}>
+                  <Text style={styles.deletionDetails}>Account deletion details</Text>
+                </Pressable>
               </>
             ) : (
               <>
@@ -221,6 +227,8 @@ export function HistoryScreen({ entries, onBack, openAccountOnMount = false, onD
               <Pressable onPress={() => Linking.openURL('https://teag.me/scanner/terms')}><Text style={styles.legalLink}>Terms</Text></Pressable>
               <Text style={styles.legalDot}>·</Text>
               <Pressable onPress={() => Linking.openURL('https://teag.me/scanner/privacy')}><Text style={styles.legalLink}>Privacy</Text></Pressable>
+              <Text style={styles.legalDot}>·</Text>
+              <Pressable onPress={() => Linking.openURL('https://teag.me/scanner/delete-account')}><Text style={styles.legalLink}>Delete account</Text></Pressable>
             </View>
           </Pressable>
         </Pressable>
@@ -285,6 +293,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: { color: colors.orange, fontSize: 15, fontWeight: '600' },
   deleteAccountButton: { alignItems: 'center', paddingVertical: 16 },
   deleteAccountText: { color: colors.orange, fontSize: 13, fontWeight: '600' },
+  deletionDetails: { color: colors.mutedCool, fontSize: 12, fontWeight: '600', textAlign: 'center', paddingBottom: 6 },
   proActive: { borderWidth: 1, borderColor: 'rgba(15,123,255,0.35)', backgroundColor: 'rgba(15,123,255,0.12)', borderRadius: 12, padding: 12, marginBottom: 10 },
   proActiveText: { color: colors.accent, fontFamily: MONO, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center' },
   manageText: { color: colors.mutedCool, fontSize: 11, fontWeight: '600', textAlign: 'center', marginTop: 5 },

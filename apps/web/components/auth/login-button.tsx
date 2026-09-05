@@ -21,8 +21,10 @@ const PROVIDER_CLASSES: Record<Provider, string> = {
 
 export default function LoginButton({
   providers,
+  callbackURL = "/dashboard",
 }: {
   providers: Provider[];
+  callbackURL?: string;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [loadingProvider, setLoadingProvider] = useState<Provider | null>(null);
@@ -38,7 +40,7 @@ export default function LoginButton({
         setPasskeyLoading(false);
         return;
       }
-      window.location.href = "/dashboard";
+      window.location.href = callbackURL;
     } catch (passkeyError) {
       console.error("Passkey sign-in failed:", passkeyError);
       setError(
@@ -56,7 +58,7 @@ export default function LoginButton({
       setLoadingProvider(provider);
       await authClient.signIn.social({
         provider,
-        callbackURL: "/dashboard",
+        callbackURL,
       });
     } catch (loginError) {
       console.error("Login failed:", loginError);

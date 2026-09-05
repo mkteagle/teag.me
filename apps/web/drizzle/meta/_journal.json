@@ -15,6 +15,13 @@
       "when": 1788097409811,
       "tag": "0001_app_store_entitlements",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788584934675,
+      "tag": "0002_numerous_goliath",
+      "breakpoints": true
     }
   ]
 }

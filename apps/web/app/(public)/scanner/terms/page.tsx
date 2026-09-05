@@ -19,7 +19,7 @@ export default function ScannerTermsPage() {
     <LegalShell
       eyebrow="teag.me/scanner/terms"
       title="Terms of Service"
-      lastUpdated="August 2026"
+      lastUpdated="September 4, 2026"
     >
       <p>
         These Terms of Service (the &ldquo;Terms&rdquo;) are an agreement between
@@ -36,6 +36,15 @@ export default function ScannerTermsPage() {
           the app on devices you own or control, for both personal and
           commercial use, subject to these Terms and the App Store Terms of
           Service.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Accounts and deletion">
+        <p>
+          An account is optional. You can permanently delete your account and synced data inside the app from History &gt; Account &gt; Delete account, or at our <a href="/scanner/delete-account">account deletion page</a>. Account deletion removes your profile, authentication records, synced URL history, tracked QR codes, their scan analytics, and your teag.me entitlement record. Deletion cannot be undone.
+        </p>
+        <p>
+          Deleting your account does not cancel an Apple subscription. You must manage or cancel App Store billing separately through your Apple ID subscription settings. If you delete an account with an active subscription, contact <a href="mailto:hello@teag.me">hello@teag.me</a> if you need help associating a valid purchase with a new account.
         </p>
       </LegalSection>
 

@@ -37,7 +37,7 @@ export const qrCodes = pgTable(
     routingUrl: text("routingUrl").notNull(),
     userId: text("userId")
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     logoUrl: text("logoUrl"),
     logoSize: integer("logoSize"),
     archived: boolean("archived").notNull().default(false),

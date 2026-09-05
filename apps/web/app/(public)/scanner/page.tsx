@@ -112,7 +112,7 @@ export default function ScannerLandingPage() {
       <footer className="w-full bg-[#15181F] text-[#FFFDF8]">
         <div className="full-bleed flex flex-wrap items-center justify-between gap-5 py-12">
           <ScannerWordmark wordmarkClassName="text-[#FFFDF8] text-[17px]" dotStroke="#15181F" />
-          <div className="flex flex-wrap gap-6 text-[13px] text-[#9AA1AE]"><Link href="/">teag.me web</Link><Link href="/scanner/privacy">Privacy</Link><Link href="/scanner/terms">Terms</Link></div>
+          <div className="flex flex-wrap gap-6 text-[13px] text-[#9AA1AE]"><Link href="/">teag.me web</Link><Link href="/scanner/privacy">Privacy</Link><Link href="/scanner/terms">Terms</Link><Link href="/scanner/delete-account">Delete account</Link></div>
           <div className="font-mono text-[11px] text-[#6B7280]">© 2026 teag.me</div>
         </div>
       </footer>

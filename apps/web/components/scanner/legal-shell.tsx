@@ -62,6 +62,9 @@ export function LegalShell({
             <Link href="/scanner/terms" className="hover:text-white">
               Terms of Service
             </Link>
+            <Link href="/scanner/delete-account" className="hover:text-white">
+              Delete Account
+            </Link>
           </div>
           <div className="font-mono text-[11px] text-[#6B7280]">
             © 2026 teag.me

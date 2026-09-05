@@ -225,6 +225,8 @@ export default function App() {
     setHistory([]);
     await saveHistory([]);
     setSync({ state: 'idle', total: 0, limit: 0, plan: 'FREE' });
+    resetAnalytics();
+    Alert.alert('Account deleted', 'Your teag.me account and synced data have been permanently deleted.');
     return true;
   }, []);
 
