@@ -3,7 +3,9 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { passkey } from "@better-auth/passkey";
 import { expo } from "@better-auth/expo";
+import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { deleteFromR2 } from "@/lib/r2-storage";
 import {
   getAppleClientSecret,
   isAppleAuthConfigured,
@@ -112,6 +114,19 @@ export const auth = betterAuth({
   user: {
     deleteUser: {
       enabled: true,
+      beforeDelete: async (user) => {
+        const ownedCodes = await getDb()
+          .select({ id: qrCodes.id, logoUrl: qrCodes.logoUrl })
+          .from(qrCodes)
+          .where(eq(qrCodes.userId, user.id));
+
+        await deleteFromR2(
+          ownedCodes.flatMap((code) => [
+            `qr-codes/${code.id}.jpg`,
+            ...(code.logoUrl ? [`logos/${code.id}-logo.png`] : []),
+          ])
+        );
+      },
     },
     additionalFields: {
       role: {

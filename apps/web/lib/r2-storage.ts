@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectsCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 let r2Client: S3Client | null = null;
 
@@ -63,6 +63,26 @@ export async function uploadToR2(
   );
 
   return getPublicUrl(key);
+}
+
+export async function deleteFromR2(keys: string[]): Promise<void> {
+  const uniqueKeys = [...new Set(keys.filter(Boolean))];
+  if (uniqueKeys.length === 0) return;
+
+  const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME;
+  if (!bucketName) {
+    throw new Error("Missing CLOUDFLARE_R2_BUCKET_NAME.");
+  }
+
+  await getR2Client().send(
+    new DeleteObjectsCommand({
+      Bucket: bucketName,
+      Delete: {
+        Objects: uniqueKeys.map((Key) => ({ Key })),
+        Quiet: true,
+      },
+    })
+  );
 }
 
 export function dataUrlToBuffer(dataUrl: string): Buffer {
