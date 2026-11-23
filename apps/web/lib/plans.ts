@@ -30,9 +30,9 @@ export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
     maxScansPerMonth: 50_000,
     analyticsRetentionDays: -1, // unlimited
     logoUpload: true,
-    customDomains: true,
-    csvExport: true,
-    bulkActions: true,
+    customDomains: false,
+    csvExport: false,
+    bulkActions: false,
     maxSyncedCaptures: -1,
   },
 };

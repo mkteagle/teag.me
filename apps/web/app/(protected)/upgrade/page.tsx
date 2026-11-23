@@ -18,10 +18,9 @@ const freeFeatures = [
 const proFeatures = [
   "Unlimited active dynamic QR codes",
   "Unlimited link pages",
-  "50,000 tracked scans per month",
-  "Unlimited analytics history and CSV exports",
-  "Logo uploads and saved brand styles",
-  "Custom domains, bulk actions, and richer analytics",
+  `${PLAN_LIMITS.PRO.maxScansPerMonth.toLocaleString("en-US")} tracked scans per month`,
+  "Unlimited analytics history",
+  "Custom QR code logos",
 ];
 
 export default function UpgradePage() {
@@ -93,7 +92,7 @@ export default function UpgradePage() {
         <p className="mt-2 text-muted-foreground">
           {plan === "PRO"
             ? "You're on the Pro plan. Manage your subscription below."
-            : "Unlock higher limits, logo uploads, CSV exports, and more."}
+            : "Create more codes and link pages, upload QR code logos, and keep your analytics history."}
         </p>
       </div>
 
