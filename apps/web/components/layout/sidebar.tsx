@@ -53,7 +53,7 @@ function NavRow({
         "group flex items-center rounded-xl text-sm font-medium transition-colors",
         collapsed ? "h-11 w-11 justify-center" : "h-10 w-full gap-3 px-3",
         active
-          ? "bg-primary/10 text-primary"
+          ? "bg-primary/10 text-accent"
           : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
       )}
     >
@@ -174,7 +174,7 @@ export function Sidebar() {
                     <Link
                       href="/upgrade"
                       aria-label="Upgrade to Pro"
-                      className="flex h-11 w-11 items-center justify-center rounded-xl text-primary transition-colors hover:bg-primary/10"
+                      className="flex h-11 w-11 items-center justify-center rounded-xl text-accent transition-colors hover:bg-primary/10"
                     >
                       <Zap className="h-[18px] w-[18px]" strokeWidth={2} />
                     </Link>
@@ -184,7 +184,7 @@ export function Sidebar() {
               ) : (
                 <Link
                   href="/upgrade"
-                  className="flex h-10 w-full items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                  className="flex h-10 w-full items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 text-sm font-medium text-accent transition-colors hover:bg-primary/10"
                 >
                   <Zap className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
                   <span className="truncate">Upgrade to Pro</span>

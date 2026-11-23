@@ -8,14 +8,14 @@ const BASE =
 
 const VARIANTS = {
   default:
-    "bg-primary text-primary-foreground shadow-[0_10px_24px_rgba(15,123,255,0.22)] hover:-translate-y-0.5 hover:bg-primary/92",
+    "bg-primary text-primary-foreground hover:bg-[#e8b819] active:bg-[#d9ab17]",
   destructive:
     "bg-destructive text-destructive-foreground hover:bg-destructive/90",
   outline:
     "border border-input bg-background/70 hover:border-primary/30 hover:bg-background hover:text-foreground",
   secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
   ghost: "hover:bg-foreground/5 hover:text-foreground",
-  link: "text-primary underline-offset-4 hover:underline",
+  link: "text-accent underline-offset-4 hover:underline",
 } as const;
 
 const SIZES = {

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,8 @@ import { InteractionHistory } from "@/components/analytics/interaction-history";
 import { processLocationData } from "@/lib/utils/location";
 import { LocationMap } from "@/components/analytics/location-map";
 import { LineChart } from "@/components/analytics/line-chart";
+import { Button } from "@/components/ui/button";
+import { capture } from "@/lib/posthog";
 import { Location, Analytics } from "@/types/analytics";
 
 export default function AnalyticsPage() {
@@ -85,8 +88,20 @@ export default function AnalyticsPage() {
     );
   }
 
+  const hasLimitedHistory = analytics.retentionDays > 0;
+
   return (
     <div className="container mx-auto p-8 space-y-8">
+      {hasLimitedHistory && (
+        <section aria-label="Analytics history limit" className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-4">
+          <p className="text-sm text-muted-foreground">
+            Free shows the last {analytics.retentionDays} days of analytics. Pro gives you access to your full recorded history.
+          </p>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/upgrade" onClick={() => capture("upgrade_clicked", { source: "analytics_history" })}>Upgrade to Pro</Link>
+          </Button>
+        </section>
+      )}
       {/* QR Code Overview */}
       <Card className="hover-lift glassmorphism">
         <CardHeader>
@@ -96,7 +111,7 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="p-4 rounded-lg bg-muted/20">
-            <div className="text-sm text-muted-foreground">Total Scans</div>
+            <div className="text-sm text-muted-foreground">{hasLimitedHistory ? `Scans in the last ${analytics.retentionDays} days` : "Total Scans"}</div>
             <div className="text-2xl font-bold">{analytics.scans.length}</div>
           </div>
           <div className="p-4 rounded-lg bg-muted/20">

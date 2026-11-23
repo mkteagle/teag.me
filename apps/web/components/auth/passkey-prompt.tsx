@@ -108,7 +108,7 @@ export function PasskeyPrompt() {
 
       <div className="flex flex-col gap-4 pr-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3">
-          <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+          <div className="rounded-2xl bg-primary/10 p-3 text-accent">
             <Fingerprint className="h-5 w-5" />
           </div>
           <div>

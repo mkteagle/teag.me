@@ -1,9 +1,9 @@
 // app/api/track/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { generateId } from "@/lib/utils";
+import { generateId } from "@/lib/ids";
 import { UAParser } from "ua-parser-js";
-import { createScan, findQrCodeById } from "@/lib/db/queries";
-import { checkScanLimit } from "@/lib/plan-enforcement";
+import { findQrCodeById } from "@/lib/db/queries";
+import { createTrackedScan } from "@/lib/plan-enforcement";
 
 function determineSource(
   referrer: string | null,
@@ -108,17 +108,7 @@ export async function GET(
     // Get source information
     const { source, medium } = determineSource(referrer, userAgent);
 
-    // Check scan limit — still redirect but skip recording if over limit
-    const scanLimit = await checkScanLimit(qrCode.userId);
-    if (!scanLimit.allowed) {
-      return NextResponse.json({
-        success: true,
-        redirectUrl: qrCode.redirectUrl,
-      });
-    }
-
-    // Record the scan
-    await createScan({
+    await createTrackedScan(qrCode.userId, {
       id: generateId(),
       qrCodeId: id,
       ip,

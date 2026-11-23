@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { generateId } from "./utils";
-import { createScan, getOwnedQrCodeAnalytics } from "@/lib/db/queries";
+import { generateId } from "./ids";
+import { findQrCodeById, getOwnedQrCodeAnalytics } from "@/lib/db/queries";
 import { requireApiUser } from "@/lib/auth-session";
+import { createTrackedScan, getAnalyticsRetentionDate, getUserPlan } from "@/lib/plan-enforcement";
 
 export async function generateQRCode(redirectUrl: string) {
   try {
@@ -40,7 +41,10 @@ export async function recordScan(
   }
 ) {
   try {
-    await createScan({
+    const qrCode = await findQrCodeById(qrCodeId);
+    if (!qrCode) return { success: false, error: "QR code not found" };
+
+    await createTrackedScan(qrCode.userId, {
       id: generateId(),
       qrCodeId,
       ...data,
@@ -56,7 +60,8 @@ export async function recordScan(
 export async function getQRCodeAnalytics(id: string) {
   try {
     const user = await requireApiUser();
-    const qrCode = await getOwnedQrCodeAnalytics(id, user.id);
+    const { plan } = await getUserPlan(user.id);
+    const qrCode = await getOwnedQrCodeAnalytics(id, user.id, getAnalyticsRetentionDate(plan));
 
     if (!qrCode) {
       throw new Error("QR code not found or access denied");

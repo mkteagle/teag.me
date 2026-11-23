@@ -1,36 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# teag.me web
 
-## Getting Started
+Vinext runs the App Router on Vite. TanStack Redact renders the browser UI, and React renders the server components. Better Auth uses PostgreSQL for accounts, sessions, and passkeys. Both the web app and the Expo scanner use `/api/auth`.
 
-First, run the development server:
+## Local development
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+Use Node 22.22+ or Node 24 and install dependencies from the repository root with `pnpm install`. Create `apps/web/.env.local` with `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL`. Set `BETTER_AUTH_URL` and `NEXT_PUBLIC_BASE_URL` to your local origin, such as `http://localhost:3000`. Use a migrated PostgreSQL database. Configure your social sign-in and PostHog environment variables when testing those integrations.
+
+```sh
 pnpm dev
-# or
-bun dev
+pnpm --filter @teag/web typecheck
+pnpm --filter @teag/web exec vinext check
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Production build
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Run `pnpm build` and `pnpm start` from the repository root to build and serve the Node version. The build runs the existing Drizzle migrations against `DATABASE_URL_UNPOOLED` or `DATABASE_URL` when configured. Point those variables at the intended database before building.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The Vercel project uses `apps/web` as its root directory. Its build command, `pnpm run build --mode vercel`, uses Nitro to generate Vercel Build Output API artifacts. The deployment needs the existing database, auth, storage, billing, and analytics environment variables. Keep `BETTER_AUTH_URL` aligned with the HTTPS origin registered for OAuth callbacks and passkeys.
 
-## Learn More
+App Store sandbox transactions can unlock Pro only for the dedicated review account identified by the optional server-only `APP_STORE_SANDBOX_USER_ID`. Set it to the teag.me user ID of the account provided to App Review. Leave it unset to disable sandbox entitlements. Sandbox events cannot replace a production App Store subscription.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Vinext migration guide](https://vinext.dev/docs/getting-started/migrating) · [TanStack Redact integration](https://tanstack.com/redact/latest/docs/vinext) · [Better Auth integration](https://better-auth.com/docs/integrations/next)

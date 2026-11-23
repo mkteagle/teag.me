@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
-import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
-import { uploadToR2, dataUrlToBuffer } from "@/lib/r2-storage";
+import { generateQRWithLogoBuffer, InvalidLogoError, processLogoImage } from "@/lib/qr-with-logo";
+import { uploadToR2, readQrLogoFromR2, dataUrlToBuffer } from "@/lib/r2-storage";
 import {
-  deleteQrCode,
   findQrCodeById,
   findUserRole,
   updateQrCode,
 } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
-import { checkFeatureAccess } from "@/lib/plan-enforcement";
+import { checkFeatureAccess, deleteTrackedQrCode } from "@/lib/plan-enforcement";
 import { cacheQrCodeMetadata } from "@/lib/metadata";
+import { parseHttpDestination } from "@/lib/http-destination";
 
 export async function DELETE(
   request: NextRequest,
@@ -43,8 +43,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden: You don't own this QR code" }, { status: 403 });
     }
 
-    // Delete the QR code by ID
-    await deleteQrCode(id);
+    await deleteTrackedQrCode(id, qrCode.userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -60,15 +59,15 @@ export async function PATCH(
   try {
     const { id } = await params;
     const currentUser = await getCurrentUser();
-    const { redirectUrl, logoDataUrl, logoSize } = await request.json();
+    const { redirectUrl: submittedUrl, logoDataUrl, logoSize } = await request.json();
 
     if (!currentUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Validate input
+    const redirectUrl = parseHttpDestination(submittedUrl)?.href;
     if (!redirectUrl) {
-      return NextResponse.json({ error: "redirectUrl is required" }, { status: 400 });
+      return NextResponse.json({ error: "Enter a valid HTTP or HTTPS destination" }, { status: 400 });
     }
 
     const role = await findUserRole(currentUser.id);
@@ -107,25 +106,22 @@ export async function PATCH(
     // only re-upload when it's a new logo. Never store base64 in postgres.
     let processedLogoDataUrl: string | undefined;
     let logoUrl: string | null = null;
-    if (logoDataUrl && logoDataUrl.startsWith("data:")) {
+    if (typeof logoDataUrl === "string" && logoDataUrl.startsWith("data:")) {
       // New upload: normalize and store in R2.
       const { dataUrl } = await processLogoImage(logoDataUrl);
       processedLogoDataUrl = dataUrl;
       const logoBuffer = dataUrlToBuffer(dataUrl);
       logoUrl = await uploadToR2(logoBuffer, `logos/${id}-logo.png`, "image/png");
-    } else if (logoDataUrl && /^https?:\/\//.test(logoDataUrl)) {
-      // Existing R2 logo, unchanged: keep the URL and fetch the bytes so the
-      // regenerated QR keeps its logo.
-      logoUrl = logoDataUrl;
+    } else if (logoDataUrl) {
+      if (logoDataUrl !== existingQRCode.logoUrl) {
+        return NextResponse.json({ error: "Upload a logo file or keep the existing logo" }, { status: 400 });
+      }
+      logoUrl = existingQRCode.logoUrl;
       try {
-        const res = await fetch(logoDataUrl);
-        if (res.ok) {
-          const buf = Buffer.from(await res.arrayBuffer());
-          const mime = res.headers.get("content-type") || "image/png";
-          processedLogoDataUrl = `data:${mime};base64,${buf.toString("base64")}`;
-        }
-      } catch (e) {
-        console.warn("Could not fetch existing logo to re-embed:", e);
+        const logo = await readQrLogoFromR2(id);
+        processedLogoDataUrl = `data:image/png;base64,${logo.toString("base64")}`;
+      } catch {
+        console.warn("Could not read the stored QR logo");
       }
     }
 
@@ -157,6 +153,7 @@ export async function PATCH(
       data: updatedQR,
     });
   } catch (error) {
+    if (error instanceof InvalidLogoError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error("Error updating QR code:", error);
     return NextResponse.json({ error: "Failed to update QR code" }, { status: 500 });
   }

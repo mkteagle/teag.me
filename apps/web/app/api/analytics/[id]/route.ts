@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAnalyticsForQrCode, findQrCodeById } from "@/lib/db/queries";
+import { getAnalyticsForQrCode } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
 import { getUserPlan, getAnalyticsRetentionDate } from "@/lib/plan-enforcement";
 
@@ -15,25 +15,11 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify ownership
-    const qrCode = await findQrCodeById(id);
-    if (!qrCode || qrCode.userId !== user.id) {
-      return NextResponse.json({ error: "QR code not found" }, { status: 404 });
-    }
-
-    const analytics = await getAnalyticsForQrCode(id);
-    if (!analytics) {
-      return NextResponse.json({ error: "QR code not found" }, { status: 404 });
-    }
-
-    // Apply retention filter for free users
     const userPlan = await getUserPlan(user.id);
     const retentionDate = getAnalyticsRetentionDate(userPlan.plan);
-
-    if (retentionDate) {
-      analytics.scans = analytics.scans.filter(
-        (scan) => scan.timestamp >= retentionDate
-      );
+    const analytics = await getAnalyticsForQrCode(id, user.id, retentionDate);
+    if (!analytics) {
+      return NextResponse.json({ error: "QR code not found" }, { status: 404 });
     }
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth-session";
 import { listUserQrCodes } from "@/lib/db/queries";
+import { getAnalyticsRetentionDate, getUserPlan } from "@/lib/plan-enforcement";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,11 +11,13 @@ export async function GET(request: NextRequest) {
     const archived = searchParams.get("archived") === "true";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const { plan } = await getUserPlan(user.id);
     const { qrCodes, totalCount } = await listUserQrCodes({
       userId: user.id,
       archived,
       page,
       limit,
+      scansSince: getAnalyticsRetentionDate(plan),
     });
 
     return NextResponse.json({

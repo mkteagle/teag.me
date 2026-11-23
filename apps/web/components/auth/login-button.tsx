@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { capture } from "@/lib/posthog";
 
 type Provider = "google" | "github" | "apple";
 
@@ -31,17 +32,20 @@ export default function LoginButton({
   const [passkeyLoading, setPasskeyLoading] = useState(false);
 
   const handlePasskey = async () => {
+    capture("account_sign_in_started", { method: "passkey" });
     try {
       setError(null);
       setPasskeyLoading(true);
       const res = await authClient.signIn.passkey();
       if (res?.error) {
+        capture("account_sign_in_failed", { method: "passkey" });
         setError(res.error.message || "No passkey found for this device.");
         setPasskeyLoading(false);
         return;
       }
       window.location.href = callbackURL;
     } catch (passkeyError) {
+      capture("account_sign_in_failed", { method: "passkey" });
       console.error("Passkey sign-in failed:", passkeyError);
       setError(
         passkeyError instanceof Error
@@ -53,14 +57,17 @@ export default function LoginButton({
   };
 
   const handleLogin = async (provider: Provider) => {
+    capture("account_sign_in_started", { method: provider });
     try {
       setError(null);
       setLoadingProvider(provider);
-      await authClient.signIn.social({
+      const result = await authClient.signIn.social({
         provider,
         callbackURL,
       });
+      if (result.error) capture("account_sign_in_failed", { method: provider });
     } catch (loginError) {
+      capture("account_sign_in_failed", { method: provider });
       console.error("Login failed:", loginError);
       setError(
         loginError instanceof Error ? loginError.message : "Failed to login"

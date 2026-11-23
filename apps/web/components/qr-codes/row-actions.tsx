@@ -1,14 +1,8 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ExternalLink, Trash2, Download, Edit, Archive, ArchiveRestore, RefreshCw } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { ExtendedQRCode } from "./types";
-import { toast } from "../ui/use-toast";
+import { Archive, ArchiveRestore, Download, Edit, ExternalLink, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
+import { DisclosureMenu, disclosureItemClass } from "@/components/ui/disclosure-menu";
+import { capture } from "@/lib/posthog";
+import { toast } from "@/components/ui/use-toast";
+import type { ExtendedQRCode } from "./types";
 
 interface RowActionsProps {
   qrCode: ExtendedQRCode;
@@ -17,158 +11,57 @@ interface RowActionsProps {
   onArchive?: (qrCode: ExtendedQRCode, archived: boolean) => void;
 }
 
-export function RowActions({ qrCode, onDelete, onEdit, onArchive }: RowActionsProps) {
-  const [refreshing, setRefreshing] = useState(false);
+const icon = "size-4 shrink-0";
 
-  const handleRefreshMetadata = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setRefreshing(true);
+export function RowActions({ qrCode, onDelete, onEdit, onArchive }: RowActionsProps) {
+  const refreshPreview = async () => {
     try {
-      const res = await fetch(`/api/qr-code/${qrCode.id}/refresh-metadata`, { method: "POST" });
-      if (!res.ok) throw new Error();
-      toast({ title: "Preview updated", description: "Link preview metadata has been refreshed." });
+      const response = await fetch(`/api/qr-code/${qrCode.id}/refresh-metadata`, { method: "POST" });
+      if (!response.ok) throw new Error("Could not refresh preview");
+      toast({ title: "Preview updated" });
     } catch {
-      toast({ title: "Failed to refresh", description: "Could not update the link preview.", variant: "destructive" });
-    } finally {
-      setRefreshing(false);
+      toast({ title: "Couldn’t refresh the link preview", variant: "destructive" });
     }
   };
 
-  const handleDownload = () => {
-    if (!qrCode) return;
-
+  const download = () => {
     const link = document.createElement("a");
     link.href = qrCode.base64;
     link.download = `qr-code-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "QR Code Downloaded",
-      description: "Your QR code has been saved to your device.",
-    });
+    link.remove();
+    capture("qr_code_downloaded", { source: "registry", tracked: true });
+    toast({ title: "QR code downloaded" });
   };
 
   return (
-    <div className="flex items-center justify-end gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(qrCode.redirectUrl, "_blank");
-              }}
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Open URL</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      {onEdit && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(qrCode);
-                }}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Edit QR Code</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefreshMetadata}
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Refresh link preview</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownload();
-              }}
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Download QR Code</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      {onArchive && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onArchive(qrCode, !qrCode.archived);
-                }}
-              >
-                {qrCode.archived ? (
-                  <ArchiveRestore className="h-4 w-4" />
-                ) : (
-                  <Archive className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {qrCode.archived ? "Unarchive QR Code" : "Archive QR Code"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-
-      {onDelete && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(qrCode);
-                }}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Delete QR Code</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
+    <div className="flex justify-end" onClick={(event) => event.stopPropagation()}>
+      <DisclosureMenu
+        label="QR code actions"
+        triggerClassName="w-11 border hover:bg-muted"
+        trigger={<MoreHorizontal className="size-5" aria-hidden="true" />}
+      >
+        <a href={qrCode.redirectUrl} target="_blank" rel="noreferrer" className={disclosureItemClass}>
+          <ExternalLink className={icon} aria-hidden="true" /> Open destination
+        </a>
+        {onEdit && <button type="button" className={disclosureItemClass} onClick={() => onEdit(qrCode)}>
+          <Edit className={icon} aria-hidden="true" /> Edit QR code
+        </button>}
+        <button type="button" className={disclosureItemClass} onClick={download}>
+          <Download className={icon} aria-hidden="true" /> Download PNG
+        </button>
+        <button type="button" className={disclosureItemClass} onClick={() => void refreshPreview()}>
+          <RefreshCw className={icon} aria-hidden="true" /> Refresh link preview
+        </button>
+        {onArchive && <button type="button" className={disclosureItemClass} onClick={() => onArchive(qrCode, !qrCode.archived)}>
+          {qrCode.archived ? <ArchiveRestore className={icon} aria-hidden="true" /> : <Archive className={icon} aria-hidden="true" />}
+          {qrCode.archived ? "Restore QR code" : "Archive QR code"}
+        </button>}
+        {onDelete && <button type="button" className={`${disclosureItemClass} text-destructive`} onClick={() => onDelete(qrCode)}>
+          <Trash2 className={icon} aria-hidden="true" /> Delete QR code
+        </button>}
+      </DisclosureMenu>
     </div>
   );
 }

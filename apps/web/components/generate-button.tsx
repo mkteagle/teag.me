@@ -204,6 +204,12 @@ export default function GenerateButton() {
   };
 
   const handleGenerate = async () => {
+    const properties = {
+      tracked: true,
+      custom_path: Boolean(formData.customPath),
+      has_logo: Boolean(logoDataUrl),
+    };
+    capture("qr_code_create_started", properties);
     try {
       setLoading(true);
       if (
@@ -236,15 +242,13 @@ export default function GenerateButton() {
 
       setQrCode(data.data);
       setQrPreview(null); // Clear preview after generating
-      capture("qr_code_created", {
-        custom_path: Boolean(formData.customPath),
-        has_logo: Boolean(logoDataUrl),
-      });
+      capture("qr_code_created", properties);
       toast({
         title: "Success",
         description: "QR code generated successfully!",
       });
     } catch (error) {
+      capture("qr_code_create_failed", properties);
       console.error("Error generating QR code:", error);
       toast({
         title: "Error",
@@ -267,6 +271,7 @@ export default function GenerateButton() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    capture("qr_code_downloaded", { source: "generator", tracked: true });
 
     toast({
       title: "QR Code Downloaded",
@@ -279,6 +284,7 @@ export default function GenerateButton() {
 
     try {
       await navigator.clipboard.writeText(qrCode.routingUrl);
+      capture("created_qr_link_copied", { tracked: true });
       setCopied(true);
       toast({
         title: "Copied!",

@@ -2,12 +2,17 @@
   "name": "@teag/web",
   "version": "3.0.0",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22.22.0 || ^24.0.0"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "vinext dev",
     "prebuild": "node scripts/migrate-production.mjs",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "build": "vinext build",
+    "start": "vinext start",
+    "lint": "pnpm typecheck",
+    "typecheck": "vinext typegen && tsc --noEmit",
     "provision:review-account": "node scripts/provision-review-account.mjs"
   },
   "dependencies": {
@@ -16,6 +21,7 @@
     "@better-auth/drizzle-adapter": "^1.6.22",
     "@better-auth/expo": "1.6.22",
     "@better-auth/passkey": "^1.6.22",
+    "@tanstack/redact": "0.3.1",
     "@types/leaflet": "^1.9.15",
     "@vercel/analytics": "^1.4.1",
     "axios": "^1.7.9",
@@ -24,6 +30,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.2",
+    "ipaddr.js": "2.5.0",
     "jose": "^6.2.3",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
@@ -33,11 +40,12 @@
     "posthog-js": "1.422.5",
     "qrcode": "^1.5.4",
     "qrcode-with-logos": "^1.1.1",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-server-dom-webpack": "19.3.1",
     "react-simple-maps": "^3.0.0",
     "recharts": "^2.14.1",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "stripe": "^21.0.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
@@ -52,10 +60,15 @@
     "@types/react-dom": "^19",
     "@types/react-simple-maps": "^3.0.6",
     "@types/topojson-client": "^3.1.5",
+    "@vitejs/plugin-react": "6.1.2",
+    "@vitejs/plugin-rsc": "0.5.38",
     "dotenv": "^16.4.7",
     "drizzle-kit": "^0.31.10",
+    "nitro": "3.0.261103-rc",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vinext": "1.3.0",
+    "vite": "8.3.5"
   }
 }

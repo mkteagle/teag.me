@@ -1,6 +1,6 @@
 export default function GenerateLoading() {
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="full-bleed space-y-6 py-8 sm:py-12">
       <div className="h-8 w-56 rounded-md bg-muted animate-pulse" />
       <div className="rounded-xl border bg-card p-6 space-y-5">
         <div className="space-y-2">

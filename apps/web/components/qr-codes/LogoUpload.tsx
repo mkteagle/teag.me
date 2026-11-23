@@ -18,9 +18,8 @@ export function LogoUpload({ onLogoChange, logoPreview }: LogoUploadProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+    if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+      setError("Choose a PNG, JPEG, or WebP image");
       return;
     }
 
@@ -66,15 +65,16 @@ export function LogoUpload({ onLogoChange, logoPreview }: LogoUploadProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/png,image/jpeg,image/webp"
         onChange={handleFileSelect}
         className="hidden"
       />
 
       {!logoPreview ? (
-        <div
+        <button
+          type="button"
           onClick={handleUploadClick}
-          className="data-card bg-muted/30 border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors p-8"
+          className="data-card bg-muted/30 border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors p-5 w-full"
         >
           <div className="flex flex-col items-center justify-center text-center space-y-3">
             <div className="w-16 h-16 rounded-full border-2 border-border bg-background flex items-center justify-center">
@@ -85,11 +85,11 @@ export function LogoUpload({ onLogoChange, logoPreview }: LogoUploadProps) {
                 Click to upload logo
               </p>
               <p className="text-xs text-muted-foreground font-serif">
-                PNG, JPG, WebP, or SVG • Max 2MB
+                PNG, JPG, or WebP • Max 2MB
               </p>
             </div>
           </div>
-        </div>
+        </button>
       ) : (
         <div className="data-card p-4 bg-muted/30">
           <div className="flex items-center gap-4">
@@ -109,6 +109,7 @@ export function LogoUpload({ onLogoChange, logoPreview }: LogoUploadProps) {
               </p>
             </div>
             <Button
+              type="button"
               onClick={handleRemoveLogo}
               variant="outline"
               size="sm"

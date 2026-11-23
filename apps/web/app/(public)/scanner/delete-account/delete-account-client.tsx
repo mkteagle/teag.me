@@ -28,7 +28,7 @@ export function DeleteAccountClient() {
       <div className="rounded-2xl border border-black/10 bg-white p-6">
         <h2 className="font-heading text-xl font-bold">Sign in to delete your account</h2>
         <p className="mt-2 text-sm text-[#5F6673]">Use the same sign-in method and account you use in QR Code by teag.me.</p>
-        <Link href="/auth/login?callbackURL=/scanner/delete-account" className="mt-5 inline-flex rounded-xl bg-[#0F7BFF] px-5 py-3 text-sm font-bold text-white hover:bg-[#086AD9]">
+        <Link href="/auth/login?callbackURL=/scanner/delete-account" className="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground hover:bg-[#086AD9]">
           Sign in
         </Link>
       </div>
@@ -52,7 +52,7 @@ export function DeleteAccountClient() {
   return (
     <div className="rounded-2xl border border-red-600/20 bg-white p-6">
       <p className="text-sm text-[#5F6673]">Signed in as <strong className="text-[#15181F]">{session.user.email}</strong></p>
-      <button type="button" disabled={deleting} onClick={deleteAccount} className="mt-5 rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+      <button type="button" disabled={deleting} onClick={deleteAccount} className="mt-5 rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-primary-foreground hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
         {deleting ? "Deleting…" : "Permanently delete my account"}
       </button>
       {error && <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>}

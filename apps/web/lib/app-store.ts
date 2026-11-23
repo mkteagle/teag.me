@@ -4,14 +4,17 @@ import {
   type JWSTransactionDecodedPayload,
   type ResponseBodyV2DecodedPayload,
 } from "@apple/app-store-server-library";
-import { eq, or } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 
 import { getDb } from "@/lib/db";
 import { subscriptions } from "@/lib/db/schema";
+import { canUseAppStoreEnvironment, getAppStoreSandboxUserId } from "./app-store-environment";
 
 export const APP_STORE_PRODUCT_ID = "me.teag.scanner.pro.monthly";
 const APP_BUNDLE_ID = "me.teag.scanner";
 const APP_APPLE_ID = 6784932487;
+// Xcode and local-testing environments skip Apple's signature verification.
+const APPLE_SIGNED_ENVIRONMENTS = [Environment.PRODUCTION, Environment.SANDBOX] as const;
 const APPLE_ROOT_URLS = [
   "https://www.apple.com/appleca/AppleIncRootCertificate.cer",
   "https://www.apple.com/certificateauthority/AppleRootCA-G2.cer",
@@ -43,7 +46,7 @@ async function verifier(environment: Environment) {
 
 export async function verifyAppStoreTransaction(signedTransaction: string) {
   let lastError: unknown;
-  for (const environment of [Environment.PRODUCTION, Environment.SANDBOX, Environment.XCODE]) {
+  for (const environment of APPLE_SIGNED_ENVIRONMENTS) {
     try {
       return await (await verifier(environment)).verifyAndDecodeTransaction(signedTransaction);
     } catch (error) {
@@ -55,7 +58,7 @@ export async function verifyAppStoreTransaction(signedTransaction: string) {
 
 export async function verifyAppStoreNotification(signedPayload: string) {
   let lastError: unknown;
-  for (const environment of [Environment.PRODUCTION, Environment.SANDBOX, Environment.XCODE]) {
+  for (const environment of APPLE_SIGNED_ENVIRONMENTS) {
     try {
       return await (await verifier(environment)).verifyAndDecodeNotification(signedPayload);
     } catch (error) {
@@ -75,18 +78,14 @@ export async function getOrCreateAppStoreAccountToken(userId: string) {
   if (existing?.token) return existing.token;
 
   const token = crypto.randomUUID();
-  await database
+  const [saved] = await database
     .insert(subscriptions)
     .values({ id: crypto.randomUUID(), userId, appStoreAccountToken: token, plan: "FREE", status: "active" })
     .onConflictDoUpdate({
       target: subscriptions.userId,
-      set: { appStoreAccountToken: token, updatedAt: new Date() },
-    });
-  const [saved] = await database
-    .select({ token: subscriptions.appStoreAccountToken })
-    .from(subscriptions)
-    .where(eq(subscriptions.userId, userId))
-    .limit(1);
+      set: { appStoreAccountToken: sql`coalesce(${subscriptions.appStoreAccountToken}, ${token})`, updatedAt: new Date() },
+    })
+    .returning({ token: subscriptions.appStoreAccountToken });
   if (!saved?.token) throw new Error("Unable to create App Store account token");
   return saved.token;
 }
@@ -107,6 +106,9 @@ export async function applyVerifiedTransaction(userId: string, transaction: JWST
   ) {
     throw new Error("Transaction does not match teag.me Pro");
   }
+  if (!canUseAppStoreEnvironment(userId, transaction.environment)) {
+    throw new Error("This account is not enabled for App Store sandbox purchases");
+  }
 
   const token = await getOrCreateAppStoreAccountToken(userId);
   if (transaction.appAccountToken.toLowerCase() !== token.toLowerCase()) {
@@ -125,10 +127,9 @@ export async function applyVerifiedTransaction(userId: string, transaction: JWST
 
   const status = transactionStatus(transaction);
   const expiresAt = new Date(transaction.expiresDate);
-  await database
+  const [saved] = await database
     .update(subscriptions)
     .set({
-      plan: status === "active" ? "PRO" : "FREE",
       appStoreOriginalTransactionId: transaction.originalTransactionId,
       appStoreTransactionId: transaction.transactionId,
       appStoreProductId: transaction.productId,
@@ -138,16 +139,27 @@ export async function applyVerifiedTransaction(userId: string, transaction: JWST
       appStoreLastVerifiedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(subscriptions.userId, userId));
+    .where(and(eq(subscriptions.userId, userId),
+      transaction.environment === Environment.SANDBOX ? sandboxWritable : undefined,
+    ))
+    .returning({ id: subscriptions.id });
+  if (!saved) throw new Error("This account already has a live App Store subscription");
 
   return { active: status === "active", status, expiresAt, productId: transaction.productId };
 }
 
+const sandboxWritable = sql`${subscriptions.appStoreEnvironment} is distinct from ${Environment.PRODUCTION}`;
+
 export async function applyVerifiedNotification(notification: ResponseBodyV2DecodedPayload) {
-  const signedTransaction = notification.data?.signedTransactionInfo;
-  if (!signedTransaction) return false;
+  const data = notification.data;
+  const signedTransaction = data?.signedTransactionInfo;
+  if (!signedTransaction || !data?.environment) return false;
+  const sandbox = data.environment === Environment.SANDBOX;
+  const sandboxUserId = sandbox ? getAppStoreSandboxUserId() : undefined;
+  if (sandbox && !sandboxUserId) return false;
   const transaction = await verifyAppStoreTransaction(signedTransaction);
-  if (transaction.productId !== APP_STORE_PRODUCT_ID || !transaction.originalTransactionId) return false;
+  if (transaction.environment !== data.environment || transaction.productId !== APP_STORE_PRODUCT_ID ||
+      !transaction.originalTransactionId) return false;
 
   const numericStatus = Number(notification.data?.status);
   const status = transaction.revocationDate
@@ -162,7 +174,6 @@ export async function applyVerifiedNotification(notification: ResponseBodyV2Deco
   const updated = await database
     .update(subscriptions)
     .set({
-      plan: status === "active" || status === "grace_period" ? "PRO" : "FREE",
       appStoreOriginalTransactionId: transaction.originalTransactionId,
       appStoreTransactionId: transaction.transactionId,
       appStoreProductId: transaction.productId,
@@ -172,14 +183,16 @@ export async function applyVerifiedNotification(notification: ResponseBodyV2Deco
       appStoreLastVerifiedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(
+    .where(and(
       or(
         eq(subscriptions.appStoreOriginalTransactionId, transaction.originalTransactionId),
         transaction.appAccountToken
           ? eq(subscriptions.appStoreAccountToken, transaction.appAccountToken)
           : eq(subscriptions.appStoreOriginalTransactionId, transaction.originalTransactionId)
-      )
-    )
+      ),
+      sandboxUserId ? eq(subscriptions.userId, sandboxUserId) : undefined,
+      sandbox ? sandboxWritable : undefined,
+    ))
     .returning({ id: subscriptions.id });
   return updated.length > 0;
 }

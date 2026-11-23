@@ -1,92 +1,21 @@
+import { TeagMark } from "@/components/brand/teag-mark";
 import { cn } from "@/lib/utils";
 
-/**
- * The teag.me tag mark, drawn on the 32x32 brand viewBox.
- * `tagFill` lets dark surfaces punch the tag silhouette to the body color.
- */
-export function ScannerLogo({
-  size = 30,
-  tagFill = "#FFFDF8",
-  dotStroke = "#F6F4EF",
-  className,
-}: {
-  size?: number;
-  tagFill?: string;
-  dotStroke?: string;
-  className?: string;
-}) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 32 32"
-      fill="none"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect width="32" height="32" rx="9" fill="#0F7BFF" />
-      <path
-        d="M9 11.3C9 10.0297 10.0297 9 11.3 9H16.89C17.5008 9 18.0865 9.24267 18.518 9.67416L22.3258 13.482C22.7573 13.9135 23 14.4992 23 15.11V20.7C23 21.9703 21.9703 23 20.7 23H11.3C10.0297 23 9 21.9703 9 20.7V11.3Z"
-        fill={tagFill}
-      />
-      <path
-        d="M18 9.5V14H22.5"
-        stroke="#0F7BFF"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="15.75" cy="15.75" r="2" fill="#0F7BFF" />
-      <path
-        d="M13.5 18L18.3 13.2"
-        stroke="#0F7BFF"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-      <circle
-        cx="24.5"
-        cy="24.5"
-        r="3.25"
-        fill="#FF8A3D"
-        stroke={dotStroke}
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
+export function ScannerLogo({ size = 30, className }: { size?: number; className?: string }) {
+  return <span className={cn("inline-flex", className)} style={{ width: size, height: size }}><TeagMark tileClassName="h-full w-full" /></span>;
 }
 
-/** Wordmark lockup: mark + "teag.me" + the blue QR CODE tag. */
-export function ScannerWordmark({
-  logoSize = 30,
-  wordmarkClassName,
-  tagFill = "#FFFDF8",
-  dotStroke = "#F6F4EF",
-  showTag = true,
-  className,
-}: {
+export function ScannerWordmark({ logoSize = 30, wordmarkClassName, showTag = true, className }: {
   logoSize?: number;
   wordmarkClassName?: string;
-  tagFill?: string;
-  dotStroke?: string;
   showTag?: boolean;
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
-      <ScannerLogo size={logoSize} tagFill={tagFill} dotStroke={dotStroke} />
-      <span
-        className={cn(
-          "font-heading text-lg font-bold tracking-[-0.025em]",
-          wordmarkClassName
-        )}
-      >
-        teag.me
-      </span>
-      {showTag && (
-        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary">
-          QR Code
-        </span>
-      )}
+    <div className={cn("flex items-center gap-2", className)}>
+      <ScannerLogo size={logoSize} />
+      <span className={cn("text-xl font-extrabold tracking-[-0.055em]", wordmarkClassName)}>teag.me</span>
+      {showTag && <span className="text-xs font-semibold">QR Code</span>}
     </div>
   );
 }
@@ -95,13 +24,16 @@ export function ScannerWordmark({
 export function AppStoreBadge({
   href = "#",
   className,
+  analyticsAction,
 }: {
   href?: string;
   className?: string;
+  analyticsAction?: string;
 }) {
   return (
     <a
       href={href}
+      data-marketing-cta={analyticsAction}
       className={cn(
         "inline-flex items-center gap-3 rounded-[13px] bg-[#15181F] px-5 py-3 text-[#FFFDF8] shadow-[0_10px_26px_rgba(17,24,39,0.18)] transition-transform hover:-translate-y-0.5",
         className

@@ -22,6 +22,20 @@
       "when": 1788584934675,
       "tag": "0002_numerous_goliath",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795379437583,
+      "tag": "0003_monthly_scan_usage",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795452054852,
+      "tag": "0004_link_pages",
+      "breakpoints": true
     }
   ]
 }

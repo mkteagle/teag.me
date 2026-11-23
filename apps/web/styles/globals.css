@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 48 33% 96%;
-    --foreground: 222 22% 11%;
+    --background: 43 41% 97%;
+    --foreground: 205 20% 16%;
 
-    --card: 40 43% 98%;
-    --card-foreground: 222 22% 11%;
+    --card: 42 43% 99%;
+    --card-foreground: 205 20% 16%;
 
-    --popover: 40 43% 98%;
-    --popover-foreground: 222 22% 11%;
+    --popover: 42 43% 99%;
+    --popover-foreground: 205 20% 16%;
 
-    --primary: 212 100% 53%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 45 90% 57%;
+    --primary-foreground: 205 20% 16%;
 
-    --secondary: 210 24% 92%;
-    --secondary-foreground: 222 22% 11%;
+    --secondary: 42 23% 93%;
+    --secondary-foreground: 205 20% 16%;
 
-    --muted: 210 20% 94%;
-    --muted-foreground: 220 10% 42%;
+    --muted: 42 23% 93%;
+    --muted-foreground: 215 9% 34%;
 
-    --accent: 26 100% 61%;
-    --accent-foreground: 222 22% 11%;
+    --accent: 45 100% 26%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 18% 88%;
-    --input: 220 18% 88%;
-    --ring: 212 100% 53%;
+    --border: 38 16% 84%;
+    --input: 38 16% 84%;
+    --ring: 45 100% 26%;
 
     --radius: 1rem;
   }
@@ -44,10 +44,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
-    background-image:
-      radial-gradient(circle at top left, rgba(15, 123, 255, 0.12), transparent 30%),
-      radial-gradient(circle at top right, rgba(255, 138, 61, 0.1), transparent 28%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -85,7 +82,7 @@
 
   .data-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(15, 123, 255, 0.18);
+    border-color: rgba(133, 100, 0, 0.18);
     box-shadow:
       0 20px 60px rgba(17, 24, 39, 0.09),
       0 4px 18px rgba(17, 24, 39, 0.05);
@@ -98,7 +95,7 @@
 
   .mono-badge {
     @apply inline-flex items-center px-2 py-0.5 text-xs font-mono font-medium;
-    @apply rounded-full bg-primary/10 text-primary border border-primary/15;
+    @apply rounded-full bg-primary/10 text-accent border border-primary/15;
   }
 
   .page-shell {
@@ -175,7 +172,7 @@
   border-radius: 9999px;
   background: #fffdf8;
   border: 2px solid hsl(var(--primary));
-  box-shadow: 0 2px 8px rgba(15, 123, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(133, 100, 0, 0.35);
   cursor: pointer;
   transition: transform 0.15s ease;
 }
@@ -188,7 +185,7 @@
   border-radius: 9999px;
   background: #fffdf8;
   border: 2px solid hsl(var(--primary));
-  box-shadow: 0 2px 8px rgba(15, 123, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(133, 100, 0, 0.35);
   cursor: pointer;
 }
 .teag-slider:focus-visible::-webkit-slider-thumb {

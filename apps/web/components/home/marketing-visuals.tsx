@@ -103,29 +103,20 @@ function buildPath(values: number[], w: number, h: number, pad = 2) {
   return { line, area, pts };
 }
 
-const HERO_SERIES = [22, 30, 27, 38, 34, 46, 42, 55, 50, 63, 60, 72, 78, 92];
-
-export function HeroAreaChart() {
-  const w = 360;
-  const h = 76;
-  const { line, area } = buildPath(HERO_SERIES, w, h, 4);
+export function ExampleScanTrend({ values }: { values: number[] }) {
+  const w = 120;
+  const h = 34;
+  const { line, area } = buildPath(values, w, h, 3);
   return (
     <svg
       width="100%"
       viewBox={`0 0 ${w} ${h}`}
       preserveAspectRatio="none"
-      className="block h-[76px] w-full"
-      role="img"
-      aria-label="Scans over the last 14 days"
+      className="block h-[34px] w-full"
+      aria-hidden="true"
     >
-      <defs>
-        <linearGradient id="heroArea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0F7BFF" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#0F7BFF" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={area} fill="url(#heroArea)" />
-      <path d={line} fill="none" stroke="#0F7BFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={area} fill="hsl(var(--primary) / 0.22)" />
+      <path d={line} fill="none" stroke="hsl(var(--accent))" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
@@ -150,8 +141,8 @@ export function DashboardLineChart() {
     >
       <defs>
         <linearGradient id="dashArea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0F7BFF" stopOpacity="0.14" />
-          <stop offset="100%" stopColor="#0F7BFF" stopOpacity="0" />
+          <stop offset="0%" stopColor="#856400" stopOpacity="0.14" />
+          <stop offset="100%" stopColor="#856400" stopOpacity="0" />
         </linearGradient>
       </defs>
       {gridY.map((g) => (
@@ -167,7 +158,7 @@ export function DashboardLineChart() {
         />
       ))}
       <path d={area} fill="url(#dashArea)" />
-      <path d={line} fill="none" stroke="#0F7BFF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={line} fill="none" stroke="#856400" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -179,9 +170,9 @@ export function DashboardLineChart() {
 export function DevicesDonut({ px = 96 }: { px?: number }) {
   const r = 15.915; // circumference ~= 100
   const segments = [
-    { value: 58, color: "#0F7BFF" },
+    { value: 58, color: "#856400" },
     { value: 34, color: "#15181F" },
-    { value: 8, color: "#FF8A3D" },
+    { value: 8, color: "#F4C430" },
   ];
   let offset = 25; // start at top
   return (
@@ -243,7 +234,7 @@ export function GeographyBars() {
           <span className="w-[110px] shrink-0 text-[12.5px] text-[#3C424E]">{g.label}</span>
           <div className="h-[8px] flex-1 overflow-hidden rounded-full bg-[#15181F]/[0.06]">
             <div
-              className="h-full rounded-full bg-[#0F7BFF]"
+              className="h-full rounded-full bg-[#856400]"
               style={{ width: `${(g.value / max) * 100}%` }}
             />
           </div>
@@ -264,9 +255,9 @@ export function GeographyBars() {
  * ----------------------------------------------------------------------- */
 
 const DEVICES = [
-  { label: "iOS", value: 58, color: "#0F7BFF" },
+  { label: "iOS", value: 58, color: "#856400" },
   { label: "Android", value: 34, color: "#15181F" },
-  { label: "Desktop", value: 8, color: "#FF8A3D" },
+  { label: "Desktop", value: 8, color: "#F4C430" },
 ];
 
 export function DeviceBars() {
@@ -307,7 +298,7 @@ export function MapPins() {
       {PINS.map((p, i) => (
         <span
           key={i}
-          className="absolute rounded-full bg-[#0F7BFF]"
+          className="absolute rounded-full bg-[#856400]"
           style={{
             left: p.left,
             top: p.top,

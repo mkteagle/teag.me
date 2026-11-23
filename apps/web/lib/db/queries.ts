@@ -4,6 +4,7 @@ import {
   count,
   desc,
   eq,
+  gte,
   inArray,
 } from "drizzle-orm";
 import { getDb } from "./index";
@@ -112,23 +113,9 @@ export async function updateQrCode(
   return qrCode ?? null;
 }
 
-export async function deleteQrCode(id: string) {
-  const [qrCode] = await getDb()
-    .delete(qrCodes)
-    .where(eq(qrCodes.id, id))
-    .returning();
-
-  return qrCode ?? null;
-}
-
-export async function createScan(values: typeof scans.$inferInsert) {
-  const [scan] = await getDb().insert(scans).values(values).returning();
-  return scan;
-}
-
-export async function getAnalyticsForQrCode(id: string) {
+export async function getAnalyticsForQrCode(id: string, userId: string, since: Date | null) {
   const qrCode = await findQrCodeById(id);
-  if (!qrCode) return null;
+  if (!qrCode || qrCode.userId !== userId) return null;
 
   const qrScans = await getDb()
     .select({
@@ -141,7 +128,7 @@ export async function getAnalyticsForQrCode(id: string) {
       ip: scans.ip,
     })
     .from(scans)
-    .where(eq(scans.qrCodeId, id))
+    .where(and(eq(scans.qrCodeId, id), since ? gte(scans.timestamp, since) : undefined))
     .orderBy(asc(scans.timestamp));
 
   return {
@@ -150,7 +137,7 @@ export async function getAnalyticsForQrCode(id: string) {
   };
 }
 
-export async function getOwnedQrCodeAnalytics(id: string, userId: string) {
+export async function getOwnedQrCodeAnalytics(id: string, userId: string, since: Date | null) {
   const [qrCode] = await getDb()
     .select()
     .from(qrCodes)
@@ -162,7 +149,7 @@ export async function getOwnedQrCodeAnalytics(id: string, userId: string) {
   const qrScans = await getDb()
     .select()
     .from(scans)
-    .where(eq(scans.qrCodeId, id))
+    .where(and(eq(scans.qrCodeId, id), since ? gte(scans.timestamp, since) : undefined))
     .orderBy(desc(scans.timestamp));
 
   return {
@@ -176,8 +163,9 @@ export async function listUserQrCodes(options: {
   archived: boolean;
   page: number;
   limit: number;
+  scansSince: Date | null;
 }) {
-  const { userId, archived, page, limit } = options;
+  const { userId, archived, page, limit, scansSince } = options;
   const skip = (page - 1) * limit;
   const whereClause = and(
     eq(qrCodes.userId, userId),
@@ -195,6 +183,7 @@ export async function listUserQrCodes(options: {
       id: qrCodes.id,
       redirectUrl: qrCodes.redirectUrl,
       base64: qrCodes.base64,
+      ogTitle: qrCodes.ogTitle,
       createdAt: qrCodes.createdAt,
       archived: qrCodes.archived,
     })
@@ -216,7 +205,7 @@ export async function listUserQrCodes(options: {
             country: scans.country,
           })
           .from(scans)
-          .where(inArray(scans.qrCodeId, qrCodeIds))
+          .where(and(inArray(scans.qrCodeId, qrCodeIds), scansSince ? gte(scans.timestamp, scansSince) : undefined))
           .orderBy(desc(scans.timestamp));
 
   const scansByQrCode = groupScans(scanRows);

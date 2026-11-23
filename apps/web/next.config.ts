@@ -1,7 +1,6 @@
-import { NextConfig } from "next";
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  turbopack: {},
   images: {
     remotePatterns: [
       // Cloudflare R2 public bucket (QR codes + logos), e.g.

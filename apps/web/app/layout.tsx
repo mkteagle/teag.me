@@ -2,7 +2,7 @@ import { Inter, JetBrains_Mono, Sora } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/styles/globals.css";
-import { Metadata, Viewport } from "next/types";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { PostHogProvider } from "@/providers/posthog-provider";
 
@@ -52,10 +52,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: "/apple-touch-teag.png",
   },
   manifest: "/site.webmanifest",
   robots: {
@@ -70,10 +69,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f4ef" },
-    { media: "(prefers-color-scheme: dark)", color: "#16181d" },
-  ],
+  themeColor: "#FAF8F3",
 };
 
 export default function RootLayout({
@@ -88,7 +84,7 @@ export default function RootLayout({
       >
         <PostHogProvider>
           <ThemeProvider>
-            <div className="flex min-h-screen">{children}</div>
+            <div className="min-h-dvh w-full">{children}</div>
             <Toaster />
           </ThemeProvider>
         </PostHogProvider>

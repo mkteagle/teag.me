@@ -77,7 +77,7 @@ export function InteractionHistory({
   return (
     <Card className="hover-lift glassmorphism">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-primary">
+        <CardTitle className="text-2xl font-bold text-accent">
           Detailed Interaction History
         </CardTitle>
       </CardHeader>

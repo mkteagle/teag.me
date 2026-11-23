@@ -9,7 +9,17 @@ interface QRWithLogoOptions {
   errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H';
 }
 
-/** Decode a data URL (any image type) into a raw Buffer. */
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+const MAX_LOGO_PIXELS = 16_000_000;
+const LOGO_DATA_PREFIX = /^data:image\/(?:png|jpe?g|webp);base64,/i;
+
+export class InvalidLogoError extends Error {
+  constructor() {
+    super('Choose a PNG, JPEG, or WebP logo under 2 MB and 16 million pixels.');
+  }
+}
+
+/** Decode a normalized PNG logo for QR compositing. */
 function dataUrlToBuffer(dataUrl: string): Buffer {
   const base64 = dataUrl.replace(/^data:[^;]+;base64,/, '');
   return Buffer.from(base64, 'base64');
@@ -37,11 +47,11 @@ export async function generateQRWithLogoBuffer({
   }
 
   try {
-    const logoSizePixels = Math.floor((qrSize * logoSize) / 100);
+    const percent = Number.isFinite(logoSize) ? Math.min(30, Math.max(10, logoSize)) : 20;
+    const logoSizePixels = Math.floor((qrSize * percent) / 100);
     const padding = 8;
     const bgSize = logoSizePixels + padding * 2;
 
-    // Decode the logo (sharp handles png/jpeg/webp/svg natively — no node-canvas).
     const logoBuffer = dataUrlToBuffer(logoDataUrl);
 
     // Clip the logo into a circle: resize to a square, then keep only the
@@ -87,25 +97,29 @@ export async function generateQRWithLogo(options: QRWithLogoOptions): Promise<st
   return `data:image/jpeg;base64,${buffer.toString('base64')}`;
 }
 
-/**
- * Validate and normalize an uploaded logo. Accepts any sharp-readable format
- * (png/jpeg/webp/svg), resizes to a small square, and re-encodes as PNG so
- * transparency is preserved and downstream steps get a known format.
- */
+/** Normalize a bounded raster upload to a PNG before storing or compositing it. */
 export async function processLogoImage(
-  imageDataUrl: string
-): Promise<{ dataUrl: string; error?: string }> {
-  try {
-    const buffer = dataUrlToBuffer(imageDataUrl);
+  imageDataUrl: unknown
+): Promise<{ dataUrl: string }> {
+  if (typeof imageDataUrl !== 'string' || imageDataUrl.length > Math.ceil(MAX_LOGO_BYTES / 3) * 4 + 32 ||
+      !LOGO_DATA_PREFIX.test(imageDataUrl)) throw new InvalidLogoError();
 
-    const processedBuffer = await sharp(buffer)
+  const base64 = imageDataUrl.replace(LOGO_DATA_PREFIX, '');
+  if (base64.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) throw new InvalidLogoError();
+  const buffer = Buffer.from(base64, 'base64');
+  const png = buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  const jpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const webp = buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP';
+  if (buffer.length > MAX_LOGO_BYTES || (!png && !jpeg && !webp)) throw new InvalidLogoError();
+
+  try {
+    const processedBuffer = await sharp(buffer, { limitInputPixels: MAX_LOGO_PIXELS })
       .resize(150, 150, { fit: 'cover', position: 'center' })
       .png()
       .toBuffer();
 
     return { dataUrl: `data:image/png;base64,${processedBuffer.toString('base64')}` };
-  } catch (error) {
-    console.error('Error processing logo image:', error);
-    throw new Error('Failed to process logo image. Please try a different image.');
+  } catch {
+    throw new InvalidLogoError();
   }
 }

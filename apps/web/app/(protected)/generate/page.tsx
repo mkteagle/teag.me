@@ -1,94 +1,71 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useState, type FormEvent } from "react";
+import { ArrowLeft, ChevronDown, Copy, Download, Plus, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { Download, Copy, Check, Sparkles, Link2, Zap } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import { LogoUpload } from "@/components/qr-codes/LogoUpload";
 import { LogoSizeSlider } from "@/components/qr-codes/LogoSizeSlider";
 import { UpgradeWall } from "@/components/upgrade-wall";
 import { usePlan } from "@/lib/hooks/use-plan";
+import { capture } from "@/lib/posthog";
+
+type GeneratedCode = { base64: string; redirectUrl: string; routingUrl: string };
+type UpgradeReason = "limit" | "logo";
 
 export default function GeneratePage() {
-  const [formData, setFormData] = useState({
-    redirectUrl: "",
-    customPath: "",
-  });
+  const [destination, setDestination] = useState("");
+  const [customPath, setCustomPath] = useState("");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [logoSize, setLogoSize] = useState(20);
-  const [qrCode, setQrCode] = useState<any>(null);
+  const [code, setCode] = useState<GeneratedCode | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [upgradeWallOpen, setUpgradeWallOpen] = useState(false);
-  const { toast } = useToast();
-  const { data: planData, atQrLimit } = usePlan();
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason | null>(null);
+  const { data: plan, atQrLimit } = usePlan();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.redirectUrl) return;
+  const create = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loading) return;
+    const properties = { tracked: true, custom_path: Boolean(customPath), has_logo: Boolean(logoDataUrl) };
+    capture("qr_code_create_started", properties);
+    setLoading(true);
+    setCopied(false);
 
     try {
-      setLoading(true);
-
-      // Basic URL validation
-      if (
-        !formData.redirectUrl.startsWith("http://") &&
-        !formData.redirectUrl.startsWith("https://")
-      ) {
-        throw new Error(
-          "Please enter a valid URL starting with http:// or https://"
-        );
+      const url = new URL(destination);
+      if (url.protocol !== "https:" && url.protocol !== "http:") {
+        throw new Error("Enter a website URL starting with https:// or http://.");
       }
 
-      const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-      const response = await fetch(`${baseUrl}/api/qr-code/create`, {
+      const response = await fetch("/api/qr-code/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          redirectUrl: formData.redirectUrl,
-          customPath: formData.customPath || undefined,
-          logoDataUrl,
-          logoSize,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ redirectUrl: url.href, customPath: customPath || undefined, logoDataUrl, logoSize }),
       });
+      const result = await response.json();
 
       if (!response.ok) {
-        const error = await response.json();
-        if (error.code === "LIMIT_REACHED") {
-          setUpgradeWallOpen(true);
+        if (result.code === "LIMIT_REACHED" || result.code === "PRO_REQUIRED") {
+          const reason = result.code === "LIMIT_REACHED" ? "limit" : "logo";
+          setUpgradeReason(reason);
+          capture("qr_code_create_blocked", { ...properties, reason });
           return;
         }
-        if (error.code === "PRO_REQUIRED") {
-          setUpgradeWallOpen(true);
-          return;
-        }
-        throw new Error(error.error || "Failed to generate QR code");
+        throw new Error(result.error || "Please try again.");
       }
 
-      const data = await response.json();
-      setQrCode(data.data);
-
-      toast({
-        title: "Success",
-        description: "QR code generated successfully!",
-      });
+      setCode(result.data);
+      capture("qr_code_created", properties);
+      toast({ title: "QR code created" });
     } catch (error) {
-      console.error("Error generating QR code:", error);
+      capture("qr_code_create_failed", properties);
       toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to generate QR code",
+        title: "Couldn’t create your QR code",
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -96,286 +73,97 @@ export default function GeneratePage() {
     }
   };
 
-  const handleDownload = () => {
-    if (!qrCode?.base64) return;
-
-    const link = document.createElement("a");
-    link.href = qrCode.base64;
-    link.download = `qr-code-${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "QR Code Downloaded",
-      description: "Your QR code has been saved to your device.",
-    });
-  };
-
-  const handleCopy = async () => {
-    if (!qrCode?.routingUrl) return;
-
+  const copy = async () => {
+    if (!code) return;
     try {
-      await navigator.clipboard.writeText(qrCode.routingUrl);
+      await navigator.clipboard.writeText(code.routingUrl);
       setCopied(true);
-      toast({
-        title: "Copied!",
-        description: "QR code URL copied to clipboard.",
-      });
-
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to copy QR code URL.",
-        variant: "destructive",
-      });
+      capture("created_qr_link_copied", { tracked: true });
+    } catch {
+      toast({ title: "Couldn’t copy the link", variant: "destructive" });
     }
   };
 
   return (
-    <div className="min-h-screen p-8 lg:p-12">
-      {/* Header */}
-      <div className="mb-12">
-        <h1 className="text-4xl lg:text-5xl font-bold mb-3 tracking-tight">
-          Generate QR Code
-        </h1>
-        <p className="text-lg text-muted-foreground font-serif italic">
-          Create trackable QR codes with custom short URLs
-        </p>
-      </div>
+    <section className="full-bleed py-8 sm:py-12">
+      <Link href="/dashboard" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" aria-hidden="true" /> Your codes
+      </Link>
+      <h1 className="text-4xl font-extrabold tracking-[-0.055em] sm:text-5xl">Create a QR code</h1>
+      <p className="mb-8 mt-3 text-base text-muted-foreground">Add the website your code should open.</p>
 
-      <div className="max-w-4xl">
-        {/* Limit banner */}
-        {atQrLimit && (
-          <div className="mb-8 flex items-center justify-between gap-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
-            <p className="text-sm text-muted-foreground">
-              You&apos;ve reached the {planData?.usage.activeQrCodes.limit} QR code limit on the Free plan.
-            </p>
-            <Button
-              size="sm"
-              className="shrink-0 gap-1.5"
-              onClick={() => setUpgradeWallOpen(true)}
-            >
-              <Zap className="h-3.5 w-3.5" />
-              Upgrade
-            </Button>
-          </div>
-        )}
-
-        {/* Form Section */}
-        <div
-          className="data-card p-8 mb-8"
-          style={{
-            opacity: mounted ? 1 : 0,
-            transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-            transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
-          <div className="flex items-center gap-3 mb-6 pb-6 border-b-2 border-dashed border-border">
-            <Link2 className="w-6 h-6 text-primary" strokeWidth={2.5} />
-            <h2 className="text-2xl font-bold">Configuration</h2>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="redirectUrl" className="text-sm font-mono uppercase tracking-wider">
-                Destination URL
-                <span className="text-destructive ml-1">*</span>
-              </Label>
-              <Input
-                id="redirectUrl"
-                type="url"
-                placeholder="https://example.com"
-                value={formData.redirectUrl}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    redirectUrl: e.target.value,
-                  }))
-                }
-                required
-                className="font-mono border-2 border-border focus:border-primary transition-colors"
-              />
-              <p className="text-xs font-serif text-muted-foreground">
-                The URL where users will be redirected after scanning
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <Label
-                htmlFor="customPath"
-                className="text-sm font-mono uppercase tracking-wider flex items-center justify-between"
-              >
-                <span>Custom Path</span>
-                <span className="mono-badge">OPTIONAL</span>
-              </Label>
-              <Input
-                id="customPath"
-                placeholder="my-custom-link"
-                value={formData.customPath}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    customPath: e.target.value,
-                  }))
-                }
-                pattern="^[a-zA-Z0-9-_]+$"
-                title="Only letters, numbers, hyphens, and underscores are allowed"
-                className="font-mono border-2 border-border focus:border-primary transition-colors"
-              />
-              <p className="text-xs font-serif text-muted-foreground">
-                Leave empty for auto-generated short URL • Example: teag.me/your-path
-              </p>
-            </div>
-
-            <div className="receipt-line" />
-
-            <LogoUpload
-              onLogoChange={setLogoDataUrl}
-              logoPreview={logoDataUrl}
-            />
-
-            {logoDataUrl && (
-              <LogoSizeSlider
-                value={logoSize}
-                onChange={setLogoSize}
-              />
-            )}
-
-            <div className="receipt-line" />
-
+      <form onSubmit={create} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="destination">Destination URL</Label>
+          <div className="flex flex-wrap items-start gap-3">
+            <Input id="destination" type="url" required value={destination} onChange={(event) => setDestination(event.target.value)}
+              placeholder="https://example.com" className="min-w-56 flex-1 bg-card" />
             {atQrLimit ? (
-              <Button
-                type="button"
-                size="lg"
-                className="w-full gap-2 font-mono font-semibold text-base"
-                onClick={() => setUpgradeWallOpen(true)}
-              >
-                <Zap className="w-5 h-5" strokeWidth={2.5} />
-                Upgrade to Generate More
+              <Button type="button" onClick={() => setUpgradeReason("limit")}>
+                <Zap className="size-4" aria-hidden="true" /> Upgrade to create
               </Button>
             ) : (
-              <Button
-                type="submit"
-                disabled={loading}
-                size="lg"
-                className="w-full data-card border-2 border-foreground bg-foreground text-background hover:bg-primary hover:border-primary font-mono font-semibold text-base"
-              >
-                {loading ? (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2 animate-pulse" strokeWidth={2.5} />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" strokeWidth={2.5} />
-                    Generate QR Code
-                  </>
-                )}
+              <Button type="submit" disabled={loading} className="font-semibold">
+                <Plus className="size-4" aria-hidden="true" /> {loading ? "Creating…" : "Create QR"}
               </Button>
             )}
-          </form>
+          </div>
         </div>
 
-        <UpgradeWall
-          open={upgradeWallOpen}
-          onClose={() => setUpgradeWallOpen(false)}
-          title="QR code limit reached"
-          current={planData?.usage.activeQrCodes.current}
-          limit={planData?.usage.activeQrCodes.limit}
-        />
-
-        {/* QR Code Result Section */}
-        {qrCode && (
-          <div
-            className="data-card p-8"
-            style={{
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s',
-            }}
-          >
-            <div className="flex items-center gap-3 mb-6 pb-6 border-b-2 border-dashed border-border">
-              <Check className="w-6 h-6 text-primary" strokeWidth={2.5} />
-              <h2 className="text-2xl font-bold">Generated QR Code</h2>
+        <details className="group rounded-xl border bg-card px-4">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 font-medium [&::-webkit-details-marker]:hidden">
+            QR code options
+            <ChevronDown className="size-4 group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="space-y-5 border-t py-4">
+            <div className="space-y-2">
+              <Label htmlFor="customPath">Custom short path</Label>
+              <Input id="customPath" value={customPath} onChange={(event) => setCustomPath(event.target.value)}
+                placeholder="studio-menu" pattern="[a-zA-Z0-9_\\-]+" title="Use letters, numbers, hyphens, or underscores"
+                aria-describedby="custom-path-hint" />
+              <p id="custom-path-hint" className="text-sm text-muted-foreground">Leave blank for an automatic teag.me link.</p>
             </div>
+            {plan?.plan === "PRO" ? (
+              <>
+                <LogoUpload onLogoChange={setLogoDataUrl} logoPreview={logoDataUrl} />
+                {logoDataUrl && <LogoSizeSlider value={logoSize} onChange={setLogoSize} />}
+              </>
+            ) : (
+              <Button variant="outline" type="button" onClick={() => setUpgradeReason("logo")}>
+                Add a logo with Pro
+              </Button>
+            )}
+          </div>
+        </details>
+      </form>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* QR Code Display */}
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative group">
-                  <div className="absolute -inset-4 bg-primary/10 -z-10" />
-                  <img
-                    src={qrCode.base64}
-                    alt="Generated QR Code"
-                    className="w-64 h-64 border-4 border-foreground bg-white p-4 transition-transform group-hover:scale-105"
-                  />
-                </div>
-                <p className="text-xs font-mono text-muted-foreground mt-4 uppercase tracking-wider">
-                  Scan to test
-                </p>
-              </div>
-
-              {/* QR Code Info & Actions */}
-              <div className="flex flex-col justify-between">
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
-                      Short URL
-                    </p>
-                    <div className="data-card bg-muted/50 p-4">
-                      <p className="font-mono text-sm break-all text-primary font-semibold">
-                        {qrCode.routingUrl}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
-                      Redirects To
-                    </p>
-                    <div className="data-card bg-muted/50 p-4">
-                      <p className="font-serif text-sm break-all text-muted-foreground">
-                        {formData.redirectUrl}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    onClick={handleDownload}
-                    size="lg"
-                    className="w-full data-card border-2 border-foreground bg-card hover:bg-foreground hover:text-background font-mono font-semibold"
-                  >
-                    <Download className="mr-2 h-5 w-5" strokeWidth={2.5} />
-                    Download PNG
-                  </Button>
-                  <Button
-                    onClick={handleCopy}
-                    size="lg"
-                    variant="outline"
-                    className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-white font-mono font-semibold"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="mr-2 h-5 w-5" strokeWidth={2.5} />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-5 w-5" strokeWidth={2.5} />
-                        Copy URL
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
+      {code && (
+        <section className="mt-9 flex flex-wrap items-center gap-6 rounded-xl border bg-card p-5 sm:p-6" aria-label="Created QR code">
+          <img src={code.base64} alt="Your QR code" width={144} height={144} className="rounded-lg border bg-white p-2" />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl font-bold">Your QR code is ready</h2>
+            <a className="mt-1 block break-all text-sm text-accent underline underline-offset-4" href={code.routingUrl}>{code.routingUrl}</a>
+            <p className="mt-1 break-all text-sm text-muted-foreground">{code.redirectUrl}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button asChild variant="outline"><a href={code.base64} download="teag-qr-code.png" onClick={() => capture("qr_code_downloaded", { source: "generator", tracked: true })}>
+                <Download className="size-4" aria-hidden="true" /> Download
+              </a></Button>
+              <Button variant="outline" type="button" onClick={() => void copy()}>
+                <Copy className="size-4" aria-hidden="true" /> {copied ? "Copied" : "Copy link"}
+              </Button>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </section>
+      )}
+
+      <UpgradeWall
+        open={upgradeReason !== null}
+        onClose={() => setUpgradeReason(null)}
+        title={upgradeReason === "logo" ? "Add your logo with Pro" : "QR code limit reached"}
+        feature={upgradeReason === "logo" ? "logo uploads" : undefined}
+        current={upgradeReason === "limit" ? plan?.usage.activeQrCodes.current : undefined}
+        limit={upgradeReason === "limit" ? plan?.usage.activeQrCodes.limit : undefined}
+      />
+    </section>
   );
 }

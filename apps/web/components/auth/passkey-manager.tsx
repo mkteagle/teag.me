@@ -76,7 +76,7 @@ export function PasskeyManager({ passkeys }: { passkeys: PasskeyRow[] }) {
     <div className="data-card rounded-3xl p-6 md:p-8">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+          <div className="rounded-2xl bg-primary/10 p-3 text-accent">
             <Fingerprint className="h-5 w-5" />
           </div>
           <div>
@@ -110,7 +110,7 @@ export function PasskeyManager({ passkeys }: { passkeys: PasskeyRow[] }) {
               className="flex items-center justify-between rounded-xl border border-black/8 bg-white/50 px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <Fingerprint className="h-4 w-4 text-primary" />
+                <Fingerprint className="h-4 w-4 text-accent" />
                 <div>
                   <div className="text-sm font-medium">
                     {pk.name || pk.deviceType || "Passkey"}

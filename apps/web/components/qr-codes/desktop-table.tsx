@@ -80,7 +80,7 @@ export function DesktopTable({
                     <p className="font-semibold text-sm truncate">
                       {new URL(qr.redirectUrl).hostname}
                     </p>
-                    <ExternalLink className="h-3 w-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ExternalLink className="h-3 w-3 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <p className="text-xs text-muted-foreground font-serif truncate">
                     {qr.redirectUrl}
@@ -97,7 +97,7 @@ export function DesktopTable({
               </TableCell>
               <TableCell className="py-4">
                 <div className="space-y-1">
-                  <p className="font-mono text-xl font-bold text-primary">{qr.scans?.length ?? 0}</p>
+                  <p className="font-mono text-xl font-bold text-accent">{qr.scans?.length ?? 0}</p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3" />
                     <span className="font-serif">

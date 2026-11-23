@@ -13,8 +13,10 @@ node_modules/
 # testing
 coverage/
 
-# next.js
+# web framework output
 .next/
+.vinext/
+.output/
 /out/
 
 # production

@@ -157,7 +157,7 @@ export function GalleryPermission() {
     >
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
         <div className="mb-[18px]">
-          <ScannerLogo size={56} tagFill="#0A0A0A" dotStroke="#0A0A0A" />
+          <ScannerLogo size={56} />
         </div>
         <div className="mb-3 font-heading text-lg font-bold text-[#FFFDF8]">
           teag.me{" "}

@@ -76,6 +76,7 @@ export function LineChart({ data }: LineChartProps) {
           <Line
             type="monotone"
             dataKey="scans"
+            isAnimationActive={false}
             stroke="hsl(var(--primary))"
             strokeWidth={2}
             dot={{ fill: "hsl(var(--primary))" }}

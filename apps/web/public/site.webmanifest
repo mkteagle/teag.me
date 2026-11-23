@@ -1,17 +1,12 @@
 {
   "name": "teag.me",
   "short_name": "teag.me",
-  "description": "Free QR tracking without the paywall.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F6F4EF",
-  "theme_color": "#0F7BFF",
+  "background_color": "#FAF8F3",
+  "theme_color": "#FAF8F3",
   "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
+    { "src": "/assets/teag-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/teag-icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }

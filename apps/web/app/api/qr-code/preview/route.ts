@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateQRWithLogo, processLogoImage } from "@/lib/qr-with-logo";
+import { generateQRWithLogo, InvalidLogoError, processLogoImage } from "@/lib/qr-with-logo";
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       previewUrl: previewUrl,
     });
   } catch (error) {
+    if (error instanceof InvalidLogoError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error("Error generating QR code preview:", error);
 
     let errorMessage = "Failed to generate preview";

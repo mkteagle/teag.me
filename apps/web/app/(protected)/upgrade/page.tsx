@@ -3,19 +3,23 @@
 import { useState, useEffect } from "react";
 import { Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { capture } from "@/lib/posthog";
+import { PLAN_LIMITS } from "@/lib/plans";
 
 const freeFeatures = [
   "10 active dynamic QR codes",
   "Unlimited static QR generation",
-  "3,000 tracked scans per month",
-  "90-day analytics retention",
+  "1 link page",
+  `${PLAN_LIMITS.FREE.maxScansPerMonth.toLocaleString("en-US")} tracked scans per month`,
+  `${PLAN_LIMITS.FREE.analyticsRetentionDays} days of analytics history`,
   "Basic scan, country, and device insights",
 ];
 
 const proFeatures = [
   "Unlimited active dynamic QR codes",
+  "Unlimited link pages",
   "50,000 tracked scans per month",
-  "Unlimited retention and CSV exports",
+  "Unlimited analytics history and CSV exports",
   "Logo uploads and saved brand styles",
   "Custom domains, bulk actions, and richer analytics",
 ];
@@ -47,6 +51,7 @@ export default function UpgradePage() {
   }, []);
 
   const handleUpgrade = async () => {
+    capture("pro_purchase_started", { source: "upgrade_page" });
     setLoading(true);
     try {
       const res = await fetch("/api/stripe/checkout", { method: "POST" });
@@ -55,6 +60,7 @@ export default function UpgradePage() {
         window.location.href = data.url;
       }
     } catch (error) {
+      capture("pro_purchase_failed", { source: "upgrade_page" });
       console.error("Checkout error:", error);
       setLoading(false);
     }
@@ -79,7 +85,7 @@ export default function UpgradePage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="full-bleed space-y-8 py-8 sm:py-12">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">
           {plan === "PRO" ? "Manage your plan" : "Upgrade to Pro"}
@@ -126,7 +132,7 @@ export default function UpgradePage() {
         <div className="rounded-2xl border border-primary/30 bg-card p-8 ring-1 ring-primary/10">
           <div className="flex items-center gap-2">
             <h3 className="text-xl font-semibold">Pro</h3>
-            <Zap className="h-4 w-4 text-primary" />
+            <Zap className="h-4 w-4 text-accent" />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             For serious campaigns
@@ -138,7 +144,7 @@ export default function UpgradePage() {
           <ul className="mt-6 space-y-3">
             {proFeatures.map((f) => (
               <li key={f} className="flex items-start gap-3 text-sm">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                 <span>{f}</span>
               </li>
             ))}

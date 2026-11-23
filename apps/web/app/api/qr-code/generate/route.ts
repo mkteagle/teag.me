@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import QRCode from "qrcode";
-import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
+import { generateQRWithLogoBuffer, InvalidLogoError, processLogoImage } from "@/lib/qr-with-logo";
 
 /**
  * Stateless QR generator. Unlike /api/qr-code/create this does NOT require auth,
@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
 
     return imageResponse(buffer, contentType, body.download === true);
   } catch (error) {
+    if (error instanceof InvalidLogoError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error("Error generating QR code:", error);
     const message =
       error instanceof Error ? error.message : "Failed to generate QR code";

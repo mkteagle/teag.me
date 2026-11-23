@@ -73,11 +73,9 @@ export function LoginPageClient({
         transition: "opacity 0.4s ease",
       }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(15,123,255,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(255,138,61,0.10),transparent_32%)]" />
-
       <div className="relative w-full max-w-md rounded-[28px] border border-black/10 bg-[hsl(var(--card))] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.08)] md:p-10">
         <div className="mb-8 flex justify-center">
-          <div className="rounded-3xl bg-primary/10 p-5 text-primary">
+          <div className="rounded-3xl bg-primary/10 p-5 text-accent">
             <Activity className="h-10 w-10" strokeWidth={2.25} />
           </div>
         </div>
@@ -101,11 +99,11 @@ export function LoginPageClient({
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           By signing in, you agree to our{" "}
-          <a href="/terms" className="text-primary hover:underline">
+          <a href="/terms" className="text-accent hover:underline">
             Terms
           </a>{" "}
           and{" "}
-          <a href="/privacy" className="text-primary hover:underline">
+          <a href="/privacy" className="text-accent hover:underline">
             Privacy Policy
           </a>
           .

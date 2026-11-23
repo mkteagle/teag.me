@@ -41,7 +41,7 @@ export function LegalShell({
         <p className="mb-10 font-mono text-xs text-[#9AA1AE]">
           Last updated: {lastUpdated}
         </p>
-        <div className="space-y-9 text-[15px] leading-[1.7] text-[#3C424E] [&_a]:text-primary [&_a:hover]:underline">
+        <div className="space-y-9 text-[15px] leading-[1.7] text-[#3C424E] [&_a]:text-accent [&_a:hover]:underline">
           {children}
         </div>
       </article>
@@ -50,7 +50,6 @@ export function LegalShell({
         <div className="full-bleed flex flex-wrap items-center justify-between gap-4 py-10">
           <ScannerWordmark
             wordmarkClassName="text-[#FFFDF8] text-[17px]"
-            dotStroke="#15181F"
           />
           <div className="flex flex-wrap gap-6 text-[13.5px] text-[#9AA1AE]">
             <Link href="/" className="hover:text-white">

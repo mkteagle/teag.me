@@ -1,7 +1,6 @@
 import { UAParser } from "ua-parser-js";
-import { generateId } from "@/lib/utils";
-import { createScan } from "@/lib/db/queries";
-import { checkScanLimit } from "@/lib/plan-enforcement";
+import { generateId } from "@/lib/ids";
+import { createTrackedScan } from "@/lib/plan-enforcement";
 
 function determineSource(
   referrer: string | null,
@@ -53,40 +52,32 @@ function determineSource(
   }
 }
 
-export async function recordScan(params: {
-  qrCodeId: string;
-  userId: string;
-  ip: string;
-  userAgent: string;
-  referrer: string | null;
-  country: string | null;
-  city: string | null;
-  region: string | null;
-}) {
+export function isCameraInvocationId(value: unknown): value is string {
+  return typeof value === "string" && /^[a-z0-9-]{20,64}$/.test(value);
+}
+
+export async function recordScan(
+  qrCode: { id: string; userId: string },
+  headers: Headers,
+  cameraInvocationId?: string
+) {
   try {
-    const { qrCodeId, userId, ip, userAgent, referrer, country, city, region } =
-      params;
-
-    const scanLimit = await checkScanLimit(userId);
-    if (!scanLimit.allowed) return;
-
-    const parser = new UAParser(userAgent);
-    const result = parser.getResult();
+    const userAgent = headers.get("user-agent") ?? "unknown";
+    const referrer = headers.get("referer");
+    const result = new UAParser(userAgent).getResult();
     const { source, medium } = determineSource(referrer, userAgent);
-    const isScan =
-      userAgent.toLowerCase().includes("qr") ||
-      userAgent.toLowerCase().includes("scanner");
+    const isScan = Boolean(cameraInvocationId) || /qr|scanner/i.test(userAgent);
 
-    await createScan({
-      id: generateId(),
-      qrCodeId,
-      ip,
+    await createTrackedScan(qrCode.userId, {
+      id: cameraInvocationId ? `ios-camera:${qrCode.id}:${cameraInvocationId}` : generateId(),
+      qrCodeId: qrCode.id,
+      ip: headers.get("x-forwarded-for")?.split(",")[0] ?? headers.get("x-real-ip") ?? "unknown",
       userAgent,
-      country,
-      city,
-      region,
+      country: headers.get("x-vercel-ip-country"),
+      city: headers.get("x-vercel-ip-city"),
+      region: headers.get("x-vercel-ip-region"),
       type: isScan ? "scan" : "click",
-      referrer: referrer ?? null,
+      referrer,
       source,
       medium,
       device: result.device.type || result.device.vendor || "unknown",

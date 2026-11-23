@@ -26,7 +26,7 @@ export default async function SettingsPage() {
     .where(eq(passkeysTable.userId, user.id));
 
   return (
-    <div className="min-h-screen p-8 lg:p-12">
+    <div className="full-bleed py-8 sm:py-12">
       <div className="mb-10">
         <h1 className="font-heading text-4xl font-semibold tracking-tight">
           Settings

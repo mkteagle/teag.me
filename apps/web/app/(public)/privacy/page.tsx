@@ -298,7 +298,7 @@ export default function PrivacyPage() {
               </ul>
 
               <p>
-                To exercise these rights, please contact us at <span className="font-mono text-primary">hello@bykindling.com</span>.
+                To exercise these rights, please contact us at <span className="font-mono text-accent">hello@bykindling.com</span>.
                 We will respond to your request within 30 days.
               </p>
             </div>
@@ -389,7 +389,7 @@ export default function PrivacyPage() {
                 <li>Right to non-discrimination for exercising your privacy rights</li>
               </ul>
               <p>
-                To exercise these rights, contact us at <span className="font-mono text-primary">hello@bykindling.com</span>.
+                To exercise these rights, contact us at <span className="font-mono text-accent">hello@bykindling.com</span>.
               </p>
             </div>
           </section>

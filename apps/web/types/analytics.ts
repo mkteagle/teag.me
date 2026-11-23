@@ -29,6 +29,7 @@ export interface Analytics {
   redirectUrl: string;
   createdAt: string;
   scans: Scan[];
+  retentionDays: number;
 }
 
 export interface ExtendedQRCode {

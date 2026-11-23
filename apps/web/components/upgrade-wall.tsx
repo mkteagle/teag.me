@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldAlert, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { capture } from "@/lib/posthog";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ export function UpgradeWall({
   const [loading, setLoading] = useState(false);
 
   const handleUpgrade = async () => {
+    capture("pro_purchase_started", { source: "upgrade_wall" });
     setLoading(true);
     try {
       const res = await fetch("/api/stripe/checkout", { method: "POST" });
@@ -43,6 +45,7 @@ export function UpgradeWall({
         window.location.href = data.url;
       }
     } catch {
+      capture("pro_purchase_failed", { source: "upgrade_wall" });
       // Fallback to upgrade page
       router.push("/upgrade");
     }
@@ -57,7 +60,7 @@ export function UpgradeWall({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-            <ShieldAlert className="h-7 w-7 text-primary" />
+            <ShieldAlert className="h-7 w-7 text-accent" />
           </div>
           <DialogTitle className="text-center text-xl">{title}</DialogTitle>
           <DialogDescription className="text-center">

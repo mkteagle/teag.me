@@ -1,4 +1,4 @@
-import { DeleteObjectsCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 let r2Client: S3Client | null = null;
 
@@ -63,6 +63,22 @@ export async function uploadToR2(
   );
 
   return getPublicUrl(key);
+}
+
+export async function readQrLogoFromR2(qrCodeId: string): Promise<Buffer> {
+  const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME;
+  if (!bucketName) throw new Error("Missing CLOUDFLARE_R2_BUCKET_NAME.");
+
+  // Logos are normalized to 150×150 PNGs before upload.
+  const limit = 250_000;
+  const response = await getR2Client().send(new GetObjectCommand({
+    Bucket: bucketName,
+    Key: `logos/${qrCodeId}-logo.png`,
+    Range: `bytes=0-${limit}`,
+  }), { abortSignal: AbortSignal.timeout(4_000) });
+  const bytes = await response.Body?.transformToByteArray();
+  if (!bytes?.length || bytes.length > limit) throw new Error("Stored QR logo unavailable");
+  return Buffer.from(bytes);
 }
 
 export async function deleteFromR2(keys: string[]): Promise<void> {

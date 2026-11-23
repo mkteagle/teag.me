@@ -5,6 +5,7 @@ import { Check, Clipboard, Cloud, ExternalLink, History, Trash2 } from "lucide-r
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { capture } from "@/lib/posthog";
 
 type CapturedCode = {
   id: string;
@@ -21,7 +22,7 @@ type HistoryResponse = {
   pagination: { page: number; totalPages: number; totalCount: number };
 };
 
-export function HistoryClient() {
+export function HistoryClient({ embedded = false }: { embedded?: boolean }) {
   const [entries, setEntries] = useState<CapturedCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
@@ -54,6 +55,7 @@ export function HistoryClient() {
 
   const copy = async (entry: CapturedCode) => {
     await navigator.clipboard.writeText(entry.rawValue);
+    capture("history_link_copied");
     setCopiedId(entry.id);
     window.setTimeout(() => setCopiedId(null), 1_500);
   };
@@ -66,6 +68,7 @@ export function HistoryClient() {
     }
     setEntries((current) => current.filter((item) => item.id !== entry.id));
     setTotalCount((count) => Math.max(0, count - 1));
+    capture("history_link_deleted");
   };
 
   const clear = async () => {
@@ -78,6 +81,7 @@ export function HistoryClient() {
       setTotalCount(0);
       setPage(1);
       setTotalPages(1);
+      capture("history_cleared");
     } catch {
       toast({ title: "Couldn't clear history", variant: "destructive" });
     } finally {
@@ -86,15 +90,14 @@ export function HistoryClient() {
   };
 
   return (
-    <div className="min-h-screen p-8 lg:p-12">
-      <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    <div className={embedded ? "" : "full-bleed py-8 sm:py-12"}>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-primary">
-            <Cloud className="h-3.5 w-3.5" /> Synced link library
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">History</h1>
+          {embedded
+            ? <h2 className="text-2xl font-bold tracking-tight">Scanner history</h2>
+            : <h1 className="text-4xl font-extrabold tracking-[-0.055em] sm:text-5xl">Activity</h1>}
           <p className="mt-3 max-w-xl text-muted-foreground">
-            Links scanned or created with QR Code by teag.me, backed up to your account and available anywhere.
+            Links you scanned or created in the iPhone app.
           </p>
         </div>
         <Button variant="outline" onClick={clear} disabled={entries.length === 0 || clearing}>
@@ -105,13 +108,13 @@ export function HistoryClient() {
 
       <div className="mb-5 flex items-center justify-between border-b pb-3 text-sm text-muted-foreground">
         <span>{totalCount.toLocaleString()} saved {totalCount === 1 ? "link" : "links"}</span>
-        <span className="font-mono text-[10px] uppercase tracking-wider">Private to your account</span>
+        <span className="inline-flex items-center gap-1.5"><Cloud className="size-4" aria-hidden="true" /> Private to your account</span>
       </div>
 
       {!loading && entries.length === 0 ? (
-        <div className="flex min-h-[360px] flex-col items-center justify-center rounded-3xl border border-dashed bg-card/40 px-8 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-            <History className="h-7 w-7 text-primary" />
+        <div className="flex min-h-[260px] flex-col items-center justify-center px-5 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fff1c4]">
+            <History className="h-6 w-6 text-accent" />
           </div>
           <h2 className="mt-5 text-xl font-semibold">Your link history is empty</h2>
           <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
@@ -123,11 +126,12 @@ export function HistoryClient() {
           {entries.map((entry) => (
             <article key={entry.id} className="group rounded-2xl border bg-card p-5 transition-colors hover:border-primary/25">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-accent">
                   <ExternalLink className="h-5 w-5" />
                 </div>
-                <a href={entry.normalizedUrl} target="_blank" rel="noreferrer" className="min-w-0 flex-1">
-                  <h2 className="truncate text-base font-semibold group-hover:text-primary">{entry.host}</h2>
+                <a href={entry.normalizedUrl} target="_blank" rel="noreferrer" className="min-w-0 flex-1"
+                  onClick={() => capture("history_link_opened")}>
+                  <h2 className="truncate text-base font-semibold group-hover:text-accent">{entry.host}</h2>
                   <p className="mt-1 truncate font-mono text-[11px] text-muted-foreground">{entry.rawValue}</p>
                   <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground/70">
                     {new Date(entry.capturedAt).toLocaleString()} · {entry.source}

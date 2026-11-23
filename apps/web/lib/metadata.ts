@@ -1,5 +1,7 @@
 import { load } from "cheerio";
 import { updateQrCode } from "@/lib/db/queries";
+import { parseHttpDestination } from "./http-destination";
+import { fetchPreviewHtml } from "./preview-fetch";
 
 interface MetadataResult {
   title?: string;
@@ -10,33 +12,28 @@ interface MetadataResult {
 
 export async function fetchUrlMetadata(url: string): Promise<MetadataResult> {
   try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "teag.me metadata bot (hello@teag.me)",
-      },
-    });
-
-    const html = await response.text();
-    const $ = load(html);
+    const preview = await fetchPreviewHtml(url);
+    if (!preview) return {};
+    const $ = load(preview.html);
+    const image = $('meta[property="og:image"]').attr("content");
+    let imageUrl: string | undefined;
+    if (image) {
+      try { imageUrl = parseHttpDestination(new URL(image, preview.url).href)?.href; } catch {}
+    }
 
     // Get Open Graph and fallback metadata
     return {
       title:
-        $('meta[property="og:title"]').attr("content") ||
-        $("title").text() ||
-        undefined,
+        ($('meta[property="og:title"]').attr("content") || $("title").text()).slice(0, 512) || undefined,
 
       description:
-        $('meta[property="og:description"]').attr("content") ||
-        $('meta[name="description"]').attr("content") ||
-        undefined,
+        ($('meta[property="og:description"]').attr("content") ||
+          $('meta[name="description"]').attr("content") || "").slice(0, 2_048) || undefined,
 
-      image: $('meta[property="og:image"]').attr("content") || undefined,
-
-      url: $('meta[property="og:url"]').attr("content") || url,
+      image: imageUrl,
+      url: preview.url.href,
     };
-  } catch (error) {
-    console.error("Error fetching URL metadata:", error);
+  } catch {
     return {};
   }
 }

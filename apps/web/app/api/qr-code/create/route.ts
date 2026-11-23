@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
-import { generateUniqueShortId } from "@/lib/utils";
-import { generateQRWithLogoBuffer, processLogoImage } from "@/lib/qr-with-logo";
+import { generateUniqueShortId } from "@/lib/ids";
+import { generateQRWithLogoBuffer, InvalidLogoError, processLogoImage } from "@/lib/qr-with-logo";
 import { uploadToR2, dataUrlToBuffer } from "@/lib/r2-storage";
 import { createQrCode, findQrCodeById } from "@/lib/db/queries";
 import { getCurrentUser } from "@/lib/auth-session";
 import { checkQrCodeLimit, checkFeatureAccess } from "@/lib/plan-enforcement";
 import { cacheQrCodeMetadata } from "@/lib/metadata";
+import { parseHttpDestination } from "@/lib/http-destination";
 
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
     const body = await request.json();
-    const { redirectUrl, customPath, logoDataUrl, logoSize } = body;
+    const { redirectUrl: submittedUrl, customPath, logoDataUrl, logoSize } = body;
 
-    if (!redirectUrl || !currentUser) {
+    if (!currentUser) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
       );
+    }
+    const redirectUrl = parseHttpDestination(submittedUrl)?.href;
+    if (!redirectUrl) {
+      return NextResponse.json({ error: "Enter a valid HTTP or HTTPS destination" }, { status: 400 });
     }
 
     // Enforce QR code limit
@@ -109,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     // Create the short URL using teag.me domain
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://teag.me";
-    const shortUrl = `${baseUrl}/${id}`;
+    const shortUrl = `${baseUrl.replace(/\/$/, "")}/r/${id}`;
 
     // Process and upload logo if provided
     let logoUrl: string | null = null;
@@ -165,6 +170,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof InvalidLogoError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error("Error creating QR code:", error);
 
     let errorMessage = "Failed to create QR code";

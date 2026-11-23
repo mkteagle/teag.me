@@ -3,13 +3,17 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
+
+import type { LinkPageContent } from "../link-pages/model";
 
 export const roleEnum = pgEnum("Role", ["USER", "ADMIN"]);
 
@@ -82,6 +86,18 @@ export const scans = pgTable(
   (table) => ({
     qrCodeIdIdx: index("Scan_qrCodeId_idx").on(table.qrCodeId),
   })
+);
+
+export const monthlyScanUsage = pgTable(
+  "MonthlyScanUsage",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    monthStart: timestamp("monthStart", { withTimezone: true, mode: "date" }).notNull(),
+    scanCount: integer("scanCount").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.monthStart] })]
 );
 
 export const capturedCodes = pgTable(
@@ -323,3 +339,24 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const linkPages = pgTable("LinkPage", {
+  id: varchar("id", { length: 24 }).primaryKey(),
+  userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  slug: varchar("slug", { length: 40 }).notNull().unique(),
+  draft: jsonb("draft").$type<LinkPageContent>().notNull(),
+  published: jsonb("published").$type<LinkPageContent>(),
+  version: integer("version").notNull().default(1),
+  updatedAt: timestamp("updatedAt", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  publishedAt: timestamp("publishedAt", { withTimezone: true, mode: "date" }),
+}, (table) => [index("LinkPage_userId_idx").on(table.userId)]);
+
+export const linkPageEventType = pgEnum("LinkPageEventType", ["view", "click", "scan", "publish"]);
+
+export const linkPageEvents = pgTable("LinkPageEvent", {
+  id: text("id").primaryKey(),
+  pageId: varchar("pageId", { length: 24 }).notNull().references(() => linkPages.id, { onDelete: "cascade" }),
+  type: linkPageEventType("type").notNull(),
+  blockTitle: text("blockTitle"),
+  timestamp: timestamp("timestamp", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [index("LinkPageEvent_pageId_timestamp_idx").on(table.pageId, table.timestamp)]);

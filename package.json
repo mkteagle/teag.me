@@ -12,6 +12,9 @@
     "mobile": "pnpm --filter @teag/mobile start"
   },
   "pnpm": {
+    "overrides": {
+      "satori>fflate": "0.7.5"
+    },
     "onlyBuiltDependencies": [
       "canvas",
       "sharp",
