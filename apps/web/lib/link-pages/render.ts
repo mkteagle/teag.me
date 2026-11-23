@@ -1,6 +1,6 @@
 import { blockDestination, blockIsVisible, isLinkPageImage, type LinkBlock, type LinkPageContent, type RowStyle } from "./model";
 
-export const pageContentPolicy = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; media-src https:; base-uri 'none'; form-action 'none'";
+export const pageContentPolicy = "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; media-src https:; base-uri 'none'; form-action 'none'";
 
 function escape(value: string) {
   return value.replace(/[&<>"']/g, (character) => ({

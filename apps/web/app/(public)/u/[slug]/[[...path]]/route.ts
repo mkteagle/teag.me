@@ -45,10 +45,12 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
   }
 
   if (track) after(() => recordLinkPageEvent(page, scan ? "scan" : "view"));
+  // WebKit's native audio controls need the sandbox scripting flag. The
+  // document's script-src policy still blocks page-authored JavaScript.
   return new Response(renderLinkPage(page.content, slug, `https://teag.me/u/${slug}`), {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Content-Security-Policy": pageContentPolicy + "; frame-ancestors 'none'; sandbox allow-popups allow-popups-to-escape-sandbox",
+      "Content-Security-Policy": pageContentPolicy + "; frame-ancestors 'none'; sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox",
       "Cache-Control": "no-store",
       "Referrer-Policy": "no-referrer",
       "X-Content-Type-Options": "nosniff",
