@@ -196,3 +196,12 @@ export function validateContent(value: unknown, publishing: boolean): LinkPageCo
   }
   return result;
 }
+
+const rabbitsHosts = new Set(["2001rabbits.com", "www.2001rabbits.com"]);
+
+export function rabbitsSongSlug(value: string) {
+  const url = parseHttpDestination(value);
+  if (!url || url.protocol !== "https:" || url.port || !rabbitsHosts.has(url.hostname)) return null;
+  if (url.pathname.length > 160) return null;
+  return /^\/songs\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/.exec(url.pathname)?.[1] ?? null;
+}

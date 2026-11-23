@@ -1,6 +1,8 @@
-import { blockDestination, blockIsVisible, isLinkPageImage, type LinkBlock, type LinkPageContent, type RowStyle } from "./model";
+import { blockDestination, blockIsVisible, isLinkPageImage, rabbitsSongSlug, type LinkBlock, type LinkPageContent, type RowStyle } from "./model";
 
-export const pageContentPolicy = "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; media-src https:; base-uri 'none'; form-action 'none'";
+import { songPlayerScript } from "./song-player";
+
+export const pageContentPolicy = "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; media-src 'self' https:; base-uri 'none'; form-action 'none'";
 
 function escape(value: string) {
   return value.replace(/[&<>"']/g, (character) => ({
@@ -59,16 +61,21 @@ a:focus-visible, audio:focus-visible { outline: 2px solid var(--accent); outline
 .link-page__song .link-page__title { font-weight: 700 }
 .link-page__description { display: block; color: color-mix(in srgb, var(--ink) 72%, transparent); font-size: .86rem; white-space: pre-wrap }
 .link-page__indicator { margin-left: auto; flex: none }
+.link-page__purchase { font-size: .76rem; color: var(--accent); min-width: 0; text-align: end }
 .link-page__play { display: grid; place-items: center; border-radius: 50%; width: 30px; height: 30px; background: var(--ink); color: var(--background); font-size: .85rem }
+.link-page__audio-note { margin: 0 0 8px; font-size: .8rem; opacity: .72 }
 .link-page__audio { display: block; width: 100%; max-width: 320px; height: 34px; margin: 0 0 8px }
 .link-page__divider { margin: 14px 0; height: 1px; background: color-mix(in srgb, var(--ink) 20%, transparent) }
 `;
 
-function renderBlock(block: LinkBlock, basePath: string, showThumbnail: boolean, defaultRowStyle: RowStyle) {
+function renderBlock(block: LinkBlock, basePath: string, showThumbnail: boolean, defaultRowStyle: RowStyle, grant?: string) {
   const destination = blockDestination(block);
   const className = `link-page__block link-page__${block.type}`;
-  const audio = block.type === "song" && block.audio
-    ? `<audio aria-label="${escape(block.title || "Song preview")}" class="link-page__audio" controls preload="metadata" src="${escape(block.audio)}"></audio>`
+  const artistTrack = block.type === "song" && rabbitsSongSlug(block.url);
+  const audioSource = artistTrack ? (basePath && `${basePath}/stream/${block.id}`) : block.audio;
+  const eventPath = grant && basePath ? `${basePath}/play/${block.id}?grant=${encodeURIComponent(grant)}` : "";
+  const audio = block.type === "song" && audioSource
+    ? `<audio aria-label="${escape(block.title || "Song preview")}" class="link-page__audio" controls controlslist="nodownload" preload="metadata" src="${escape(audioSource)}"${eventPath ? ` data-play-event="${escape(eventPath)}"` : ""}></audio>`
     : "";
   if (block.type === "divider") return `<div class="${className}" data-row-style="plain" role="separator"></div>`;
   const title = block.title || destination?.hostname || (block.description ? "" : "Untitled block");
@@ -77,14 +84,15 @@ function renderBlock(block: LinkBlock, basePath: string, showThumbnail: boolean,
   const row = `${hasThumbnail ? image(block.image, "link-page__thumbnail") : ""}
     <span>${title ? `<span class="link-page__title">${escape(title)}</span>` : ""}
     ${block.description ? `<span class="link-page__description">${escape(block.description)}</span>` : ""}</span>
-    ${indicator ? `<span class="link-page__indicator ${block.type === "song" && !audio ? "link-page__play" : ""}" aria-hidden="true">${block.type === "song" ? (audio ? "" : "▶") : "↗"}</span>` : ""}`;
+    ${artistTrack ? '<span class="link-page__indicator link-page__purchase">Buy &amp; download ↗</span>' : indicator ? `<span class="link-page__indicator ${block.type === "song" && !audio ? "link-page__play" : ""}" aria-hidden="true">${block.type === "song" ? (audio ? "" : "▶") : "↗"}</span>` : ""}`;
   const entry = destination && basePath
     ? `<a class="link-page__row" href="${basePath}/go/${escape(block.id)}" target="_blank" rel="noopener noreferrer">${row}</a>`
     : `<div class="link-page__row">${row}</div>`;
-  return `<div id="block-${escape(block.id)}" class="${className}" data-row-style="${escape(block.rowStyle ?? defaultRowStyle)}">${entry}${audio}</div>`;
+  const previewNote = artistTrack && !basePath ? '<p class="link-page__audio-note">Private stream available on the published page.</p>' : "";
+  return `<div id="block-${escape(block.id)}" class="${className}" data-row-style="${escape(block.rowStyle ?? defaultRowStyle)}">${entry}${audio}${previewNote}</div>`;
 }
 
-export function renderLinkPage(content: LinkPageContent, slug: string, canonical?: string) {
+export function renderLinkPage(content: LinkPageContent, slug: string, canonical?: string, songScripts?: { policy: string; grants: ReadonlyMap<string, string> }) {
   const pagePath = `/u/${encodeURIComponent(slug)}`;
   const basePath = canonical ? pagePath : "";
   const style = [
@@ -104,14 +112,14 @@ export function renderLinkPage(content: LinkPageContent, slug: string, canonical
       ${heading ? `<h2 id="${id}-heading" class="link-page__heading">${escape(heading)}</h2>` : ""}
       ${blocks.map((block) => {
         const showThumbnail = id === "featured" || (content.showThumbnails && (id === "latest" || Boolean(block.image)));
-        return renderBlock(block, basePath, showThumbnail, content.rowStyle ?? "plain");
+        return renderBlock(block, basePath, showThumbnail, content.rowStyle ?? "plain", songScripts?.grants.get(block.id));
       }).join("")}</section>`;
   };
   const featured = section("featured", "");
   const latest = content.showLatest ? section("latest", content.latestHeading, content.newestFirst) : "";
   const pinned = content.showPinned ? section("pinned", content.pinnedHeading) : "";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="${pageContentPolicy}">
+    <meta http-equiv="Content-Security-Policy" content="${songScripts ? pageContentPolicy.replace("script-src 'none'", songScripts.policy) : pageContentPolicy}">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="referrer" content="no-referrer"><title>${escape(name)}</title>
     ${canonical ? `<link rel="canonical" href="${escape(canonical)}">
@@ -125,5 +133,5 @@ export function renderLinkPage(content: LinkPageContent, slug: string, canonical
     <h1 id="display-name">${escape(name)}</h1>
     ${content.showAddress ? `<p id="page-address">teag.me${escape(pagePath)}</p>` : ""}
     ${content.bio ? `<p id="bio">${escape(content.bio)}</p>` : ""}
-    ${featured}${content.pinnedFirst ? pinned + latest : latest + pinned}</div></main></body></html>`;
+    ${featured}${content.pinnedFirst ? pinned + latest : latest + pinned}</div></main>${songScripts ? `<script>${songPlayerScript}</script>` : ""}</body></html>`;
 }

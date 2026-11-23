@@ -9,7 +9,7 @@ import { deletePage, getLinkPreview, savePage } from "@/app/(protected)/link-pag
 import { Button } from "@/components/ui/button";
 import { parseHttpDestination } from "@/lib/http-destination";
 import {
-  blockTypes, maxBlocks, maxImageLength, newBlock, rowStyles,
+  blockTypes, maxBlocks, maxImageLength, newBlock, rabbitsSongSlug, rowStyles,
   type BlockType, type LinkBlock, type LinkPageContent, type RowStyle,
 } from "@/lib/link-pages/model";
 import { capture } from "@/lib/posthog";
@@ -136,8 +136,12 @@ function BlockEditor({ block, index, count, onChange, onMove, onDelete }: {
       <Field label="Destination URL"><input className={inputClass} type="url" value={block.url} maxLength={2_048} onChange={(event) => onChange({ url: event.target.value })} /></Field>
       <ImageField label={block.type === "song" ? "Song artwork" : "Thumbnail"} value={block.image} size={420} onChange={(image) => onChange({ image })} />
     </>}
-    {block.type === "song" && <Field label="Audio preview URL"><input className={inputClass} type="url"
-      placeholder="https://…/preview.mp3" value={block.audio} maxLength={2_048} onChange={(event) => onChange({ audio: event.target.value })} /></Field>}
+    {block.type === "song" && (rabbitsSongSlug(block.url) ? (
+      <p className="text-sm text-muted-foreground">This song streams from 2001 Rabbits. Purchases and downloads are handled on its song page.</p>
+    ) : (
+      <Field label="Audio preview URL"><input className={inputClass} type="url"
+        placeholder="https://…/preview.mp3" value={block.audio} maxLength={2_048} onChange={(event) => onChange({ audio: event.target.value })} /></Field>
+    ))}
     <div className="flex flex-wrap items-center justify-between gap-2">
       <Toggle label="Show on page" checked={!block.hidden} onChange={(shown) => onChange({ hidden: !shown })} />
       <div className="flex flex-wrap gap-1">
