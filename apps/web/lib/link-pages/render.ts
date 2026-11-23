@@ -1,4 +1,4 @@
-import { blockDestination, blockIsVisible, isLinkPageImage, type LinkBlock, type LinkPageContent } from "./model";
+import { blockDestination, blockIsVisible, isLinkPageImage, type LinkBlock, type LinkPageContent, type RowStyle } from "./model";
 
 export const pageContentPolicy = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; media-src https:; base-uri 'none'; form-action 'none'";
 
@@ -42,7 +42,17 @@ a { color: inherit }
 .link-page__row { display: flex; align-items: center; gap: 13px; min-height: 48px; padding: 7px 1px; text-decoration: none; width: 100% }
 a.link-page__row:hover, a.link-page__row:focus-visible { color: var(--accent) }
 a:focus-visible, audio:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-.link-page__section .link-page__block + .link-page__block { border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent) }
+.link-page__block[data-row-style="plain"] + .link-page__block[data-row-style="plain"] { border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent) }
+.link-page__block:not([data-row-style="plain"]) + .link-page__block,
+.link-page__block + .link-page__block:not([data-row-style="plain"]) { margin-top: 8px }
+.link-page__block:is([data-row-style="outlined"], [data-row-style="filled"], [data-row-style="accented"]) {
+  border-radius: 9px; padding-inline: 10px;
+}
+.link-page__block[data-row-style="outlined"] { border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent) }
+.link-page__block[data-row-style="filled"] { background: color-mix(in srgb, var(--ink) 10%, var(--background)) }
+.link-page__block[data-row-style="accented"] {
+  border-inline-start: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--background))
+}
 .link-page__thumbnail { width: 58px; height: 38px; object-fit: cover; border-radius: 6px; flex: none; display: block }
 .link-page__song .link-page__thumbnail { width: 65px; height: 61px }
 .link-page__title { display: block }
@@ -54,13 +64,13 @@ a:focus-visible, audio:focus-visible { outline: 2px solid var(--accent); outline
 .link-page__divider { margin: 14px 0; height: 1px; background: color-mix(in srgb, var(--ink) 20%, transparent) }
 `;
 
-function renderBlock(block: LinkBlock, basePath: string, showThumbnail: boolean) {
+function renderBlock(block: LinkBlock, basePath: string, showThumbnail: boolean, defaultRowStyle: RowStyle) {
   const destination = blockDestination(block);
   const className = `link-page__block link-page__${block.type}`;
   const audio = block.type === "song" && block.audio
-    ? `<audio aria-label="${escape(block.title || "Song preview")}" class="link-page__audio" controls preload="none" src="${escape(block.audio)}"></audio>`
+    ? `<audio aria-label="${escape(block.title || "Song preview")}" class="link-page__audio" controls preload="metadata" src="${escape(block.audio)}"></audio>`
     : "";
-  if (block.type === "divider") return `<div class="${className}" role="separator"></div>`;
+  if (block.type === "divider") return `<div class="${className}" data-row-style="plain" role="separator"></div>`;
   const title = block.title || destination?.hostname || (block.description ? "" : "Untitled block");
   const indicator = destination || block.type === "song";
   const hasThumbnail = showThumbnail && (block.image || ["song", "video", "link"].includes(block.type));
@@ -71,7 +81,7 @@ function renderBlock(block: LinkBlock, basePath: string, showThumbnail: boolean)
   const entry = destination && basePath
     ? `<a class="link-page__row" href="${basePath}/go/${escape(block.id)}" target="_blank" rel="noopener noreferrer">${row}</a>`
     : `<div class="link-page__row">${row}</div>`;
-  return `<div id="block-${escape(block.id)}" class="${className}">${entry}${audio}</div>`;
+  return `<div id="block-${escape(block.id)}" class="${className}" data-row-style="${escape(block.rowStyle ?? defaultRowStyle)}">${entry}${audio}</div>`;
 }
 
 export function renderLinkPage(content: LinkPageContent, slug: string, canonical?: string) {
@@ -92,7 +102,7 @@ export function renderLinkPage(content: LinkPageContent, slug: string, canonical
     if (reverse) blocks.sort((a, b) => b.createdAt - a.createdAt);
     return `<section id="${id}" class="link-page__section"${heading ? ` aria-labelledby="${id}-heading"` : ""}>
       ${heading ? `<h2 id="${id}-heading" class="link-page__heading">${escape(heading)}</h2>` : ""}
-      ${blocks.map((block) => renderBlock(block, basePath, id === "featured" || content.showThumbnails)).join("")}</section>`;
+      ${blocks.map((block) => renderBlock(block, basePath, id === "featured" || content.showThumbnails, content.rowStyle ?? "plain")).join("")}</section>`;
   };
   const featured = section("featured", "");
   const latest = content.showLatest ? section("latest", content.latestHeading, content.newestFirst) : "";

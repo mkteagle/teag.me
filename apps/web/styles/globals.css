@@ -212,3 +212,62 @@
 .leaflet-control-zoom a:hover {
   background-color: rgb(39 39 42) !important; /* zinc-800 */
 }
+
+@supports (appearance: base-select) and selector(::picker(select)) {
+  .link-page-editor-select,
+  .link-page-editor-select::picker(select) {
+    appearance: base-select;
+  }
+
+  .link-page-editor-select {
+    padding-inline-end: 0.75rem;
+  }
+
+  .link-page-editor-select-fallback-icon {
+    display: none;
+  }
+
+  .link-page-editor-select::picker-icon {
+    color: hsl(var(--muted-foreground));
+    margin-inline-start: auto;
+  }
+
+  .link-page-editor-select:open {
+    border-color: hsl(var(--accent) / 0.45);
+  }
+
+  .link-page-editor-select:open::picker-icon {
+    rotate: 180deg;
+  }
+
+  .link-page-editor-select::picker(select) {
+    margin-block: 0.35rem;
+    padding: 0.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    background: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    box-shadow: 0 8px 24px hsl(var(--foreground) / 0.13);
+  }
+
+  .link-page-editor-select option {
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  .link-page-editor-select option:checked {
+    background: hsl(var(--primary) / 0.15);
+    color: hsl(var(--accent));
+    font-weight: 600;
+  }
+
+  .link-page-editor-select option:is(:hover, :focus-visible) {
+    background: hsl(var(--secondary));
+  }
+
+  .link-page-editor-select option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+  }
+}

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { createPage } from "@/app/(protected)/link-pages/actions";
 import { slugify } from "@/lib/link-pages/model";
 import { capture } from "@/lib/posthog";
-import { inputClass } from "./css-editor";
+import { inputClass } from "./editor-controls";
 
 export function CreateLinkPage({ name }: { name: string }) {
   const router = useRouter();

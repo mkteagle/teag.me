@@ -5,7 +5,7 @@ import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { maxCssLength, selectors } from "@/lib/link-pages/model";
 
-export const inputClass = "w-full min-w-0 rounded-xl border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-accent";
+import { EditorPanel, inputClass } from "./editor-controls";
 
 export function CssEditor({ value, onChange, docs = false }: { value: string; onChange: (value: string) => void; docs?: boolean }) {
   const id = useId();
@@ -24,9 +24,8 @@ export function CssEditor({ value, onChange, docs = false }: { value: string; on
         <p>Styles apply to the live preview and the published link page.</p>
         {!docs && <Link href="/docs#custom-css" target="_blank" className="font-semibold underline underline-offset-4">CSS guide</Link>}
       </div>
-      <details className="rounded-xl border p-3">
-        <summary className="cursor-pointer text-sm font-semibold">CSS selectors</summary>
-        <ul className="mt-2 divide-y">
+      <EditorPanel label="CSS selectors" compact>
+        <ul className="divide-y">
           {selectors.map(([name, selector]) => (
             <li key={selector} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-1">
               <span className="text-sm">{name}</span>
@@ -44,7 +43,7 @@ export function CssEditor({ value, onChange, docs = false }: { value: string; on
           ))}
         </ul>
         <p role="status" className="sr-only">{copyFailed ? "Select the selector text to copy it manually." : copied && `Copied ${copied}`}</p>
-      </details>
+      </EditorPanel>
     </div>
   );
 }

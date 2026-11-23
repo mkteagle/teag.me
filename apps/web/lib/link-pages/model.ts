@@ -3,6 +3,9 @@ import { parseHttpDestination } from "../http-destination";
 export const blockTypes = ["link", "video", "song", "text", "divider", "social"] as const;
 export type BlockType = typeof blockTypes[number];
 
+export const rowStyles = ["plain", "outlined", "filled", "accented"] as const;
+export type RowStyle = typeof rowStyles[number];
+
 export type LinkBlock = {
   id: string;
   createdAt: number;
@@ -14,6 +17,7 @@ export type LinkBlock = {
   image: string;
   section: "featured" | "latest" | "pinned";
   hidden: boolean;
+  rowStyle?: RowStyle;
 };
 
 export type LinkPageContent = {
@@ -31,6 +35,7 @@ export type LinkPageContent = {
   background: string;
   textColor: string;
   accent: string;
+  rowStyle?: RowStyle;
   showAddress: boolean;
   latestHeading: string;
   pinnedHeading: string;
@@ -58,7 +63,7 @@ export const selectors = [
   ["Avatar image", ".link-page__avatar-image"], ["Display name", "#display-name"], ["Bio", "#bio"],
   ["Page address", "#page-address"], ["Featured", "#featured"], ["Song", ".link-page__song"],
   ["Latest", "#latest"], ["Pinned", "#pinned"], ["Section headings", ".link-page__heading"],
-  ["All blocks", ".link-page__block"], ["Link block", ".link-page__link"],
+  ["All blocks", ".link-page__block"], ["Content rows", ".link-page__row"], ["Link block", ".link-page__link"],
   ["Video block", ".link-page__video"], ["Text block", ".link-page__text"],
   ["Divider", ".link-page__divider"], ["Social block", ".link-page__social"],
   ["Thumbnail", ".link-page__thumbnail"], ["Play control", ".link-page__audio"],
@@ -132,6 +137,12 @@ function color(value: unknown) {
   return hex;
 }
 
+function rowStyle(value: unknown): RowStyle | undefined {
+  if (value === undefined) return undefined;
+  if (rowStyles.some((style) => style === value)) return value as RowStyle;
+  throw new Error("Choose a valid row style.");
+}
+
 export function validateContent(value: unknown, publishing: boolean): LinkPageContent {
   const content = record(value);
   if (!Array.isArray(content.blocks) || content.blocks.length > maxBlocks) {
@@ -152,7 +163,7 @@ export function validateContent(value: unknown, publishing: boolean): LinkPageCo
     if (url && !parseHttpDestination(url.trim())) throw new Error("Use an http or https destination URL.");
     if (audio && parseHttpDestination(audio.trim())?.protocol !== "https:") throw new Error("Use an HTTPS audio file URL.");
     return { id, type, section, createdAt: number(block.createdAt ?? 0, 0, 8_640_000_000_000_000), url: url.trim(), audio: audio.trim(), title: string(block.title, 150).trim(),
-      description: string(block.description, 1_000).trim(), image: image(block.image), hidden: toggle(block.hidden) };
+      description: string(block.description, 1_000).trim(), image: image(block.image), hidden: toggle(block.hidden), rowStyle: rowStyle(block.rowStyle) };
   });
   const result: LinkPageContent = {
     name: string(content.name, 100).trim(), bio: string(content.bio, 500).trim(),
@@ -161,7 +172,7 @@ export function validateContent(value: unknown, publishing: boolean): LinkPageCo
     avatarSize: number(content.avatarSize, 32, 140), avatarBorder: number(content.avatarBorder, 0, 16),
     avatarBorderColor: color(content.avatarBorderColor), avatarOverlap: number(content.avatarOverlap, 0, 100),
     avatarGap: number(content.avatarGap, 0, 80),
-    background: color(content.background), textColor: color(content.textColor), accent: color(content.accent),
+    background: color(content.background), textColor: color(content.textColor), accent: color(content.accent), rowStyle: rowStyle(content.rowStyle),
     showAddress: toggle(content.showAddress), latestHeading: string(content.latestHeading, 60).trim(),
     pinnedHeading: string(content.pinnedHeading, 60).trim(), showLatest: toggle(content.showLatest),
     showPinned: toggle(content.showPinned), showFeatured: toggle(content.showFeatured),

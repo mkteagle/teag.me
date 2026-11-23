@@ -1,19 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpRight, ScanLine } from "lucide-react";
+import {
+  ArrowDown, ArrowLeft, ArrowUp, ArrowUpRight, Link2, Minus, Music2, Play, ScanLine, Share2, Type,
+} from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { deletePage, getLinkPreview, savePage } from "@/app/(protected)/link-pages/actions";
 import { Button } from "@/components/ui/button";
 import { parseHttpDestination } from "@/lib/http-destination";
-import { blockTypes, maxBlocks, maxImageLength, newBlock, type BlockType, type LinkBlock, type LinkPageContent } from "@/lib/link-pages/model";
+import {
+  blockTypes, maxBlocks, maxImageLength, newBlock, rowStyles,
+  type BlockType, type LinkBlock, type LinkPageContent, type RowStyle,
+} from "@/lib/link-pages/model";
 import { capture } from "@/lib/posthog";
-import { CssEditor, inputClass } from "./css-editor";
+import { CssEditor } from "./css-editor";
+import { EditorPanel, EditorSelect, inputClass } from "./editor-controls";
 import { LinkPagePreview } from "./preview";
 
 const typeNames: Record<BlockType, string> = {
   link: "Link", video: "Video", song: "Song", text: "Text", divider: "Divider", social: "Social",
 };
+
+const blockIcons = { link: Link2, video: Play, song: Music2, text: Type, divider: Minus, social: Share2 };
+const blockOptions = blockTypes.map((value) => ({ value, label: typeNames[value] }));
+const sectionOptions = [
+  { value: "featured", label: "Featured" },
+  { value: "latest", label: "Latest" },
+  { value: "pinned", label: "Pinned" },
+] as const;
+const orderOptions = [
+  { value: "newest", label: "Newest first" },
+  { value: "manual", label: "Manual order" },
+] as const;
+const rowStyleNames: Record<RowStyle, string> = {
+  plain: "Plain", outlined: "Outlined", filled: "Filled", accented: "Accent edge",
+};
+const rowStyleOptions = rowStyles.map((value) => ({ value, label: rowStyleNames[value] }));
+const blockRowStyleOptions = [{ value: "inherit", label: "Use page style" } as const, ...rowStyleOptions];
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="block min-w-0 space-y-2 text-sm font-semibold"><span>{label}</span>{children}</label>;
@@ -42,13 +65,6 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
   return <label className="flex min-h-8 items-center gap-2 text-sm">
     <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="size-4 accent-accent" />{label}
   </label>;
-}
-
-function Panel({ label, children }: { label: string; children: ReactNode }) {
-  return <details className="group min-w-0 rounded-2xl border open:bg-secondary/30">
-    <summary className="cursor-pointer rounded-2xl px-4 py-3.5 font-bold group-open:rounded-b-none group-open:border-b group-open:bg-accent/10">{label}</summary>
-    <div className="space-y-4 p-4 sm:p-5">{children}</div>
-  </details>;
 }
 
 async function imageData(file: File, size: number) {
@@ -148,14 +164,13 @@ function BlockEditor({ block, index, count, onChange, onMove, onDelete }: {
   onMove: (offset: -1 | 1) => void; onDelete: () => void;
 }) {
   const acceptsLink = block.type !== "text" && block.type !== "divider";
-  return <Panel label={block.title || typeNames[block.type]}>
+  const BlockIcon = blockIcons[block.type];
+  return <EditorPanel label={block.title || typeNames[block.type]} icon={<BlockIcon className="size-4" />}>
     <div className="grid gap-3 sm:grid-cols-2">
-      <Field label="Type"><select className={inputClass} value={block.type} onChange={(event) => onChange({ type: event.target.value as BlockType })}>
-        {blockTypes.map((type) => <option key={type} value={type}>{typeNames[type]}</option>)}
-      </select></Field>
-      <Field label="Section"><select className={inputClass} value={block.section} onChange={(event) => onChange({ section: event.target.value as LinkBlock["section"] })}>
-        <option value="featured">Featured</option><option value="latest">Latest</option><option value="pinned">Pinned</option>
-      </select></Field>
+      <EditorSelect label="Type" value={block.type} options={blockOptions} onChange={(type) => onChange({ type })} />
+      <EditorSelect label="Section" value={block.section} options={sectionOptions} onChange={(section) => onChange({ section })} />
+      {block.type !== "divider" && <EditorSelect label="Row style" value={block.rowStyle ?? "inherit"} options={blockRowStyleOptions}
+        onChange={(style) => onChange({ rowStyle: style === "inherit" ? undefined : style })} />}
     </div>
     {block.type !== "divider" && <>
       <Field label="Title"><input className={inputClass} value={block.title} maxLength={150} onChange={(event) => onChange({ title: event.target.value })} /></Field>
@@ -177,7 +192,7 @@ function BlockEditor({ block, index, count, onChange, onMove, onDelete }: {
       </div>
     </div>
     <code className="block break-all text-xs text-muted-foreground">#block-{block.id}</code>
-  </Panel>;
+  </EditorPanel>;
 }
 
 export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished }: {
@@ -302,12 +317,12 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
 
             <div className="space-y-3">
               <h2 className="text-2xl font-extrabold tracking-tight">Profile and appearance</h2>
-              <Panel label="Profile">
+              <EditorPanel label="Profile">
                 <Field label="Display name"><input className={inputClass} value={content.name} maxLength={100} onChange={(event) => change("name", event.target.value)} /></Field>
                 <Field label="Bio"><textarea className={inputClass} value={content.bio} maxLength={500} rows={3} onChange={(event) => change("bio", event.target.value)} /></Field>
                 <Toggle label="Show page address below the name" checked={content.showAddress} onChange={(value) => change("showAddress", value)} />
-              </Panel>
-              <Panel label="Cover and avatar">
+              </EditorPanel>
+              <EditorPanel label="Cover and avatar">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <ImageField label="Cover photo" value={content.cover} size={1_100} onChange={(value) => change("cover", value)} />
                   <ImageField label="Avatar" value={content.avatar} size={384} onChange={(value) => change("avatar", value)} />
@@ -319,33 +334,33 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
                   <Color label="Avatar border color" value={content.avatarBorderColor} onChange={(value) => change("avatarBorderColor", value)} />
                   <Size label="Space between avatar and name" value={content.avatarGap} min={0} max={80} onChange={(value) => change("avatarGap", value)} />
                 </div>
-              </Panel>
-              <Panel label="Page colors">
+              </EditorPanel>
+              <EditorPanel label="Page colors and rows">
                 <div className="grid gap-4 sm:grid-cols-3">
                   <Color label="Background" value={content.background} onChange={(value) => change("background", value)} />
                   <Color label="Text" value={content.textColor} onChange={(value) => change("textColor", value)} />
                   <Color label="Accent" value={content.accent} onChange={(value) => change("accent", value)} />
                 </div>
-              </Panel>
+                <EditorSelect label="Default row style" value={content.rowStyle ?? "plain"} options={rowStyleOptions}
+                  onChange={(value) => change("rowStyle", value)} />
+              </EditorPanel>
             </div>
 
             <div className="space-y-3">
               <h2 className="text-2xl font-extrabold tracking-tight">Sections</h2>
-              <Panel label="Featured"><Toggle label="Show featured blocks" checked={content.showFeatured} onChange={(value) => change("showFeatured", value)} /></Panel>
-              <Panel label="Latest">
+              <EditorPanel label="Featured"><Toggle label="Show featured blocks" checked={content.showFeatured} onChange={(value) => change("showFeatured", value)} /></EditorPanel>
+              <EditorPanel label="Latest">
                 <Field label="Heading"><input className={inputClass} value={content.latestHeading} maxLength={60} onChange={(event) => change("latestHeading", event.target.value)} /></Field>
-                <Field label="Order"><select className={inputClass} value={content.newestFirst ? "newest" : "manual"}
-                  onChange={(event) => change("newestFirst", event.target.value === "newest")}>
-                  <option value="newest">Newest first</option><option value="manual">Manual order</option>
-                </select></Field>
+                <EditorSelect label="Order" value={content.newestFirst ? "newest" : "manual"} options={orderOptions}
+                  onChange={(value) => change("newestFirst", value === "newest")} />
                 <Toggle label="Show latest links" checked={content.showLatest} onChange={(value) => change("showLatest", value)} />
                 <Toggle label="Show link thumbnails" checked={content.showThumbnails} onChange={(value) => change("showThumbnails", value)} />
-              </Panel>
-              <Panel label="Pinned">
+              </EditorPanel>
+              <EditorPanel label="Pinned">
                 <Field label="Heading"><input className={inputClass} value={content.pinnedHeading} maxLength={60} onChange={(event) => change("pinnedHeading", event.target.value)} /></Field>
                 <Toggle label="Show pinned links" checked={content.showPinned} onChange={(value) => change("showPinned", value)} />
                 <Toggle label="Show pinned above latest" checked={content.pinnedFirst} onChange={(value) => change("pinnedFirst", value)} />
-              </Panel>
+              </EditorPanel>
             </div>
 
             <div className="space-y-3">
@@ -354,16 +369,14 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
                 onChange={(update) => changeBlock(block.id, update)} onMove={(offset) => moveBlock(block.id, offset)}
                 onDelete={() => change("blocks", content.blocks.filter((item) => item.id !== block.id))} />)}
               <div className="flex flex-wrap items-end gap-2">
-                <Field label="Block type"><select className={inputClass} value={type} onChange={(event) => setType(event.target.value as BlockType)}>
-                  {blockTypes.map((type) => <option key={type} value={type}>{typeNames[type]}</option>)}
-                </select></Field>
+                <EditorSelect label="Block type" value={type} options={blockOptions} onChange={setType} />
                 <Button type="button" variant="outline" disabled={full} onClick={() => {
                   change("blocks", [...content.blocks, newBlock(crypto.randomUUID(), type, Date.now())]);
                   capture("link_page_block_added", { block_type: type });
                 }}>Add block</Button>
               </div>
             </div>
-            <Panel label="Custom CSS and selectors"><CssEditor value={content.css} onChange={(value) => change("css", value)} /></Panel>
+            <EditorPanel label="Custom CSS and selectors"><CssEditor value={content.css} onChange={(value) => change("css", value)} /></EditorPanel>
           </fieldset>
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
@@ -375,8 +388,7 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
             {error && <p role="alert" className="w-full text-sm text-destructive">{error}</p>}
           </div>
           {published && <PageQr id={id} slug={slug} />}
-          <details className="text-sm">
-            <summary className="cursor-pointer text-muted-foreground">Delete page</summary>
+          <EditorPanel label="Delete page" compact>
             <p className="my-2 text-muted-foreground">Deleting this page removes its public link and QR destination.</p>
             <Button type="button" size="sm" variant="destructive" disabled={pending || quickBusy} onClick={async () => {
               if (!window.confirm("Permanently delete this link page?")) return;
@@ -384,7 +396,7 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
               if (result?.error) setError(result.error);
               else capture("link_page_deleted");
             }}>Permanently delete</Button>
-          </details>
+          </EditorPanel>
         </div>
 
         <aside id="live-preview" className="min-w-0 scroll-mt-4 lg:border-l lg:pl-7 xl:pl-9">
