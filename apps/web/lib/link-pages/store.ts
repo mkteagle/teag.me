@@ -7,6 +7,8 @@ import { defaultContent, type LinkPageContent } from "./model";
 
 export class LinkPageError extends Error {}
 
+const hasUnpublishedChanges = sql<boolean>`coalesce(${linkPages.published} <> ${linkPages.draft}, false)`;
+
 export function listLinkPages(userId: string) {
   return getDb().select({
     id: linkPages.id,
@@ -18,8 +20,14 @@ export function listLinkPages(userId: string) {
 }
 
 export async function ownerLinkPage(id: string, userId: string) {
-  const [page] = await getDb().select().from(linkPages)
-    .where(and(eq(linkPages.id, id), eq(linkPages.userId, userId)));
+  const [page] = await getDb().select({
+    id: linkPages.id,
+    slug: linkPages.slug,
+    draft: linkPages.draft,
+    version: linkPages.version,
+    publishedAt: linkPages.publishedAt,
+    hasUnpublishedChanges,
+  }).from(linkPages).where(and(eq(linkPages.id, id), eq(linkPages.userId, userId)));
   return page;
 }
 
@@ -58,10 +66,10 @@ export async function updateLinkPage(
       draft: content, updatedAt: now, version: version + 1,
       ...(publish ? { published: content, publishedAt: now } : {}),
     }).where(and(eq(linkPages.id, id), eq(linkPages.userId, userId), eq(linkPages.version, version)))
-      .returning({ version: linkPages.version, publishedAt: linkPages.publishedAt });
+      .returning({ version: linkPages.version, publishedAt: linkPages.publishedAt, hasUnpublishedChanges });
     if (!page) throw new LinkPageError("This page changed in another tab. Reload before saving again.");
     if (publish) await transaction.insert(linkPageEvents).values({ id: generateId(), pageId: id, type: "publish" });
-    return { version: page.version, published: Boolean(page.publishedAt) };
+    return { version: page.version, published: Boolean(page.publishedAt), hasUnpublishedChanges: page.hasUnpublishedChanges };
   });
 }
 

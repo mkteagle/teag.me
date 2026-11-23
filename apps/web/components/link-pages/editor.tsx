@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  ArrowDown, ArrowLeft, ArrowUp, ArrowUpRight, Link2, Minus, Music2, Play, Share2, Type,
+  ArrowDown, ArrowLeft, ArrowUp, ArrowUpRight, Check, Link2, Minus, Music2, Play, Share2, Type,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { deletePage, getLinkPreview, savePage } from "@/app/(protected)/link-pages/actions";
@@ -150,12 +150,29 @@ function BlockEditor({ block, index, count, onChange, onMove, onDelete }: {
   </EditorPanel>;
 }
 
-export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished }: {
+function sameFields<T extends object>(left: T, right: T) {
+  if (left === right) return true;
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)] as (keyof T)[]);
+  return [...keys].every((key) => left[key] === right[key]);
+}
+
+function matchesSavedDraft(content: LinkPageContent, savedDraft: LinkPageContent) {
+  if (content === savedDraft) return true;
+  const { blocks, ...settings } = content;
+  const { blocks: savedBlocks, ...savedSettings } = savedDraft;
+  return blocks.length === savedBlocks.length && sameFields(settings, savedSettings) &&
+    blocks.every((block, index) => sameFields(block, savedBlocks[index]));
+}
+
+export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished, hasUnpublishedChanges }: {
   id: string; slug: string; initial: LinkPageContent; initialVersion: number; isPublished: boolean;
+  hasUnpublishedChanges: boolean;
 }) {
   const [content, setContent] = useState(initial);
+  const [savedDraft, setSavedDraft] = useState(initial);
   const [version, setVersion] = useState(initialVersion);
   const [published, setPublished] = useState(isPublished);
+  const [savedDraftDiffers, setSavedDraftDiffers] = useState(hasUnpublishedChanges);
   const [pending, setPending] = useState(false);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
@@ -165,6 +182,7 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
   const [lastShared, setLastShared] = useState("");
   const [type, setType] = useState<BlockType>("song");
   const full = content.blocks.length >= maxBlocks;
+  const unpublishedChanges = published && (savedDraftDiffers || !matchesSavedDraft(content, savedDraft));
 
   const change = <K extends keyof LinkPageContent>(field: K, value: LinkPageContent[K]) => {
     setContent((current) => ({ ...current, [field]: value }));
@@ -198,6 +216,8 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
       }
       setVersion(result.version);
       setPublished(result.published);
+      setSavedDraft(next);
+      setSavedDraftDiffers(result.hasUnpublishedChanges);
       setNote(publish ? "Page published." : "Draft saved.");
       capture(publish ? "link_page_published" : "link_page_draft_saved", { block_count: next.blocks.length, has_custom_css: Boolean(next.css.trim()) });
       return true;
@@ -240,7 +260,21 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
         <div className="min-w-0 space-y-7">
           <div>
             <Link href="/link-pages" className="mb-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Your link pages</Link>
-            <h1 className="text-4xl font-extrabold tracking-[-0.055em] sm:text-5xl">Edit link page</h1>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <h1 className="text-4xl font-extrabold tracking-[-0.055em] sm:text-5xl">Edit link page</h1>
+              <div className="flex flex-wrap items-center gap-2" aria-label="Publication status" role="group">
+                {published ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-700/20 bg-emerald-700/10 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+                    <Check className="size-3.5" aria-hidden="true" /> Published
+                  </span>
+                ) : (
+                  <span className="rounded-full border bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">Draft</span>
+                )}
+                {unpublishedChanges && (
+                  <span className="rounded-full border border-accent/20 bg-primary/15 px-2.5 py-1 text-xs font-semibold text-accent">Unpublished changes</span>
+                )}
+              </div>
+            </div>
             <p className="mt-2 text-muted-foreground">Set up your profile and choose what to share.</p>
             <a href="#live-preview" className="mt-3 inline-block text-sm font-semibold underline underline-offset-4 lg:hidden">Jump to live preview</a>
           </div>
@@ -340,7 +374,7 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
           </fieldset>
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-            <p role="status" className="text-sm text-muted-foreground">{note || (published ? "Published" : "Draft")}</p>
+            <p role="status" className="text-sm text-muted-foreground">{note}</p>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" type="button" disabled={pending || quickBusy} onClick={() => save(false)}>Save draft</Button>
               <Button type="button" disabled={pending || quickBusy} onClick={() => save(true)}>{pending ? "Saving…" : "Publish page"}</Button>

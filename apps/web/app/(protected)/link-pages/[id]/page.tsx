@@ -9,5 +9,5 @@ export default async function EditLinkPage({ params }: { params: Promise<{ id: s
   const page = await ownerLinkPage(id, user.id);
   if (!page) notFound();
   return <LinkPageEditor id={page.id} slug={page.slug} initial={page.draft}
-    initialVersion={page.version} isPublished={Boolean(page.publishedAt)} />;
+    initialVersion={page.version} isPublished={Boolean(page.publishedAt)} hasUnpublishedChanges={page.hasUnpublishedChanges} />;
 }
