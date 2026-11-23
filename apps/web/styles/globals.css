@@ -219,25 +219,12 @@
     appearance: base-select;
   }
 
-  .link-page-editor-select {
-    padding-inline-end: 0.75rem;
-  }
-
-  .link-page-editor-select-fallback-icon {
-    display: none;
-  }
-
   .link-page-editor-select::picker-icon {
-    color: hsl(var(--muted-foreground));
-    margin-inline-start: auto;
+    display: none;
   }
 
   .link-page-editor-select:open {
     border-color: hsl(var(--accent) / 0.45);
-  }
-
-  .link-page-editor-select:open::picker-icon {
-    rotate: 180deg;
   }
 
   .link-page-editor-select::picker(select) {
@@ -270,4 +257,12 @@
     order: 1;
     margin-inline-start: auto;
   }
+}
+
+:root:has(.link-page-qr-sheet) {
+  scrollbar-gutter: stable;
+}
+
+:root:has(.link-page-qr-sheet[open]) {
+  overflow: hidden;
 }

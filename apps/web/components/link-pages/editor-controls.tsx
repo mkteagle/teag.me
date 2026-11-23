@@ -42,13 +42,13 @@ export function EditorSelect<T extends string>({ label, value, options, onChange
       <span>{label}</span>
       <span className="relative block">
         <select
-          className={cn(inputClass, "link-page-editor-select min-h-11 cursor-pointer appearance-none bg-card pr-10 font-medium hover:border-accent/40 disabled:cursor-default")}
+          className={cn(inputClass, "link-page-editor-select block h-11 cursor-pointer appearance-none bg-background pr-10 leading-5 font-medium transition-colors hover:border-accent/45 disabled:cursor-default")}
           value={value}
           onChange={(event) => onChange(event.currentTarget.value as T)}
         >
           {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
-        <ChevronDown className="link-page-editor-select-fallback-icon pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+        <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
       </span>
     </label>
   );

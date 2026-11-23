@@ -102,7 +102,10 @@ export function renderLinkPage(content: LinkPageContent, slug: string, canonical
     if (reverse) blocks.sort((a, b) => b.createdAt - a.createdAt);
     return `<section id="${id}" class="link-page__section"${heading ? ` aria-labelledby="${id}-heading"` : ""}>
       ${heading ? `<h2 id="${id}-heading" class="link-page__heading">${escape(heading)}</h2>` : ""}
-      ${blocks.map((block) => renderBlock(block, basePath, id === "featured" || content.showThumbnails, content.rowStyle ?? "plain")).join("")}</section>`;
+      ${blocks.map((block) => {
+        const showThumbnail = id === "featured" || (content.showThumbnails && (id === "latest" || Boolean(block.image)));
+        return renderBlock(block, basePath, showThumbnail, content.rowStyle ?? "plain");
+      }).join("")}</section>`;
   };
   const featured = section("featured", "");
   const latest = content.showLatest ? section("latest", content.latestHeading, content.newestFirst) : "";

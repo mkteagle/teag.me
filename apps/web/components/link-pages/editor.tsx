@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  ArrowDown, ArrowLeft, ArrowUp, ArrowUpRight, Link2, Minus, Music2, Play, ScanLine, Share2, Type,
+  ArrowDown, ArrowLeft, ArrowUp, ArrowUpRight, Link2, Minus, Music2, Play, Share2, Type,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { deletePage, getLinkPreview, savePage } from "@/app/(protected)/link-pages/actions";
@@ -15,6 +15,7 @@ import {
 import { capture } from "@/lib/posthog";
 import { CssEditor } from "./css-editor";
 import { EditorPanel, EditorSelect, inputClass } from "./editor-controls";
+import { PageQr } from "./page-qr";
 import { LinkPagePreview } from "./preview";
 
 const typeNames: Record<BlockType, string> = {
@@ -110,52 +111,6 @@ function ImageField({ label, value, onChange, size }: { label: string; value: st
     {value && <Button variant="ghost" size="sm" type="button" disabled={loading} onClick={() => onChange("")}>Remove {label.toLowerCase()}</Button>}
     {loading && <p className="text-xs text-muted-foreground" role="status">Preparing image…</p>}
     {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-  </div>;
-}
-
-function PageQr({ id, slug }: { id: string; slug: string }) {
-  const [qr, setQr] = useState("");
-  const [note, setNote] = useState("");
-  const [loading, setLoading] = useState(false);
-  const path = `/u/${slug}/qr/${id}`;
-  async function show() {
-    setLoading(true);
-    setNote("");
-    try {
-      const { toDataURL } = await import("qrcode");
-      setQr(await toDataURL(new URL(path, window.location.origin).href, { width: 640, margin: 4 }));
-      capture("link_page_qr_viewed");
-    } catch {
-      setNote("Couldn't draw the QR code. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-  return <div className="space-y-3">
-    {!qr && <Button size="sm" type="button" variant="outline" disabled={loading} onClick={show}><ScanLine className="size-4" />{loading ? "Loading…" : "View QR code"}</Button>}
-    {qr && <>
-      <img src={qr} alt="QR code for this link page" width={160} height={160} className="rounded-xl border" />
-      <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="outline" asChild><a download={`${slug}-qr.png`} href={qr} onClick={() => capture("link_page_qr_downloaded")}>Download PNG</a></Button>
-        <Button size="sm" variant="outline" type="button" onClick={async () => {
-          const url = new URL(path, window.location.origin).href;
-          try {
-            if (navigator.share) {
-              const file = new File([await (await fetch(qr)).blob()], `${slug}-qr.png`, { type: "image/png" });
-              if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: "Link page QR code" });
-              else await navigator.share({ url, title: "Link page QR code" });
-            } else {
-              await navigator.clipboard.writeText(url);
-              setNote("QR link copied.");
-            }
-            capture("link_page_qr_shared");
-          } catch (error) {
-            if (!(error instanceof DOMException && error.name === "AbortError")) setNote("Couldn't share this code. Download the PNG to share it.");
-          }
-        }}>Share QR</Button>
-      </div>
-    </>}
-    {note && <p className="text-sm text-muted-foreground" role="status">{note}</p>}
   </div>;
 }
 
@@ -291,7 +246,10 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div className="min-w-[14rem] flex-1"><Field label="Page URL"><input className={inputClass} readOnly value={`teag.me/u/${slug}`} /></Field></div>
-            {published && <Button variant="outline" asChild><a href={`/u/${slug}`} target="_blank" rel="noopener">View page <ArrowUpRight className="size-4" /></a></Button>}
+            {published && <>
+              <Button variant="outline" asChild><a href={`/u/${slug}`} target="_blank" rel="noopener">View page <ArrowUpRight className="size-4" /></a></Button>
+              <PageQr id={id} slug={slug} />
+            </>}
           </div>
 
           <fieldset disabled={pending || quickBusy} className="min-w-0 space-y-7">
@@ -369,7 +327,9 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
                 onChange={(update) => changeBlock(block.id, update)} onMove={(offset) => moveBlock(block.id, offset)}
                 onDelete={() => change("blocks", content.blocks.filter((item) => item.id !== block.id))} />)}
               <div className="flex flex-wrap items-end gap-2">
-                <EditorSelect label="Block type" value={type} options={blockOptions} onChange={setType} />
+                <div className="w-44 max-w-full">
+                  <EditorSelect label="Block type" value={type} options={blockOptions} onChange={setType} />
+                </div>
                 <Button type="button" variant="outline" disabled={full} onClick={() => {
                   change("blocks", [...content.blocks, newBlock(crypto.randomUUID(), type, Date.now())]);
                   capture("link_page_block_added", { block_type: type });
@@ -387,7 +347,6 @@ export function LinkPageEditor({ id, slug, initial, initialVersion, isPublished 
             </div>
             {error && <p role="alert" className="w-full text-sm text-destructive">{error}</p>}
           </div>
-          {published && <PageQr id={id} slug={slug} />}
           <EditorPanel label="Delete page" compact>
             <p className="my-2 text-muted-foreground">Deleting this page removes its public link and QR destination.</p>
             <Button type="button" size="sm" variant="destructive" disabled={pending || quickBusy} onClick={async () => {
