@@ -358,5 +358,8 @@ export const linkPageEvents = pgTable("LinkPageEvent", {
   pageId: varchar("pageId", { length: 24 }).notNull().references(() => linkPages.id, { onDelete: "cascade" }),
   type: linkPageEventType("type").notNull(),
   blockTitle: text("blockTitle"),
+  country: text("country"),
+  region: text("region"),
+  city: text("city"),
   timestamp: timestamp("timestamp", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [index("LinkPageEvent_pageId_timestamp_idx").on(table.pageId, table.timestamp)]);

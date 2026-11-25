@@ -36,6 +36,13 @@
       "when": 1795452054852,
       "tag": "0004_link_pages",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795619086698,
+      "tag": "0005_link_page_click_location",
+      "breakpoints": true
     }
   ]
 }

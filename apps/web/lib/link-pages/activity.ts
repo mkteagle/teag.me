@@ -8,6 +8,7 @@ export type ActivityItem = {
   action: string;
   title: string;
   detail?: string | null;
+  location?: string;
   href: string;
   timestamp: Date;
 };
@@ -26,6 +27,7 @@ export async function getWorkspaceActivity(userId: string, since: Date | null, f
   const linkRows = filter === "codes" ? [] : db.select({
     id: linkPageEvents.id, timestamp: linkPageEvents.timestamp, type: linkPageEvents.type,
     pageId: linkPages.id, slug: linkPages.slug, blockTitle: linkPageEvents.blockTitle,
+    city: linkPageEvents.city, region: linkPageEvents.region, country: linkPageEvents.country,
     title: sql<string>`${linkPages.published} ->> 'name'`,
   }).from(linkPageEvents).innerJoin(linkPages, eq(linkPageEvents.pageId, linkPages.id))
     .where(and(eq(linkPages.userId, userId), since ? gte(linkPageEvents.timestamp, since) : undefined))
@@ -40,6 +42,7 @@ export async function getWorkspaceActivity(userId: string, since: Date | null, f
     ...pages.map((page) => ({
       id: page.id, source: "link-pages" as const, timestamp: page.timestamp, action: eventNames[page.type],
       title: page.title || page.slug, detail: page.blockTitle, href: `/link-pages/${page.pageId}`,
+      location: [page.city, page.region, page.country].filter(Boolean).join(", "),
     })),
   ];
   return items.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 50);

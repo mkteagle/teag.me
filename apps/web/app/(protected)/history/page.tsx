@@ -43,6 +43,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{item.action}</p>
                   <p className="truncate text-sm text-muted-foreground">{item.title}{item.detail ? ` · ${item.detail}` : ""}</p>
+                  {item.location && <p className="text-xs text-muted-foreground">Approximate location · {item.location}</p>}
                   <time dateTime={item.timestamp.toISOString()} className="text-xs text-muted-foreground sm:hidden">{timeFormat.format(item.timestamp)} UTC</time>
                 </div>
                 <time dateTime={item.timestamp.toISOString()} className="hidden shrink-0 text-sm text-muted-foreground sm:block">{timeFormat.format(item.timestamp)} UTC</time>

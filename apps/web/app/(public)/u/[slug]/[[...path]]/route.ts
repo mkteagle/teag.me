@@ -8,6 +8,24 @@ function missing() {
   return new Response("Link page not found.", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }
 
+function clickLocation(headers: Headers) {
+  if (headers.get("dnt") === "1" || headers.get("sec-gpc") === "1") return {};
+
+  let city: string | null = null;
+  try {
+    const decoded = decodeURIComponent(headers.get("x-vercel-ip-city") ?? "").trim();
+    if (decoded && !/[\x00-\x1f\x7f]/.test(decoded)) city = decoded;
+  } catch {
+    // An invalid location header should never prevent the click from being recorded.
+  }
+
+  return {
+    city,
+    region: headers.get("x-vercel-ip-country-region"),
+    country: headers.get("x-vercel-ip-country"),
+  };
+}
+
 export async function GET(request: Request, context: { params: Promise<{ slug: string; path?: string[] }> }) {
   const { slug, path = [] } = await context.params;
   const scan = path.length === 2 && path[0] === "qr";
@@ -46,7 +64,10 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
     const block = page.content.blocks.find((block) => block.id === path[1]);
     const destination = block && blockIsVisible(page.content, block) && blockDestination(block);
     if (!block || !destination) return missing();
-    if (track) after(() => recordLinkPageEvent(page, "click", block.title || destination.hostname));
+    if (track) {
+      const details = { blockTitle: block.title || destination.hostname, ...clickLocation(request.headers) };
+      after(() => recordLinkPageEvent(page, "click", details));
+    }
     return new Response(null, {
       status: 302,
       headers: { Location: destination.href, "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" },

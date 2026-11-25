@@ -79,6 +79,10 @@ export default function PrivacyPage() {
                     <li>Browser type and version</li>
                     <li>Referrer information</li>
                   </ul>
+                  <p className="mt-3">
+                    When someone opens a link on a Link Page, we record the time, which link was opened,
+                    and the approximate city, region, and country when available.
+                  </p>
                 </div>
 
                 <div>

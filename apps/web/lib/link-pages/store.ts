@@ -77,9 +77,15 @@ export async function removeLinkPage(userId: string, id: string) {
   await getDb().delete(linkPages).where(and(eq(linkPages.id, id), eq(linkPages.userId, userId)));
 }
 
-export async function recordLinkPageEvent(page: { id: string; userId: string }, type: "view" | "click" | "scan", blockTitle?: string) {
+type LinkPageClickDetails = Pick<typeof linkPageEvents.$inferInsert, "blockTitle" | "country" | "region" | "city">;
+
+export async function recordLinkPageEvent(
+  page: { id: string; userId: string },
+  type: "view" | "click" | "scan",
+  clickDetails?: LinkPageClickDetails,
+) {
   try {
-    const values = { id: generateId(), pageId: page.id, type, blockTitle };
+    const values = { id: generateId(), pageId: page.id, type, ...clickDetails };
     if (type === "scan") {
       await trackScanWithinQuota(page.userId, async (transaction, timestamp) => {
         await transaction.insert(linkPageEvents).values({ ...values, timestamp });
