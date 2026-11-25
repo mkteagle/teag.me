@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Link2, QrCode } from "lucide-react";
 import { ActivityDashboard } from "@/components/analytics/activity-dashboard";
 import { HistoryClient } from "@/components/history/history-client";
@@ -34,10 +34,10 @@ export default async function HistoryPage({ searchParams }: {
     selected === "scanner" ? null : getUserPlan(user.id),
     pageId ? ownerLinkPage(pageId, user.id) : null,
   ]);
-  if (pageId && !linkPage) notFound();
-
   const ranges = plan?.plan === "FREE" ? [plan.limits.analyticsRetentionDays] : [7, 30, 90];
   const range = ranges.find((value) => String(value) === days) ?? (plan?.plan === "FREE" ? ranges[0] : 30);
+  if (pageId && !linkPage) redirect(activityHref("link-pages", range));
+
   const retentionDate = plan ? getAnalyticsRetentionDate(plan.plan) : null;
   const now = new Date();
   const since = new Date(now);
