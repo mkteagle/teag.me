@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChartNoAxesCombined } from "lucide-react";
 import { CreateLinkPage } from "@/components/link-pages/collection";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth-session";
@@ -14,10 +14,15 @@ export default async function LinkPagesPage() {
 
   return (
     <div className="full-bleed space-y-7 py-8 sm:py-12">
-      <div>
-        <h1 className="text-4xl font-extrabold tracking-[-0.055em] sm:text-5xl">Link pages</h1>
-        <p className="mt-3 text-muted-foreground">Share your latest links, featured work, and social profiles from one address.</p>
-        <p className="mt-2 text-sm font-medium">{limit < 0 ? "Pro · Unlimited link pages" : `Free · ${pages.length} of ${limit} link page used`}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-[-0.055em] sm:text-5xl">Link pages</h1>
+          <p className="mt-3 text-muted-foreground">Share your latest links, featured work, and social profiles from one address.</p>
+          <p className="mt-2 text-sm font-medium">{limit < 0 ? "Pro · Unlimited link pages" : `Free · ${pages.length} of ${limit} link page used`}</p>
+        </div>
+        <Button variant="outline" size="lg" asChild className="font-semibold sm:h-14 sm:text-base">
+          <Link prefetch={false} href="/history?tab=link-pages"><ChartNoAxesCombined className="size-5" aria-hidden="true" /> Analytics</Link>
+        </Button>
       </div>
       {pages.length > 0 && (
         <ul className="divide-y rounded-2xl border">
@@ -28,7 +33,10 @@ export default async function LinkPagesPage() {
                 <p className="break-all text-sm text-muted-foreground">teag.me/u/{page.slug} · {page.publishedAt ? "Published" : "Draft"}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {page.publishedAt && <Button variant="outline" size="sm" asChild><a href={`/u/${page.slug}`} target="_blank" rel="noopener">View <ArrowUpRight className="size-4" /></a></Button>}
+                {page.publishedAt && <>
+                  <Button variant="outline" size="sm" asChild><a href={`/u/${page.slug}`} target="_blank" rel="noopener">View <ArrowUpRight className="size-4" /></a></Button>
+                  <Button variant="outline" size="sm" asChild><Link prefetch={false} href={`/history?tab=link-pages&page=${encodeURIComponent(page.id)}`} aria-label={`Analytics for ${page.name}`}>Analytics</Link></Button>
+                </>}
                 <Button variant="outline" size="sm" asChild><Link prefetch={false} href={`/link-pages/${page.id}`}>Edit page</Link></Button>
               </div>
             </li>

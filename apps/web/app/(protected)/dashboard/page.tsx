@@ -15,7 +15,7 @@ import { UpgradeWall } from "@/components/upgrade-wall";
 import { usePlan } from "@/lib/hooks/use-plan";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { capture } from "@/lib/posthog";
-import { Plus, ChevronLeft, ChevronRight, Zap } from "lucide-react";
+import { ChartNoAxesCombined, Plus, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 
 interface PaginationInfo {
   page: number;
@@ -195,17 +195,22 @@ export default function DashboardPage() {
             {loading ? "Loading codes…" : `${pagination.totalCount.toLocaleString()} ${activeTab === "archived" ? "archived " : ""}${pagination.totalCount === 1 ? "code" : "codes"} · ${totalScans.toLocaleString()} scans${scanHistoryDays ? ` in the last ${scanHistoryDays} days` : ""}${pagination.totalPages > 1 ? " on this page" : ""}`}
           </p>
         </div>
-        {atQrLimit ? (
-          <Button size="lg" className="font-semibold sm:h-14 sm:min-w-48 sm:text-base" onClick={() => setUpgradeWallOpen(true)}>
-            <Zap className="size-5" aria-hidden="true" /> Upgrade to create
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="lg" asChild className="font-semibold sm:h-14 sm:text-base">
+            <Link prefetch={false} href="/history?tab=codes"><ChartNoAxesCombined className="size-5" aria-hidden="true" /> Analytics</Link>
           </Button>
-        ) : (
-          <Button size="lg" asChild className="font-semibold sm:h-14 sm:min-w-48 sm:text-base">
-            <Link href="/generate" onClick={() => capture("create_opened", { source: "dashboard" })}>
-              <Plus className="size-5" aria-hidden="true" /> Create QR
-            </Link>
-          </Button>
-        )}
+          {atQrLimit ? (
+            <Button size="lg" className="font-semibold sm:h-14 sm:min-w-48 sm:text-base" onClick={() => setUpgradeWallOpen(true)}>
+              <Zap className="size-5" aria-hidden="true" /> Upgrade to create
+            </Button>
+          ) : (
+            <Button size="lg" asChild className="font-semibold sm:h-14 sm:min-w-48 sm:text-base">
+              <Link href="/generate" onClick={() => capture("create_opened", { source: "dashboard" })}>
+                <Plus className="size-5" aria-hidden="true" /> Create QR
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {atScanLimit && planData && (

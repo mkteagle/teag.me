@@ -15,7 +15,7 @@ export type ActivityItem = {
 
 const eventNames = { view: "Page viewed", click: "Link opened", scan: "Page QR scanned", publish: "Page published" };
 
-export async function getWorkspaceActivity(userId: string, since: Date | null, filter: "all" | ActivityItem["source"]) {
+export async function getWorkspaceActivity(userId: string, since: Date | null, filter: "all" | ActivityItem["source"], pageId?: string) {
   const db = getDb();
   const codeRows = filter === "link-pages" ? [] : db.select({
     id: scans.id, timestamp: scans.timestamp, type: scans.type,
@@ -30,7 +30,8 @@ export async function getWorkspaceActivity(userId: string, since: Date | null, f
     city: linkPageEvents.city, region: linkPageEvents.region, country: linkPageEvents.country,
     title: sql<string>`${linkPages.published} ->> 'name'`,
   }).from(linkPageEvents).innerJoin(linkPages, eq(linkPageEvents.pageId, linkPages.id))
-    .where(and(eq(linkPages.userId, userId), since ? gte(linkPageEvents.timestamp, since) : undefined))
+    .where(and(eq(linkPages.userId, userId), since ? gte(linkPageEvents.timestamp, since) : undefined,
+      pageId ? eq(linkPages.id, pageId) : undefined))
     .orderBy(desc(linkPageEvents.timestamp)).limit(50);
 
   const [codes, pages] = await Promise.all([codeRows, linkRows]);
